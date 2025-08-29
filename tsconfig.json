@@ -1,12 +1,11 @@
 {
   "compilerOptions": {
     "lib": ["DOM", "ES2020"],
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "target": "ES2020",
     "noEmit": true,
     "skipLibCheck": true,
     "useDefineForClassFields": true,
-
     /* modules */
     "module": "ESNext",
     "moduleDetection": "force",
@@ -15,7 +14,6 @@
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
     "noUncheckedSideEffectImports": true,
-
     /* type checking */
     "strict": true,
     "noUnusedLocals": true,
@@ -25,9 +23,18 @@
       "@/*": ["src/*"],
       "@config/*": ["config/*"],
       "@prisma/*": ["prisma/*"],
-      "@public/*": ["public/*"]
-    }
+      "@public/*": ["public/*"],
+      "@backend/*": ["src/backend/*"]
+    },
+    "allowJs": true,
+    "incremental": true,
+    "esModuleInterop": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ]
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "next-env.d.ts", ".next/types/**/*.ts"],
   "exclude": ["node_modules"]
 }
