@@ -1,14 +1,11 @@
-version: "3.9"
-
 services:
   app:
     build:
-      context: .
+      context: ../../
       dockerfile: config/docker/dev.Dockerfile
+    volumes:
+      - ../../:/app
+      - /app/node_modules
     ports:
       - "3000:3000"
-    volumes:
-      - .:/app             # Hot reload: reflejar cambios locales
-      - /app/node_modules  # Evita conflictos con node_modules locales
-    environment:
-      - NODE_ENV=development
+    command: bun run dev

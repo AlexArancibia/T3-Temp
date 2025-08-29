@@ -1,20 +1,25 @@
-# Base image con Bun
+# Base con Bun
 FROM oven/bun:1
 
-# Crear directorio de la app
 WORKDIR /app
 
-# Copiar package.json y lockfile
-COPY package.json bun.lockb ./
-
-# Instalar dependencias
+# Copiar lockfile y package.json primero
+COPY package.json bun.lock ./
 RUN bun install
 
-# Copiar todo el código
+# Copiar código fuente
+
 COPY . .
 
-# Exponer el puerto de Next.js
+# Instalar OpenSSL y npm necesarios para Prisma
+RUN apt-get update -y && apt-get install -y openssl npm
+
+# Instalar @prisma/client con npm
+RUN npm install @prisma/client
+# Generar Prisma Client
+RUN bunx prisma generate
+
 EXPOSE 3000
 
-# Comando para desarrollo con hot reload
+# Hot reload (Bun dev server)
 CMD ["bun", "run", "dev"]

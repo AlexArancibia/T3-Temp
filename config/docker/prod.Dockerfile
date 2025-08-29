@@ -1,45 +1,35 @@
 # ======================
-# 1) Etapa de build
+# 1) Build stage (con Bun)
 # ======================
-FROM dockette/nodejs:20 AS builder
+FROM oven/bun:1 AS builder
 
-# Crear directorio de trabajo
 WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --production
 
-# Copiar archivos de dependencias
-COPY package*.json ./
-# Si usas Bun como gestor, descomenta:
-# COPY bun.lockb ./
-
-# Instalar dependencias (solo producción para reducir tamaño)
-RUN npm ci --omit=dev
-# Si prefieres Bun:
-# RUN bun install --production
-
-# Copiar el resto del proyecto
 COPY . .
-
-# Build de Next.js
-RUN npm run build
+RUN bun run build   # compila Next.js
 
 # ======================
-# 2) Etapa de runtime
+# 2) Runtime (con Node.js)
 # ======================
 FROM dockette/nodejs:20 AS runner
 
 WORKDIR /app
-
-# Establecer variable para Next.js en producción
 ENV NODE_ENV=production
 
-# Copiar solo lo necesario desde el builder
+# Copiar solo lo necesario
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package*.json ./
 
-# Exponer el puerto por defecto de Next.js
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
 
-# Comando de inicio
-CMD ["npm", "run", "start"]
+RUN useradd --system --create-home --shell /bin/bash appuser
+RUN chown -R appuser:appuser /app
+USER appuser
+
+CMD ["node", "server.js"] # o "next start" si no tienes server.js
