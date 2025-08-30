@@ -12,11 +12,16 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export const sendMail = async (to: string, subject: string, text: string) => {
+export const sendMail = async (
+  to: string,
+  subject: string,
+  content: string,
+) => {
+  const isHtml = /<([A-Za-z][A-Za-z0-9]*)\b[^>]*>(.*?)<\/\1>/.test(content);
   await transporter.sendMail({
     from: process.env.NODEMAILER_USER,
     to,
     subject,
-    text,
+    ...(isHtml ? { html: content } : { text: content }),
   });
 };

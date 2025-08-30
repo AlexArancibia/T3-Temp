@@ -13,15 +13,19 @@ export const registerUser = async (
   email: string,
   password: string,
   name: string,
+  lastname: string,
+  phone: string,
 ): Promise<User> => {
   if (!validateEmail(email)) throw new Error("Email inválido");
   const hashed = await bcrypt.hash(password, 10);
-  const confirmationToken = crypto.randomUUID();
+  const confirmationToken = crypto.randomUUID() as string;
   const user = await prisma.user.create({
     data: {
       email,
       password: hashed,
       name,
+      lastname,
+      phone,
       isConfirmed: false,
       confirmationToken,
     },
@@ -29,9 +33,20 @@ export const registerUser = async (
   await sendMail(
     user.email,
     "Confirma tu cuenta",
-    `Por favor confirma tu cuenta usando este token: ${confirmationToken}`,
+    `<div style="font-family:sans-serif;padding:2rem;text-align:center;">
+      <h2>Confirma tu cuenta</h2>
+      <p>Haz clic en el botón para confirmar tu correo electrónico:</p>
+      <a href="http://localhost:3000/confirm-email?token=${confirmationToken}" style="display:inline-block;padding:0.75rem 1.5rem;background:#22c55e;color:#fff;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:1rem;">Confirmar correo</a>
+      <p style="margin-top:2rem;font-size:0.9rem;color:#555;">Si no puedes hacer clic, copia y pega el siguiente enlace en tu navegador:</p>
+      <code style="background:#f3f3f3;padding:0.5rem;border-radius:4px;display:block;word-break:break-all;">http://localhost:3000/confirm-email?token=${confirmationToken}</code>
+    </div>`,
   );
-  return user;
+  return {
+    ...user,
+    confirmationToken: user.confirmationToken ?? undefined,
+    resetToken: user.resetToken ?? undefined,
+    resetTokenExpiry: user.resetTokenExpiry ?? undefined,
+  };
 };
 
 export const confirmUser = async (token: string): Promise<boolean> => {
@@ -52,6 +67,7 @@ export const loginUser = async (
 ): Promise<string> => {
   const user = await prisma.user.findUnique({ where: { email } });
   if (!user) throw new Error("Usuario no encontrado");
+  if (!user.password) throw new Error("Usuario sin contraseña local");
   const valid = await bcrypt.compare(password, user.password);
   if (!valid) throw new Error("Contraseña incorrecta");
   return jwt.sign(
@@ -70,11 +86,16 @@ export const sendPasswordReset = async (email: string): Promise<void> => {
     where: { id: user.id },
     data: { resetToken, resetTokenExpiry },
   });
-  await sendMail(
-    email,
-    "Recuperación de contraseña",
-    `Usa este token para recuperar tu contraseña: ${resetToken}`,
-  );
+  const resetUrl = `http://localhost:3000/reset-password?token=${resetToken}`;
+  const html = `
+    <div style="font-family:Arial,sans-serif;padding:24px;">
+      <h2>Recuperación de contraseña</h2>
+      <p>Haz clic en el siguiente botón para cambiar tu contraseña:</p>
+      <a href="${resetUrl}" style="display:inline-block;background:#6366f1;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:bold;margin-top:16px;">Cambiar contraseña</a>
+      <p style="margin-top:24px;font-size:14px;color:#555;">Si no solicitaste este cambio, ignora este correo.</p>
+    </div>
+  `;
+  await sendMail(email, "Recuperación de contraseña", html);
 };
 
 export const resetPassword = async (

@@ -19,6 +19,8 @@ model User {
   email             String    @unique
   password          String?   // opcional, porque Google OAuth no usa password
   name              String
+  lastname          String?
+  phone             String?
   isConfirmed       Boolean   @default(false)
   confirmationToken String?   @unique
   resetToken        String?   @unique

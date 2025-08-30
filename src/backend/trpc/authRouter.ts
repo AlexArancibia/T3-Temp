@@ -17,10 +17,18 @@ export const authRouter = t.router({
         email: z.string().email(),
         password: z.string().min(6),
         name: z.string().min(2),
+        lastname: z.string().min(2),
+        phone: z.string().min(6),
       }),
     )
     .mutation(async ({ input }) => {
-      return await registerUser(input.email, input.password, input.name);
+      return await registerUser(
+        input.email,
+        input.password,
+        input.name,
+        input.lastname,
+        input.phone,
+      );
     }),
 
   login: t.procedure
