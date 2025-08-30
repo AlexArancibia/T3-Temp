@@ -19,3 +19,4 @@ node_modules
 /app/generated/prisma
 
 .env
+.next

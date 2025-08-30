@@ -24,7 +24,8 @@
       "@config/*": ["config/*"],
       "@prisma/*": ["prisma/*"],
       "@public/*": ["public/*"],
-      "@backend/*": ["src/backend/*"]
+      "@backend/*": ["src/backend/*"],
+      "@styles/*": ["styles/*"]
     },
     "allowJs": true,
     "incremental": true,
