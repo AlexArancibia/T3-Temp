@@ -9,7 +9,7 @@
     "start": "next start",
     "verify": "bun run lint && bun run format",
     "fix": "bun run lint:fix && bun run format:fix",
-    "lint": "biome check --config-path ./config/lint/biome.json .",
+    "lint": "biome check .",
     "lint:fix": "biome check --write .",
     "format": "biome format .",
     "format:fix": "biome format --write .",
