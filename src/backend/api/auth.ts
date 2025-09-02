@@ -1,8 +1,16 @@
 import { prisma } from "@backend/lib/db";
 import { sendMail } from "@backend/lib/mailer";
+import type {
+  AuthAccount,
+  AuthSession,
+  AuthToken,
+  AuthUser,
+  GoogleProfile,
+} from "@backend/types/auth";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { toNextJsHandler } from "better-auth/next-js";
+import { config } from "@/lib/config";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -37,8 +45,70 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: config.auth.google.clientId,
+      clientSecret: config.auth.google.clientSecret,
+      profile(profile: GoogleProfile) {
+        return {
+          id: profile.sub,
+          email: profile.email,
+          name: profile.name,
+          image: profile.picture,
+          emailVerified: profile.email_verified,
+        };
+      },
+    },
+  },
+  session: {
+    strategy: "jwt",
+    expiresIn: 60 * 60 * 24 * 7, // 7 días
+  },
+  callbacks: {
+    async signIn({
+      user,
+      account,
+    }: {
+      user: AuthUser;
+      account: AuthAccount;
+      profile: GoogleProfile;
+    }) {
+      try {
+        // Si es un usuario de Google, marcarlo como confirmado
+        if (account?.provider === "google") {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { isConfirmed: true },
+          });
+        }
+        return true;
+      } catch (error) {
+        console.error("Error in signIn callback:", error);
+        return true; // Permitir el login incluso si hay error en la actualización
+      }
+    },
+    async session({
+      session,
+      token,
+    }: {
+      session: AuthSession;
+      token: AuthToken;
+    }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+      return session;
+    },
+    async jwt({
+      token,
+      user,
+    }: {
+      token: AuthToken;
+      user: AuthUser;
+      account: AuthAccount;
+    }) {
+      if (user) {
+        token.sub = user.id;
+      }
+      return token;
     },
   },
 });

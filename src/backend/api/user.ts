@@ -43,12 +43,10 @@ const userHandler = async (
         const passwordRegex =
           /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-={}:;"'<>?,.]).{8,}$/;
         if (!passwordRegex.test(password)) {
-          res
-            .status(400)
-            .json({
-              error:
-                "La contraseña debe tener mínimo 8 caracteres, mayúsculas, minúsculas, números y caracteres especiales.",
-            });
+          res.status(400).json({
+            error:
+              "La contraseña debe tener mínimo 8 caracteres, mayúsculas, minúsculas, números y caracteres especiales.",
+          });
           return;
         }
         // Validar campos extra
