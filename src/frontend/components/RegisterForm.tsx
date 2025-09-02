@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import GoogleIcon from "@/frontend/components/icons/GoogleIcon";
 
 const passwordRules = [
   { label: "Mínimo 8 caracteres", test: (v: string) => v.length >= 8 },
@@ -302,14 +303,35 @@ export default function RegisterForm({ onLogin }: { onLogin: () => void }) {
           >
             {loading ? "Creando..." : "Crear cuenta"}
           </button>
-          <div className="flex justify-center text-sm mt-2">
+          <div className="flex flex-col gap-2 mt-2">
             <button
               type="button"
-              className="text-indigo-600 hover:underline"
-              onClick={onLogin}
+              className={`flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 px-4 hover:bg-gray-100 transition-colors font-medium ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+              disabled={loading}
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  window.location.href = "/api/auth/google/login";
+                } catch {
+                  setToastType("error");
+                  setToastMsg("No se pudo redirigir a Google");
+                  setToastOpen(true);
+                }
+                setLoading(false);
+              }}
             >
-              ¿Ya tienes cuenta? Inicia sesión
+              <GoogleIcon className="w-5 h-5" />
+              {loading ? "Redirigiendo..." : "Crear cuenta con Google"}
             </button>
+            <div className="flex justify-center text-sm">
+              <button
+                type="button"
+                className="text-indigo-600 hover:underline"
+                onClick={onLogin}
+              >
+                ¿Ya tienes cuenta? Inicia sesión
+              </button>
+            </div>
           </div>
         </form>
       </Form>

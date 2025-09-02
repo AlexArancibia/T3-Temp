@@ -9,6 +9,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import GoogleIcon from "@/frontend/components/icons/GoogleIcon";
+import { useAuth } from "@/frontend/hooks/useAuth";
 
 type LoginFormValues = { email: string; password: string };
 
@@ -23,6 +25,8 @@ export default function LoginForm({
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
+  const { signInWithGoogle } = useAuth();
+
   const form = useForm<LoginFormValues>({
     defaultValues: {
       email: "",
@@ -86,6 +90,21 @@ export default function LoginForm({
     setLoading(false);
   };
 
+  const handleGoogleSignIn = async () => {
+    console.log("🔵 LoginForm: handleGoogleSignIn iniciado");
+    setLoading(true);
+    try {
+      console.log("🔵 LoginForm: Llamando a signInWithGoogle");
+      await signInWithGoogle();
+    } catch {
+      console.log("❌ LoginForm: Error en signInWithGoogle");
+      setToastType("error");
+      setToastMsg("No se pudo redirigir a Google");
+      setToastOpen(true);
+      setLoading(false);
+    }
+  };
+
   return (
     <>
       <Form {...form}>
@@ -138,21 +157,32 @@ export default function LoginForm({
           >
             {loading ? "Ingresando..." : "Ingresar"}
           </button>
-          <div className="flex justify-between text-sm mt-2">
+          <div className="flex flex-col gap-2 mt-2">
             <button
               type="button"
-              className="text-indigo-600 hover:underline"
-              onClick={onRegister}
+              className={`flex items-center justify-center gap-2 border border-gray-300 rounded-lg py-2 px-4 hover:bg-gray-100 transition-colors font-medium ${loading ? "opacity-60 cursor-not-allowed" : ""}`}
+              disabled={loading}
+              onClick={handleGoogleSignIn}
             >
-              ¿No tienes cuenta? Regístrate
+              <GoogleIcon className="w-5 h-5" />
+              {loading ? "Redirigiendo..." : "Ingresar con Google"}
             </button>
-            <button
-              type="button"
-              className="text-yellow-600 hover:underline"
-              onClick={onReset}
-            >
-              ¿Olvidaste tu contraseña?
-            </button>
+            <div className="flex justify-between text-sm">
+              <button
+                type="button"
+                className="text-indigo-600 hover:underline"
+                onClick={onRegister}
+              >
+                ¿No tienes cuenta? Regístrate
+              </button>
+              <button
+                type="button"
+                className="text-yellow-600 hover:underline"
+                onClick={onReset}
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
           </div>
         </form>
       </Form>
