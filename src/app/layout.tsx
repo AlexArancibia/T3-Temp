@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 
 import "../../styles/globals.css";
-import { AuthProvider } from "@/frontend/contexts/AuthContext";
+import { AuthProvider } from "@/AuthContext";
+import GlobalNavbar from "@/components/GlobalNavbar";
 
 export const metadata: Metadata = {
-  title: "Bun Next.js Boilerplate",
+  title: "MiApp - Plataforma de Productividad",
   description:
-    "A modern Next.js boilerplate with Bun, TypeScript, and Tailwind CSS",
+    "Una plataforma moderna para gestionar proyectos, colaborar en equipo y alcanzar tus objetivos.",
 };
 
 export default function RootLayout({
@@ -17,7 +18,10 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <GlobalNavbar />
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

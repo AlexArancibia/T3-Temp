@@ -1,0 +1,263 @@
+"use client";
+
+import * as Toast from "@radix-ui/react-toast";
+import { ArrowLeft, Eye, EyeOff } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import { useAuthContext } from "@/AuthContext";
+import GoogleIcon from "@/components/icons/GoogleIcon";
+import {
+  Form,
+  FormControl,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+
+type LoginFormValues = {
+  email: string;
+  password: string;
+};
+
+export default function SignInPage() {
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [toastOpen, setToastOpen] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const router = useRouter();
+  const { signIn } = useAuthContext();
+
+  const form = useForm<LoginFormValues>({
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const {
+    control,
+    handleSubmit,
+    setError,
+    clearErrors,
+    formState: { errors: _errors },
+  } = form;
+
+  const onSubmit = async (data: LoginFormValues) => {
+    setLoading(true);
+    clearErrors();
+
+    // Validación básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(data.email)) {
+      setError("email", {
+        type: "manual",
+        message: "Ingresa un correo válido",
+      });
+      setToastType("error");
+      setToastMsg("Ingresa un correo válido");
+      setToastOpen(true);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.password) {
+      setError("password", {
+        type: "manual",
+        message: "Ingresa tu contraseña",
+      });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const result = await signIn(data.email, data.password);
+
+      if (result.success) {
+        // Redirigir al dashboard inmediatamente
+        router.push("/dashboard");
+      } else {
+        setToastType("error");
+        setToastMsg(result.error || "Error al iniciar sesión");
+        setToastOpen(true);
+      }
+    } catch (_error) {
+      setToastType("error");
+      setToastMsg("Error de red o servidor");
+      setToastOpen(true);
+    }
+    setLoading(false);
+  };
+
+  const handleGoogleSignIn = async () => {
+    setLoading(true);
+    try {
+      window.location.href = "/api/auth/google/login";
+    } catch (_error) {
+      setToastType("error");
+      setToastMsg("No se pudo redirigir a Google");
+      setToastOpen(true);
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8">
+        {/* Header */}
+        <div className="text-center">
+          <Link
+            href="/"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Volver al inicio
+          </Link>
+
+          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-xl">A</span>
+          </div>
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            Iniciar Sesión
+          </h2>
+          <p className="mt-2 text-sm text-gray-600">
+            ¿No tienes cuenta?{" "}
+            <Link
+              href="/signup"
+              className="font-medium text-blue-600 hover:text-blue-500"
+            >
+              Regístrate aquí
+            </Link>
+          </p>
+        </div>
+
+        {/* Form */}
+        <div className="bg-white py-8 px-6 shadow-lg rounded-lg">
+          <Form {...form}>
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <Controller
+                name="email"
+                control={control}
+                rules={{ required: "Correo requerido" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Correo electrónico</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="email"
+                        placeholder="tu@email.com"
+                        {...field}
+                        className="w-full"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <Controller
+                name="password"
+                control={control}
+                rules={{ required: "Contraseña requerida" }}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Contraseña</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input
+                          type={showPassword ? "text" : "password"}
+                          placeholder="Tu contraseña"
+                          {...field}
+                          className="w-full pr-10"
+                        />
+                        <button
+                          type="button"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-4 w-4" />
+                          ) : (
+                            <Eye className="h-4 w-4" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex items-center justify-between">
+                <div className="text-sm">
+                  <Link
+                    href="/forgot-password"
+                    className="font-medium text-blue-600 hover:text-blue-500"
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </Link>
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {loading ? "Iniciando sesión..." : "Iniciar Sesión"}
+              </button>
+            </form>
+          </Form>
+
+          {/* Divider */}
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  O continúa con
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={handleGoogleSignIn}
+                disabled={loading}
+                className="w-full flex justify-center items-center px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <GoogleIcon className="w-5 h-5 mr-2" />
+                {loading ? "Redirigiendo..." : "Google"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Toast */}
+      <Toast.Provider swipeDirection="right">
+        <Toast.Root
+          open={toastOpen}
+          onOpenChange={setToastOpen}
+          className={
+            toastType === "success"
+              ? "bg-green-600 text-white px-4 py-2 rounded"
+              : "bg-red-600 text-white px-4 py-2 rounded"
+          }
+        >
+          <Toast.Title>
+            {toastType === "success" ? "Éxito" : "Error"}
+          </Toast.Title>
+          <Toast.Description>{toastMsg}</Toast.Description>
+        </Toast.Root>
+        <Toast.Viewport className="fixed bottom-4 right-4 z-50" />
+      </Toast.Provider>
+    </div>
+  );
+}

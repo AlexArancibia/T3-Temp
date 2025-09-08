@@ -1,0 +1,119 @@
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+
+interface User {
+  id: string;
+  email: string;
+  name: string;
+  image?: string;
+  isConfirmed: boolean;
+}
+
+export function useAuth() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  // biome-ignore lint/correctness/useExhaustiveDependencies: checkAuth no necesita estar en dependencias
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
+  const checkAuth = async () => {
+    try {
+      // Verificar si hay un token en localStorage
+      const token = localStorage.getItem("auth_token");
+      if (token) {
+        // Si hay token, verificar la sesión
+        const response = await fetch("/api/auth/session", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            setUser(data.user);
+          } else {
+            // No hay usuario en la respuesta, limpiar token
+            localStorage.removeItem("auth_token");
+            setUser(null);
+          }
+        } else {
+          // Token inválido, limpiar
+          localStorage.removeItem("auth_token");
+          setUser(null);
+        }
+      } else {
+        setUser(null);
+      }
+    } catch (error) {
+      console.error("Error checking auth:", error);
+      localStorage.removeItem("auth_token");
+      setUser(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    console.log("🔵 Hook: signInWithGoogle iniciado");
+    try {
+      console.log("🔵 Hook: Redirigiendo a /api/auth/google/login");
+      window.location.href = "/api/auth/google/login";
+    } catch (error) {
+      console.error("❌ Hook: Error signing in with Google:", error);
+    }
+  };
+
+  const signIn = async (email: string, password: string) => {
+    try {
+      const response = await fetch("/api/trpc/auth.login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.result?.data) {
+        // Guardar el token JWT
+        localStorage.setItem("auth_token", result.result.data);
+        // Actualizar el estado del usuario
+        await checkAuth();
+        return { success: true };
+      } else {
+        return {
+          success: false,
+          error: result.error?.message || "Error al iniciar sesión",
+        };
+      }
+    } catch (error) {
+      console.error("Error signing in:", error);
+      return { success: false, error: "Error de red o servidor" };
+    }
+  };
+
+  const signOut = async () => {
+    try {
+      localStorage.removeItem("auth_token");
+      setUser(null);
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  const refreshSession = async () => {
+    await checkAuth();
+  };
+
+  return {
+    user,
+    loading,
+    signIn,
+    signInWithGoogle,
+    signOut,
+    refreshSession,
+    isAuthenticated: !!user,
+  };
+}
