@@ -1,298 +1,94 @@
 import { toast } from "sonner";
 
-export type NotificationType = "success" | "error" | "warning" | "info";
+// Re-export toast for direct usage
+export { toast };
 
-export interface NotificationOptions {
-  title?: string;
-  description?: string;
-  duration?: number;
-  action?: {
-    label: string;
-    onClick: () => void;
-  };
-}
+// Simple utility functions for common notifications
+export const notifications = {
+  // Basic notifications
+  success: (title: string, description?: string) =>
+    toast.success(title, { description }),
 
-class NotificationService {
-  /**
-   * Muestra una notificación de éxito
-   */
-  success(message: string, options?: NotificationOptions) {
-    return toast.success(options?.title || "Éxito", {
-      description: message,
-      duration: options?.duration || 4000,
-      action: options?.action,
-    });
-  }
+  error: (title: string, description?: string) =>
+    toast.error(title, { description }),
 
-  /**
-   * Muestra una notificación de error
-   */
-  error(message: string, options?: NotificationOptions) {
-    return toast.error(options?.title || "Error", {
-      description: message,
-      duration: options?.duration || 6000,
-      action: options?.action,
-    });
-  }
+  warning: (title: string, description?: string) =>
+    toast.warning(title, { description }),
 
-  /**
-   * Muestra una notificación de advertencia
-   */
-  warning(message: string, options?: NotificationOptions) {
-    return toast.warning(options?.title || "Advertencia", {
-      description: message,
-      duration: options?.duration || 5000,
-      action: options?.action,
-    });
-  }
+  info: (title: string, description?: string) =>
+    toast.info(title, { description }),
 
-  /**
-   * Muestra una notificación informativa
-   */
-  info(message: string, options?: NotificationOptions) {
-    return toast.info(options?.title || "Información", {
-      description: message,
-      duration: options?.duration || 4000,
-      action: options?.action,
-    });
-  }
+  loading: (title: string, description?: string) =>
+    toast.loading(title, { description }),
 
-  /**
-   * Muestra una notificación de carga
-   */
-  loading(message: string, options?: NotificationOptions) {
-    return toast.loading(options?.title || "Cargando", {
-      description: message,
-    });
-  }
+  // Common app notifications
+  userCreated: () =>
+    toast.success("Usuario Creado", {
+      description: "Usuario creado exitosamente",
+    }),
 
-  /**
-   * Actualiza una notificación de carga
-   */
-  updateLoading(
-    id: string | number,
-    type: NotificationType,
-    message: string,
-    options?: NotificationOptions,
-  ) {
-    const toastFunction = {
-      success: toast.success,
-      error: toast.error,
-      warning: toast.warning,
-      info: toast.info,
-    }[type];
+  userUpdated: () =>
+    toast.success("Usuario Actualizado", {
+      description: "Usuario actualizado exitosamente",
+    }),
 
-    return toastFunction(options?.title || this.getDefaultTitle(type), {
-      id,
-      description: message,
-      duration: options?.duration || 4000,
-      action: options?.action,
-    });
-  }
+  userDeleted: () =>
+    toast.success("Usuario Eliminado", {
+      description: "Usuario eliminado exitosamente",
+    }),
 
-  /**
-   * Cierra una notificación específica
-   */
-  dismiss(id: string | number) {
-    toast.dismiss(id);
-  }
+  loginSuccess: () =>
+    toast.success("Bienvenido", {
+      description: "Sesión iniciada correctamente",
+    }),
 
-  /**
-   * Cierra todas las notificaciones
-   */
-  dismissAll() {
-    toast.dismiss();
-  }
+  logoutSuccess: () =>
+    toast.success("Hasta Luego", {
+      description: "Sesión cerrada correctamente",
+    }),
 
-  /**
-   * Maneja errores de API de manera inteligente
-   */
-  handleApiError(error: unknown, context?: string) {
+  emailConfirmed: () =>
+    toast.success("Email Verificado", {
+      description: "Email confirmado exitosamente",
+    }),
+
+  passwordReset: () =>
+    toast.success("Contraseña Actualizada", {
+      description: "Contraseña restablecida exitosamente",
+    }),
+
+  roleAssigned: () =>
+    toast.success("Rol Asignado", {
+      description: "Rol asignado correctamente",
+    }),
+
+  permissionGranted: () =>
+    toast.success("Permiso Otorgado", {
+      description: "Permiso otorgado correctamente",
+    }),
+
+  settingsSaved: () =>
+    toast.success("Configuración Guardada", {
+      description: "Configuración guardada exitosamente",
+    }),
+
+  // Error handling
+  handleApiError: (error: unknown, context?: string) => {
     let message = "Ha ocurrido un error inesperado";
-    let title = "Error del Servidor";
+    let title = context ? `Error en ${context}` : "Error del Servidor";
 
-    if (error && typeof error === "object" && "response" in error) {
-      const apiError = error as { response?: { data?: { message?: string } } };
-      if (apiError.response?.data?.message) {
-        message = apiError.response.data.message;
-      }
-    } else if (error && typeof error === "object" && "message" in error) {
-      const errorWithMessage = error as { message: string };
-      message = errorWithMessage.message;
+    if (error && typeof error === "object" && "message" in error) {
+      message = (error as { message: string }).message;
     } else if (typeof error === "string") {
       message = error;
     }
 
-    if (context) {
-      title = `Error en ${context}`;
-    }
+    return toast.error(title, { description: message });
+  },
 
-    // Errores específicos de tRPC
-    if (error && typeof error === "object" && "data" in error) {
-      const trpcError = error as {
-        data?: { zodError?: Array<{ message: string }> };
-      };
-      if (trpcError.data?.zodError) {
-        const zodError = trpcError.data.zodError;
-        if (Array.isArray(zodError)) {
-          message = zodError.map((err) => err.message).join(", ");
-        }
-      }
-    }
-
-    // Errores de validación
-    if (error && typeof error === "object" && "code" in error) {
-      const errorWithCode = error as { code: string };
-      if (errorWithCode.code === "VALIDATION_ERROR") {
-        title = "Error de Validación";
-      } else if (errorWithCode.code === "UNAUTHORIZED") {
-        title = "No Autorizado";
-        message = "Tu sesión ha expirado. Por favor, inicia sesión nuevamente.";
-      } else if (errorWithCode.code === "FORBIDDEN") {
-        title = "Acceso Denegado";
-        message = "No tienes permisos para realizar esta acción.";
-      }
-    }
-
-    return this.error(message, { title });
-  }
-
-  /**
-   * Maneja errores de validación de formularios
-   */
-  handleFormError(errors: Record<string, { message: string }>) {
+  handleFormError: (errors: Record<string, { message: string }>) => {
     const errorMessages = Object.values(errors).map((error) => error.message);
     const message = errorMessages.join(", ");
-
-    return this.error(message, {
-      title: "Error de Validación",
-      duration: 5000,
-    });
-  }
-
-  /**
-   * Muestra notificaciones de éxito para acciones comunes
-   */
-  // Usuario
-  userCreated() {
-    return this.success("Usuario creado exitosamente", {
-      title: "Usuario Creado",
-    });
-  }
-
-  userUpdated() {
-    return this.success("Usuario actualizado exitosamente", {
-      title: "Usuario Actualizado",
-    });
-  }
-
-  userDeleted() {
-    return this.success("Usuario eliminado exitosamente", {
-      title: "Usuario Eliminado",
-    });
-  }
-
-  // Autenticación
-  loginSuccess() {
-    return this.success("Sesión iniciada correctamente", {
-      title: "Bienvenido",
-    });
-  }
-
-  logoutSuccess() {
-    return this.success("Sesión cerrada correctamente", {
-      title: "Hasta Luego",
-    });
-  }
-
-  emailConfirmed() {
-    return this.success("Email confirmado exitosamente", {
-      title: "Email Verificado",
-    });
-  }
-
-  passwordReset() {
-    return this.success("Contraseña restablecida exitosamente", {
-      title: "Contraseña Actualizada",
-    });
-  }
-
-  // RBAC
-  roleAssigned() {
-    return this.success("Rol asignado correctamente", {
-      title: "Rol Asignado",
-    });
-  }
-
-  permissionGranted() {
-    return this.success("Permiso otorgado correctamente", {
-      title: "Permiso Otorgado",
-    });
-  }
-
-  // Trading
-  tradeCreated() {
-    return this.success("Trade creado exitosamente", {
-      title: "Trade Creado",
-    });
-  }
-
-  tradeUpdated() {
-    return this.success("Trade actualizado exitosamente", {
-      title: "Trade Actualizado",
-    });
-  }
-
-  // Sistema
-  settingsSaved() {
-    return this.success("Configuración guardada exitosamente", {
-      title: "Configuración Guardada",
-    });
-  }
-
-  dataExported() {
-    return this.success("Datos exportados exitosamente", {
-      title: "Exportación Completada",
-    });
-  }
-
-  private getDefaultTitle(type: NotificationType): string {
-    const titles = {
-      success: "Éxito",
-      error: "Error",
-      warning: "Advertencia",
-      info: "Información",
-    };
-    return titles[type];
-  }
-}
-
-// Instancia singleton
-export const notifications = new NotificationService();
-
-// Exportar también las funciones individuales para conveniencia
-export const {
-  success,
-  error,
-  warning,
-  info,
-  loading,
-  updateLoading,
-  dismiss,
-  dismissAll,
-  handleApiError,
-  handleFormError,
-  userCreated,
-  userUpdated,
-  userDeleted,
-  loginSuccess,
-  logoutSuccess,
-  emailConfirmed,
-  passwordReset,
-  roleAssigned,
-  permissionGranted,
-  tradeCreated,
-  tradeUpdated,
-  settingsSaved,
-  dataExported,
-} = notifications;
+    return toast.error("Error de Validación", { description: message });
+  },
+};

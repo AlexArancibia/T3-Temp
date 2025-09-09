@@ -1,10 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
-import { trpc } from "@/app/_trpc/trpc";
 import {
   PermissionAction,
   type PermissionCheck,
   PermissionResource,
 } from "@/types/rbac";
+import { trpc } from "@/utils/trpc";
 import { useAuth } from "./useAuth";
 
 export function useRBAC() {
@@ -26,8 +25,8 @@ export function useRBAC() {
 
   // Check if user has a specific permission
   const checkPermission = (
-    action: PermissionAction,
-    resource: PermissionResource,
+    _action: PermissionAction,
+    _resource: PermissionResource,
   ) => {
     // This function should be called from components, not from hooks
     // Return a function that can be called to check permissions
@@ -38,7 +37,7 @@ export function useRBAC() {
   };
 
   // Check if user has a specific role
-  const checkRole = (roleName: string) => {
+  const checkRole = (_roleName: string) => {
     // This function should be called from components, not from hooks
     // Return a function that can be called to check roles
     return () => {

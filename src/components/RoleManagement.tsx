@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { useRBAC } from "@/hooks/useRBAC";
-import { trpc } from "@/lib/trpc";
 import { PermissionAction, PermissionResource } from "@/types/rbac";
+import { trpc } from "@/utils/trpc";
 
 interface RoleManagementProps {
   userId?: string;
@@ -112,16 +112,14 @@ export default function RoleManagement({ userId }: RoleManagementProps) {
             <p>Loading user roles...</p>
           ) : (
             <div className="space-y-2">
-              {userRoles?.map((userRole) => (
+              {userRoles?.map((role) => (
                 <div
-                  key={userRole.id}
+                  key={role.id}
                   className="flex items-center justify-between p-3 bg-gray-50 rounded"
                 >
-                  <span className="font-medium">
-                    {userRole.role.displayName}
-                  </span>
+                  <span className="font-medium">{role.displayName}</span>
                   <button
-                    onClick={() => handleRemoveRole(userRole.roleId)}
+                    onClick={() => handleRemoveRole(role.id)}
                     className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
                     disabled={removeRoleMutation.isPending}
                   >
@@ -139,7 +137,7 @@ export default function RoleManagement({ userId }: RoleManagementProps) {
                   <option value="">Select a role to assign</option>
                   {roles
                     ?.filter(
-                      (role) => !userRoles?.some((ur) => ur.roleId === role.id),
+                      (role) => !userRoles?.some((ur) => ur.id === role.id),
                     )
                     .map((role) => (
                       <option key={role.id} value={role.id}>
@@ -186,7 +184,7 @@ export default function RoleManagement({ userId }: RoleManagementProps) {
                       ?.filter(
                         (permission) =>
                           !role.rolePermissions?.some(
-                            (rp) => rp.permissionId === permission.id,
+                            (rp) => rp.permission.id === permission.id,
                           ),
                       )
                       .map((permission) => (
@@ -212,7 +210,7 @@ export default function RoleManagement({ userId }: RoleManagementProps) {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                   {role.rolePermissions?.map((rolePermission) => (
                     <div
-                      key={rolePermission.id}
+                      key={rolePermission.permission.id}
                       className="flex items-center justify-between p-2 bg-gray-100 rounded text-sm"
                     >
                       <span>
@@ -223,7 +221,7 @@ export default function RoleManagement({ userId }: RoleManagementProps) {
                         onClick={() =>
                           handleRemovePermission(
                             role.id,
-                            rolePermission.permissionId,
+                            rolePermission.permission.id,
                           )
                         }
                         className="text-red-500 hover:text-red-700"

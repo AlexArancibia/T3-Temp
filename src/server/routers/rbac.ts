@@ -1,46 +1,41 @@
-import { initTRPC, TRPCError } from "@trpc/server";
+import { TRPCError } from "@trpc/server";
 import { z } from "zod";
-import { RBACService } from "@/services/rbacService";
-import { PermissionAction, PermissionResource } from "@/types/rbac";
+import { RBACService } from "../../services/rbacService";
+import { PermissionAction, PermissionResource } from "../../types/rbac";
+import {
+  adminProcedure,
+  protectedProcedure,
+  publicProcedure,
+  router,
+} from "../trpc";
 
-const t = initTRPC
-  .context<{
-    user?: {
-      id: string;
-      email: string;
-      firstName: string;
-      lastName?: string;
-    };
-  }>()
-  .create();
-
-export const rbacRouter = t.router({
+export const rbacRouter = router({
   // Get all roles
-  getAllRoles: t.procedure.query(async () => {
+  getAllRoles: publicProcedure.query(async () => {
     return await RBACService.getAllRoles();
   }),
 
   // Get all permissions
-  getAllPermissions: t.procedure.query(async () => {
+  getAllPermissions: publicProcedure.query(async () => {
     return await RBACService.getAllPermissions();
   }),
 
   // Get user roles
-  getUserRoles: t.procedure
+  getUserRoles: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.getUserRoles(input.userId);
     }),
 
   // Get user permissions
-  getUserPermissions: t.procedure
+  getUserPermissions: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.getUserPermissions(input.userId);
     }),
 
   // Check user permission
-  checkPermission: t.procedure
+  checkPermission: publicProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -57,7 +52,7 @@ export const rbacRouter = t.router({
     }),
 
   // Check user role
-  checkRole: t.procedure
+  checkRole: publicProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -69,7 +64,7 @@ export const rbacRouter = t.router({
     }),
 
   // Create role
-  createRole: t.procedure
+  createRole: adminProcedure
     .input(
       z.object({
         name: z.string().min(1),
@@ -98,7 +93,7 @@ export const rbacRouter = t.router({
     }),
 
   // Create permission
-  createPermission: t.procedure
+  createPermission: adminProcedure
     .input(
       z.object({
         action: z.nativeEnum(PermissionAction),
@@ -126,7 +121,7 @@ export const rbacRouter = t.router({
     }),
 
   // Assign role to user
-  assignRole: t.procedure
+  assignRole: adminProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -160,7 +155,7 @@ export const rbacRouter = t.router({
     }),
 
   // Remove role from user
-  removeRole: t.procedure
+  removeRole: adminProcedure
     .input(
       z.object({
         userId: z.string(),
@@ -188,7 +183,7 @@ export const rbacRouter = t.router({
     }),
 
   // Assign permission to role
-  assignPermissionToRole: t.procedure
+  assignPermissionToRole: adminProcedure
     .input(
       z.object({
         roleId: z.string(),
@@ -219,7 +214,7 @@ export const rbacRouter = t.router({
     }),
 
   // Remove permission from role
-  removePermissionFromRole: t.procedure
+  removePermissionFromRole: adminProcedure
     .input(
       z.object({
         roleId: z.string(),
@@ -250,14 +245,14 @@ export const rbacRouter = t.router({
     }),
 
   // Get role by name
-  getRoleByName: t.procedure
+  getRoleByName: publicProcedure
     .input(z.object({ name: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.getRoleByName(input.name);
     }),
 
   // Get permission by action and resource
-  getPermissionByActionAndResource: t.procedure
+  getPermissionByActionAndResource: publicProcedure
     .input(
       z.object({
         action: z.nativeEnum(PermissionAction),
@@ -272,63 +267,63 @@ export const rbacRouter = t.router({
     }),
 
   // Check if user is admin
-  isAdmin: t.procedure
+  isAdmin: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.isAdmin(input.userId);
     }),
 
   // Check if user is super admin
-  isSuperAdmin: t.procedure
+  isSuperAdmin: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.isSuperAdmin(input.userId);
     }),
 
   // Check if user can manage users
-  canManageUsers: t.procedure
+  canManageUsers: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.canManageUsers(input.userId);
     }),
 
   // Check if user can manage roles
-  canManageRoles: t.procedure
+  canManageRoles: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.canManageRoles(input.userId);
     }),
 
   // Check if user can access admin panel
-  canAccessAdmin: t.procedure
+  canAccessAdmin: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.canAccessAdmin(input.userId);
     }),
 
   // Check if user can manage trading accounts
-  canManageTradingAccounts: t.procedure
+  canManageTradingAccounts: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.canManageTradingAccounts(input.userId);
     }),
 
   // Check if user can manage trades
-  canManageTrades: t.procedure
+  canManageTrades: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.canManageTrades(input.userId);
     }),
 
   // Check if user can view dashboard
-  canViewDashboard: t.procedure
+  canViewDashboard: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.canViewDashboard(input.userId);
     }),
 
   // Get RBAC context for user
-  getRBACContext: t.procedure
+  getRBACContext: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       return await RBACService.getRBACContext(input.userId);

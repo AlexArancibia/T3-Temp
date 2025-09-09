@@ -1,13 +1,10 @@
-import { initTRPC } from "@trpc/server";
 import { z } from "zod";
-import { prisma } from "../lib/db";
-import { trpcAuth } from "../middlewares/trpcAuth";
-import { validateEmail } from "../utils/validate";
+import { prisma } from "../../lib/db";
+import { validateEmail } from "../../utils/validate";
+import { protectedProcedure, router } from "../trpc";
 
-const t = initTRPC.create();
-
-export const userRouter = t.router({
-  getAll: t.procedure.use(trpcAuth).query(async () => {
+export const userRouter = router({
+  getAll: protectedProcedure.query(async () => {
     return prisma.user.findMany({
       select: {
         id: true,
@@ -18,15 +15,16 @@ export const userRouter = t.router({
       },
     });
   }),
-  getById: t.procedure
+
+  getById: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .use(trpcAuth)
     .mutation(async ({ input }) => {
       const user = await prisma.user.findUnique({ where: { id: input.id } });
       if (!user) throw new Error("Usuario no encontrado");
       return user;
     }),
-  create: t.procedure
+
+  create: protectedProcedure
     .input(
       z.object({
         email: z.string(),
@@ -53,7 +51,8 @@ export const userRouter = t.router({
       });
       return { id: user.id, email: user.email, firstName: user.firstName };
     }),
-  update: t.procedure
+
+  update: protectedProcedure
     .input(
       z.object({
         id: z.string(),
@@ -62,7 +61,6 @@ export const userRouter = t.router({
         email: z.string().optional(),
       }),
     )
-    .use(trpcAuth)
     .mutation(async ({ input }) => {
       const user = await prisma.user.findUnique({ where: { id: input.id } });
       if (!user) throw new Error("Usuario no encontrado");
@@ -83,9 +81,9 @@ export const userRouter = t.router({
         lastName: updated.lastName,
       };
     }),
-  delete: t.procedure
+
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .use(trpcAuth)
     .mutation(async ({ input }) => {
       const user = await prisma.user.findUnique({ where: { id: input.id } });
       if (!user) throw new Error("Usuario no encontrado");

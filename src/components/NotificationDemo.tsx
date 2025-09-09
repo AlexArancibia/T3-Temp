@@ -1,72 +1,67 @@
 "use client";
 
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { notifications } from "@/lib/notifications";
 
 export default function NotificationDemo() {
   const handleSuccess = () => {
-    notifications.success("Operación completada exitosamente", {
-      title: "¡Éxito!",
+    toast.success("¡Éxito!", {
+      description: "Operación completada exitosamente",
     });
   };
 
   const handleError = () => {
-    notifications.error("Algo salió mal en la operación", {
-      title: "Error",
+    toast.error("Error", {
+      description: "Algo salió mal en la operación",
     });
   };
 
   const handleWarning = () => {
-    notifications.warning("Esta acción requiere confirmación", {
-      title: "Advertencia",
+    toast.warning("Advertencia", {
+      description: "Esta acción requiere confirmación",
     });
   };
 
   const handleInfo = () => {
-    notifications.info("Información importante para el usuario", {
-      title: "Información",
+    toast.info("Información", {
+      description: "Información importante para el usuario",
     });
   };
 
   const handleLoading = () => {
-    const id = notifications.loading("Procesando solicitud...", {
-      title: "Cargando",
+    const id = toast.loading("Cargando", {
+      description: "Procesando solicitud...",
     });
 
     // Simular operación asíncrona
     setTimeout(() => {
-      notifications.updateLoading(id, "success", "Operación completada", {
-        title: "¡Completado!",
+      toast.success("¡Completado!", {
+        id,
+        description: "Operación completada",
       });
     }, 3000);
   };
 
   const handleApiError = () => {
-    const mockError = {
-      response: {
-        data: {
-          message: "Error de validación en el servidor",
-        },
-      },
-    };
-    notifications.handleApiError(mockError, "Operación de Usuario");
+    toast.error("Error del Servidor", {
+      description: "Error de validación en el servidor",
+    });
   };
 
   const handleFormError = () => {
-    const mockErrors = {
-      email: { message: "Email es requerido" },
-      password: { message: "Contraseña debe tener al menos 6 caracteres" },
-    };
-    notifications.handleFormError(mockErrors);
+    toast.error("Error de Validación", {
+      description:
+        "Email es requerido, Contraseña debe tener al menos 6 caracteres",
+    });
   };
 
   const handleCustomAction = () => {
-    notifications.error("Archivo no encontrado", {
-      title: "Error de Archivo",
+    toast.error("Error de Archivo", {
+      description: "Archivo no encontrado",
       action: {
         label: "Reintentar",
         onClick: () => {
-          notifications.info("Reintentando operación...");
+          toast.info("Reintentando operación...");
         },
       },
     });
