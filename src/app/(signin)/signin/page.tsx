@@ -1,6 +1,5 @@
 "use client";
 
-import * as Toast from "@radix-ui/react-toast";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -16,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { notifications } from "@/lib/notifications";
 
 type LoginFormValues = {
   email: string;
@@ -25,9 +25,6 @@ type LoginFormValues = {
 export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error">("success");
   const router = useRouter();
   const { signIn } = useAuthContext();
 
@@ -57,9 +54,9 @@ export default function SignInPage() {
         type: "manual",
         message: "Ingresa un correo válido",
       });
-      setToastType("error");
-      setToastMsg("Ingresa un correo válido");
-      setToastOpen(true);
+      notifications.error("Ingresa un correo válido", {
+        title: "Error de Validación",
+      });
       setLoading(false);
       return;
     }
@@ -68,6 +65,9 @@ export default function SignInPage() {
       setError("password", {
         type: "manual",
         message: "Ingresa tu contraseña",
+      });
+      notifications.error("Ingresa tu contraseña", {
+        title: "Error de Validación",
       });
       setLoading(false);
       return;
@@ -80,14 +80,14 @@ export default function SignInPage() {
         // Redirigir al dashboard inmediatamente
         router.push("/dashboard");
       } else {
-        setToastType("error");
-        setToastMsg(result.error || "Error al iniciar sesión");
-        setToastOpen(true);
+        notifications.error(result.error || "Error al iniciar sesión", {
+          title: "Error de Inicio de Sesión",
+        });
       }
     } catch (_error) {
-      setToastType("error");
-      setToastMsg("Error de red o servidor");
-      setToastOpen(true);
+      notifications.error("Error de red o servidor", {
+        title: "Error de Conexión",
+      });
     }
     setLoading(false);
   };
@@ -97,9 +97,9 @@ export default function SignInPage() {
     try {
       window.location.href = "/api/auth/google/login";
     } catch (_error) {
-      setToastType("error");
-      setToastMsg("No se pudo redirigir a Google");
-      setToastOpen(true);
+      notifications.error("No se pudo redirigir a Google", {
+        title: "Error de Google",
+      });
       setLoading(false);
     }
   };
@@ -239,25 +239,6 @@ export default function SignInPage() {
           </div>
         </div>
       </div>
-
-      {/* Toast */}
-      <Toast.Provider swipeDirection="right">
-        <Toast.Root
-          open={toastOpen}
-          onOpenChange={setToastOpen}
-          className={
-            toastType === "success"
-              ? "bg-green-600 text-white px-4 py-2 rounded"
-              : "bg-red-600 text-white px-4 py-2 rounded"
-          }
-        >
-          <Toast.Title>
-            {toastType === "success" ? "Éxito" : "Error"}
-          </Toast.Title>
-          <Toast.Description>{toastMsg}</Toast.Description>
-        </Toast.Root>
-        <Toast.Viewport className="fixed bottom-4 right-4 z-50" />
-      </Toast.Provider>
     </div>
   );
 }

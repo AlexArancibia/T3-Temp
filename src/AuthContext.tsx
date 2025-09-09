@@ -5,9 +5,11 @@ import { useAuth } from "@/hooks/useAuth";
 interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName?: string;
   image?: string;
   isConfirmed: boolean;
+  isAdmin: boolean;
 }
 
 interface AuthContextType {

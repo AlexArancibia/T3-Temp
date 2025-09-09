@@ -5,11 +5,11 @@ export const config = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     },
     jwt: {
-      secret: process.env.JWT_SECRET || "fallback-secret-key",
+      secret: process.env.JWT_SECRET!,
     },
     nextAuth: {
       url: process.env.NEXTAUTH_URL || "http://localhost:3000",
-      secret: process.env.NEXTAUTH_SECRET || "fallback-nextauth-secret",
+      secret: process.env.NEXTAUTH_SECRET!,
     },
   },
   database: {
@@ -30,6 +30,8 @@ export function validateConfig() {
   const requiredEnvVars = [
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
+    "JWT_SECRET",
+    "NEXTAUTH_SECRET",
     "DATABASE_URL",
     "SMTP_USER",
     "SMTP_PASS",

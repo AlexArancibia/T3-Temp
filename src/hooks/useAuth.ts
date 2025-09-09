@@ -1,13 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-interface User {
-  id: string;
-  email: string;
-  name: string;
-  image?: string;
-  isConfirmed: boolean;
-}
+import { notifications } from "@/lib/notifications";
+import type { User } from "@/types/auth";
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
@@ -80,15 +74,19 @@ export function useAuth() {
         localStorage.setItem("auth_token", result.result.data);
         // Actualizar el estado del usuario
         await checkAuth();
+        notifications.loginSuccess();
         return { success: true };
       } else {
+        const errorMessage = result.error?.message || "Error al iniciar sesión";
+        notifications.handleApiError(result.error, "Inicio de Sesión");
         return {
           success: false,
-          error: result.error?.message || "Error al iniciar sesión",
+          error: errorMessage,
         };
       }
     } catch (error) {
       console.error("Error signing in:", error);
+      notifications.handleApiError(error, "Inicio de Sesión");
       return { success: false, error: "Error de red o servidor" };
     }
   };
@@ -97,9 +95,11 @@ export function useAuth() {
     try {
       localStorage.removeItem("auth_token");
       setUser(null);
+      notifications.logoutSuccess();
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
+      notifications.handleApiError(error, "Cierre de Sesión");
     }
   };
 

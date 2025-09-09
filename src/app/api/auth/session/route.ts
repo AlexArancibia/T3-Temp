@@ -24,7 +24,8 @@ export async function GET(request: NextRequest) {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         image: true,
         isConfirmed: true,
       },
@@ -58,7 +59,8 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         email: true,
-        name: true,
+        firstName: true,
+        lastName: true,
         image: true,
         isConfirmed: true,
       },

@@ -1,5 +1,5 @@
-import { prisma } from "@backend/lib/db";
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -75,7 +75,8 @@ export async function GET(request: NextRequest) {
       user = await prisma.user.create({
         data: {
           email: userInfo.email,
-          name: userInfo.name,
+          firstName: userInfo.given_name || userInfo.name || "Usuario",
+          lastName: userInfo.family_name || "",
           image: userInfo.picture,
           isConfirmed: true, // Usuarios de Google están confirmados
         },
@@ -90,7 +91,7 @@ export async function GET(request: NextRequest) {
       JSON.stringify({
         userId: user.id,
         email: user.email,
-        name: user.name,
+        name: user.firstName,
       }),
     );
 

@@ -14,7 +14,7 @@ export const authRouter = t.router({
   register: t.procedure
     .input(
       z.object({
-        email: z.string().email(),
+        email: z.email(),
         password: z.string().min(6),
         name: z.string().min(2),
         lastname: z.string().min(2),

@@ -1,14 +1,12 @@
 // Servicio de autenticación y gestión de usuario
 
-import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 import { randomUUID } from "crypto";
 import jwt from "jsonwebtoken";
+import { prisma } from "../lib/db";
 import { sendMail } from "../lib/mailer";
 import type { User } from "../types/user";
 import { validateEmail } from "../utils/validate";
-
-const prisma = new PrismaClient();
 
 export const registerUser = async (
   email: string,
@@ -24,8 +22,8 @@ export const registerUser = async (
     data: {
       email,
       password: hashed,
-      name,
-      lastname,
+      firstName: name,
+      lastName: lastname,
       phone,
       isConfirmed: false,
       confirmationToken,
@@ -44,8 +42,10 @@ export const registerUser = async (
   );
   return {
     ...user,
-    lastname: user.lastname ?? undefined,
+    lastName: user.lastName ?? undefined,
     phone: user.phone ?? undefined,
+    image: user.image ?? undefined,
+    defaultRiskPercentage: user.defaultRiskPercentage.toNumber(),
     confirmationToken: user.confirmationToken ?? undefined,
     resetToken: user.resetToken ?? undefined,
     resetTokenExpiry: user.resetTokenExpiry ?? undefined,

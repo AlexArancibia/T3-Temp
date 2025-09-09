@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import "../../styles/globals.css";
 import { AuthProvider } from "@/AuthContext";
 import GlobalNavbar from "@/components/GlobalNavbar";
+import { Toaster } from "@/components/ui/toaster";
+import { TRPCProvider } from "./_trpc";
 
 export const metadata: Metadata = {
   title: "MiApp - Plataforma de Productividad",
@@ -18,10 +20,13 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body>
-        <AuthProvider>
-          <GlobalNavbar />
-          {children}
-        </AuthProvider>
+        <TRPCProvider>
+          <AuthProvider>
+            <GlobalNavbar />
+            {children}
+            <Toaster />
+          </AuthProvider>
+        </TRPCProvider>
       </body>
     </html>
   );
