@@ -50,12 +50,10 @@ export function useAuth() {
   };
 
   const signInWithGoogle = async () => {
-    console.log("🔵 Hook: signInWithGoogle iniciado");
     try {
-      console.log("🔵 Hook: Redirigiendo a /api/auth/google/login");
       window.location.href = "/api/auth/google/login";
     } catch (error) {
-      console.error("❌ Hook: Error signing in with Google:", error);
+      console.error("Error signing in with Google:", error);
     }
   };
 

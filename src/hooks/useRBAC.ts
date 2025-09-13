@@ -23,29 +23,6 @@ export function useRBAC() {
       { enabled: !!user?.id },
     );
 
-  // Check if user has a specific permission
-  const checkPermission = (
-    _action: PermissionAction,
-    _resource: PermissionResource,
-  ) => {
-    // This function should be called from components, not from hooks
-    // Return a function that can be called to check permissions
-    return () => {
-      // This is a placeholder - actual implementation should be in components
-      return { data: false, isLoading: false, error: null };
-    };
-  };
-
-  // Check if user has a specific role
-  const checkRole = (_roleName: string) => {
-    // This function should be called from components, not from hooks
-    // Return a function that can be called to check roles
-    return () => {
-      // This is a placeholder - actual implementation should be in components
-      return { data: false, isLoading: false, error: null };
-    };
-  };
-
   // Check if user is admin
   const { data: isAdmin, isLoading: adminLoading } = trpc.rbac.isAdmin.useQuery(
     { userId: user?.id || "" },
@@ -134,10 +111,6 @@ export function useRBAC() {
     manageTradesLoading,
     viewDashboardLoading,
 
-    // Helper functions
-    checkPermission,
-    checkRole,
-
     // Utility functions
     hasPermission: (action: PermissionAction, resource: PermissionResource) => {
       if (!userPermissions) return false;
@@ -158,6 +131,13 @@ export function useRBAC() {
       if (!userRoles) return false;
       return userRoles.some(
         (role) => roleNames.includes(role.name) && role.isActive,
+      );
+    },
+
+    hasAllRoles: (roleNames: string[]) => {
+      if (!userRoles) return false;
+      return roleNames.every((roleName) =>
+        userRoles.some((role) => role.name === roleName && role.isActive),
       );
     },
 

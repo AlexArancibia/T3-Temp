@@ -1,10 +1,10 @@
 import { z } from "zod";
 import { prisma } from "../../lib/db";
 import { validateEmail } from "../../utils/validate";
-import { protectedProcedure, router } from "../trpc";
+import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const userRouter = router({
-  getAll: protectedProcedure.query(async () => {
+  getAll: publicProcedure.query(async () => {
     return prisma.user.findMany({
       select: {
         id: true,
@@ -30,6 +30,7 @@ export const userRouter = router({
         email: z.string(),
         password: z.string(),
         firstName: z.string(),
+        lastName: z.string(),
       }),
     )
     .mutation(async ({ input }) => {
@@ -46,13 +47,19 @@ export const userRouter = router({
           email: input.email,
           password: hashed,
           firstName: input.firstName,
+          lastName: input.lastName,
           isConfirmed: false,
         },
       });
-      return { id: user.id, email: user.email, firstName: user.firstName };
+      return {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+      };
     }),
 
-  update: protectedProcedure
+  update: publicProcedure
     .input(
       z.object({
         id: z.string(),
@@ -82,7 +89,7 @@ export const userRouter = router({
       };
     }),
 
-  delete: protectedProcedure
+  delete: publicProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input }) => {
       const user = await prisma.user.findUnique({ where: { id: input.id } });

@@ -54,9 +54,7 @@ export default function SignInPage() {
         type: "manual",
         message: "Ingresa un correo válido",
       });
-      notifications.error("Ingresa un correo válido", {
-        title: "Error de Validación",
-      });
+      notifications.error("Ingresa un correo válido");
       setLoading(false);
       return;
     }
@@ -66,9 +64,7 @@ export default function SignInPage() {
         type: "manual",
         message: "Ingresa tu contraseña",
       });
-      notifications.error("Ingresa tu contraseña", {
-        title: "Error de Validación",
-      });
+      notifications.error("Ingresa tu contraseña");
       setLoading(false);
       return;
     }
@@ -80,14 +76,10 @@ export default function SignInPage() {
         // Redirigir al dashboard inmediatamente
         router.push("/dashboard");
       } else {
-        notifications.error(result.error || "Error al iniciar sesión", {
-          title: "Error de Inicio de Sesión",
-        });
+        notifications.error(result.error || "Error al iniciar sesión");
       }
     } catch (_error) {
-      notifications.error("Error de red o servidor", {
-        title: "Error de Conexión",
-      });
+      notifications.error("Error de red o servidor");
     }
     setLoading(false);
   };
@@ -97,9 +89,7 @@ export default function SignInPage() {
     try {
       window.location.href = "/api/auth/google/login";
     } catch (_error) {
-      notifications.error("No se pudo redirigir a Google", {
-        title: "Error de Google",
-      });
+      notifications.error("No se pudo redirigir a Google");
       setLoading(false);
     }
   };

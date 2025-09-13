@@ -3,15 +3,18 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
-import React, { useState } from "react";
+import React, { useMemo } from "react";
+import { useAuth } from "@/hooks/useAuth";
 import type { AppRouter } from "../server/routers/_app";
 
 export const trpc = createTRPCReact<AppRouter>();
 
 export const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
-  const [queryClient] = useState(() => new QueryClient());
-  const [trpcClient] = useState(() =>
-    trpc.createClient({
+  const { user } = useAuth();
+  const [queryClient] = React.useState(() => new QueryClient());
+
+  const trpcClient = useMemo(() => {
+    return trpc.createClient({
       links: [
         httpBatchLink({
           url: "/api/trpc",
@@ -21,6 +24,8 @@ export const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
             console.log(
               "tRPC client sending token:",
               token ? "Present" : "Missing",
+              "User:",
+              user?.email,
             );
             return {
               authorization: token ? `Bearer ${token}` : "",
@@ -28,8 +33,8 @@ export const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
           },
         }),
       ],
-    }),
-  );
+    });
+  }, [user]); // Recreate client when user changes
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>

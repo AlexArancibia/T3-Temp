@@ -2,6 +2,7 @@ import * as Toast from "@radix-ui/react-toast";
 import { Eye, EyeOff } from "lucide-react";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import GoogleIcon from "@/components/icons/GoogleIcon";
 import {
   Form,
   FormControl,
@@ -10,7 +11,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import GoogleIcon from "@/frontend/components/icons/GoogleIcon";
 
 const passwordRules = [
   { label: "Mínimo 8 caracteres", test: (v: string) => v.length >= 8 },

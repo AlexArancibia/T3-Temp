@@ -1,6 +1,7 @@
 import * as Toast from "@radix-ui/react-toast";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import GoogleIcon from "@/components/icons/GoogleIcon";
 import {
   Form,
   FormControl,
@@ -9,8 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import GoogleIcon from "@/frontend/components/icons/GoogleIcon";
-import { useAuth } from "@/frontend/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 
 type LoginFormValues = { email: string; password: string };
 
@@ -91,13 +91,10 @@ export default function LoginForm({
   };
 
   const handleGoogleSignIn = async () => {
-    console.log("🔵 LoginForm: handleGoogleSignIn iniciado");
     setLoading(true);
     try {
-      console.log("🔵 LoginForm: Llamando a signInWithGoogle");
       await signInWithGoogle();
     } catch {
-      console.log("❌ LoginForm: Error en signInWithGoogle");
       setToastType("error");
       setToastMsg("No se pudo redirigir a Google");
       setToastOpen(true);

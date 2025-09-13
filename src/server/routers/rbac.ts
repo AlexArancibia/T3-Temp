@@ -92,6 +92,58 @@ export const rbacRouter = router({
       return await RBACService.createRole(input);
     }),
 
+  // Update role
+  updateRole: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1).optional(),
+        displayName: z.string().min(1).optional(),
+        description: z.string().optional(),
+        isSystem: z.boolean().optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Check if user has permission to update roles
+      if (ctx.user?.id) {
+        const canUpdateRole = await RBACService.hasPermission(
+          ctx.user.id,
+          PermissionAction.UPDATE,
+          PermissionResource.ROLE,
+        );
+        if (!canUpdateRole) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Insufficient permissions to update roles",
+          });
+        }
+      }
+
+      return await RBACService.updateRole(input);
+    }),
+
+  // Delete role
+  deleteRole: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ input, ctx }) => {
+      // Check if user has permission to delete roles
+      if (ctx.user?.id) {
+        const canDeleteRole = await RBACService.hasPermission(
+          ctx.user.id,
+          PermissionAction.DELETE,
+          PermissionResource.ROLE,
+        );
+        if (!canDeleteRole) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Insufficient permissions to delete roles",
+          });
+        }
+      }
+
+      return await RBACService.deleteRole(input.id);
+    }),
+
   // Create permission
   createPermission: adminProcedure
     .input(

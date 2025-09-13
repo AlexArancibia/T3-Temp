@@ -255,6 +255,31 @@ export class RBACService {
     });
   }
 
+  static async updateRole(data: {
+    id: string;
+    name?: string;
+    displayName?: string;
+    description?: string;
+    isSystem?: boolean;
+  }): Promise<Role> {
+    return await prisma.role.update({
+      where: { id: data.id },
+      data: {
+        name: data.name,
+        displayName: data.displayName,
+        description: data.description,
+        isSystem: data.isSystem,
+      },
+    });
+  }
+
+  static async deleteRole(id: string): Promise<boolean> {
+    await prisma.role.delete({
+      where: { id },
+    });
+    return true;
+  }
+
   /**
    * Create a new permission
    */
