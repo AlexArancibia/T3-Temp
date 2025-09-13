@@ -1,3 +1,4 @@
+// Interfaces específicas para Better Auth
 export interface GoogleProfile {
   sub: string;
   email: string;
@@ -6,44 +7,6 @@ export interface GoogleProfile {
   family_name?: string;
   picture: string;
   email_verified: boolean;
-}
-
-// Unified User interface
-export interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName?: string;
-  phone?: string;
-  image?: string;
-  isConfirmed: boolean;
-  isAdmin: boolean;
-  timezone: string;
-  language: string;
-  theme: string;
-  defaultRiskPercentage: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-// AuthUser interface for Better Auth
-export interface AuthUser {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName?: string;
-  image?: string;
-  emailVerified?: boolean;
-}
-
-// JWT payload interface
-export interface JWTPayload {
-  userId: string;
-  email: string;
-  firstName: string;
-  lastName?: string;
-  iat?: number;
-  exp?: number;
 }
 
 export interface AuthAccount {
@@ -60,7 +23,7 @@ export interface AuthAccount {
 }
 
 export interface AuthSession {
-  user: User;
+  user: import("./user").User;
 }
 
 export interface AuthToken {

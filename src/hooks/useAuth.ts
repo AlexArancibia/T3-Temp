@@ -1,10 +1,10 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { notifications } from "@/lib/notifications";
-import type { User } from "@/types/auth";
+import type { AuthUser } from "@/types/user";
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   // biome-ignore lint/correctness/useExhaustiveDependencies: checkAuth no necesita estar en dependencias

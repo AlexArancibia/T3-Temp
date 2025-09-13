@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-// import type { User } from "@/types/user";
 import { Edit, Plus, Search, Trash2, Users, X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -16,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import type { User } from "@/types/user";
 import { trpc } from "@/utils/trpc";
 
 const updateUserSchema = z.object({
@@ -30,17 +30,11 @@ const updateUserSchema = z.object({
 
 type UserFormData = z.infer<typeof updateUserSchema>;
 
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string | null;
-  isConfirmed: boolean;
-}
+// Usando la interfaz User consolidada de @/types/user
 
 export default function UserCRUD() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const {
@@ -84,17 +78,17 @@ export default function UserCRUD() {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (user.lastName &&
         user.lastName.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
-  const handleEdit = (user: User) => {
+  const handleEdit = (user: Partial<User>) => {
     setEditingUser(user);
     form.reset({
-      email: user.email,
-      firstName: user.firstName,
+      email: user.email || "",
+      firstName: user.firstName || "",
       lastName: user.lastName || "",
       password: "",
     });
@@ -109,21 +103,16 @@ export default function UserCRUD() {
   const onSubmit = (data: UserFormData) => {
     if (editingUser) {
       // For updates, only send password if it's provided
-      const updateData: Record<string, unknown> = {
-        id: editingUser.id,
+      const updateData = {
+        id: editingUser.id!,
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
+        ...(data.password &&
+          data.password.trim() !== "" && { password: data.password }),
       };
 
-      if (data.password && data.password.trim() !== "") {
-        updateData.password = data.password;
-      }
-
-      {
-        /* biome-ignore lint/suspicious/noExplicitAny: API data type mismatch */
-      }
-      updateUser.mutate(updateData as any);
+      updateUser.mutate(updateData);
     } else {
       // For creates, password is required
       if (!data.password) {
@@ -230,19 +219,19 @@ export default function UserCRUD() {
                         <div className="flex items-center">
                           <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                             <span className="text-sm font-medium text-blue-600">
-                              {user.firstName.charAt(0)}
+                              {user.firstName?.charAt(0) || ""}
                               {user.lastName?.charAt(0) || ""}
                             </span>
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {user.firstName} {user.lastName}
+                              {user.firstName} {user.lastName || ""}
                             </div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {user.email}
+                        {user.email || ""}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
@@ -260,7 +249,12 @@ export default function UserCRUD() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={() => handleEdit(user)}
+                            onClick={() =>
+                              handleEdit({
+                                ...user,
+                                lastName: user.lastName ?? undefined,
+                              })
+                            }
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

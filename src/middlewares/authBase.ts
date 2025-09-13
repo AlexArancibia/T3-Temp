@@ -1,12 +1,12 @@
 import jwt from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
 import { RBACService } from "@/services/rbacService";
-import type { JWTPayload } from "@/types/auth";
 import {
   PermissionAction,
   type PermissionCheck,
   PermissionResource,
 } from "@/types/rbac";
+import type { JWTPayload } from "@/types/user";
 
 // Validar JWT_SECRET al inicializar
 const JWT_SECRET = process.env.JWT_SECRET;

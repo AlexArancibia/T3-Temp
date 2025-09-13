@@ -1,8 +1,8 @@
 import { initTRPC, TRPCError } from "@trpc/server";
 import jwt from "jsonwebtoken";
 import { RBACService } from "@/services/rbacService";
-import type { JWTPayload } from "@/types/auth";
 import type { RBACContext } from "@/types/rbac";
+import type { JWTPayload } from "@/types/user";
 
 interface ReqWithHeaders {
   headers?: Record<string, string>;

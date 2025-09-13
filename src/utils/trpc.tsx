@@ -1,39 +1,8 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
-import React, { useState } from "react";
 import type { AppRouter } from "../server/routers/_app";
 
+// Solo exportamos la instancia de trpc para uso en componentes
+// El provider se maneja en @/hooks/useTRPC
 export const trpc = createTRPCReact<AppRouter>();
-
-export const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
-  const [queryClient] = useState(() => new QueryClient());
-  const [trpcClient] = useState(() =>
-    trpc.createClient({
-      links: [
-        httpBatchLink({
-          url: "/api/trpc",
-          headers() {
-            // Get token from localStorage
-            const token = localStorage.getItem("auth_token");
-            console.log(
-              "tRPC client sending token:",
-              token ? "Present" : "Missing",
-            );
-            return {
-              authorization: token ? `Bearer ${token}` : "",
-            };
-          },
-        }),
-      ],
-    }),
-  );
-
-  return (
-    <trpc.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </trpc.Provider>
-  );
-};

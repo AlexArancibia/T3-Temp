@@ -1,19 +1,10 @@
 "use client";
 import { createContext, type ReactNode, useContext } from "react";
 import { useAuth } from "@/hooks/useAuth";
-
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName?: string;
-  image?: string;
-  isConfirmed: boolean;
-  isAdmin: boolean;
-}
+import type { AuthUser } from "@/types/user";
 
 interface AuthContextType {
-  user: User | null;
+  user: AuthUser | null;
   loading: boolean;
   signIn: (
     email: string,
