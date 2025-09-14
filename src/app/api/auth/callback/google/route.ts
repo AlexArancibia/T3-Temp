@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
@@ -85,23 +86,23 @@ export async function GET(request: NextRequest) {
       console.log("✅ Usuario existente encontrado:");
     }
 
-    // Crear sesión (aquí podrías usar JWT o cookies)
-    // Por ahora, redirigimos con un token simple
-    const sessionToken = btoa(
-      JSON.stringify({
+    // Crear JWT token para la sesión
+    const jwtToken = jwt.sign(
+      {
         userId: user.id,
         email: user.email,
-        name: user.firstName,
-      }),
+      },
+      process.env.JWT_SECRET || "secret",
+      { expiresIn: "7d" },
     );
 
-    // Redirigir al usuario con el token de sesión
+    // Redirigir al usuario con el token JWT
     const callbackUrl = state ? JSON.parse(atob(state)).callbackUrl : "/";
     const redirectUrl = new URL(
       callbackUrl,
       process.env.NEXTAUTH_URL || "http://localhost:3000",
     );
-    redirectUrl.searchParams.set("session", sessionToken);
+    redirectUrl.searchParams.set("token", jwtToken);
 
     return NextResponse.redirect(redirectUrl.toString());
   } catch (_error) {

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import { useAuthContext } from "@/AuthContext";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import {
@@ -15,7 +16,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { notifications } from "@/lib/notifications";
 
 type LoginFormValues = {
   email: string;
@@ -54,7 +54,7 @@ export default function SignInPage() {
         type: "manual",
         message: "Ingresa un correo válido",
       });
-      notifications.error("Ingresa un correo válido");
+      toast.error("Ingresa un correo válido");
       setLoading(false);
       return;
     }
@@ -64,7 +64,7 @@ export default function SignInPage() {
         type: "manual",
         message: "Ingresa tu contraseña",
       });
-      notifications.error("Ingresa tu contraseña");
+      toast.error("Ingresa tu contraseña");
       setLoading(false);
       return;
     }
@@ -76,10 +76,10 @@ export default function SignInPage() {
         // Redirigir al dashboard inmediatamente
         router.push("/dashboard");
       } else {
-        notifications.error(result.error || "Error al iniciar sesión");
+        toast.error(result.error || "Error al iniciar sesión");
       }
     } catch (_error) {
-      notifications.error("Error de red o servidor");
+      toast.error("Error de red o servidor");
     }
     setLoading(false);
   };
@@ -89,7 +89,7 @@ export default function SignInPage() {
     try {
       window.location.href = "/api/auth/google/login";
     } catch (_error) {
-      notifications.error("No se pudo redirigir a Google");
+      toast.error("No se pudo redirigir a Google");
       setLoading(false);
     }
   };

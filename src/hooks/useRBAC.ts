@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import {
   PermissionAction,
   type PermissionCheck,
@@ -9,160 +10,178 @@ import { useAuth } from "./useAuth";
 export function useRBAC() {
   const { user } = useAuth();
 
-  // Get user roles
-  const { data: userRoles, isLoading: rolesLoading } =
-    trpc.rbac.getUserRoles.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
-    );
-
-  // Get user permissions
-  const { data: userPermissions, isLoading: permissionsLoading } =
-    trpc.rbac.getUserPermissions.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
-    );
-
-  // Check if user is admin
-  const { data: isAdmin, isLoading: adminLoading } = trpc.rbac.isAdmin.useQuery(
+  // Single query to get all RBAC context
+  const { data: rbacContext, isLoading } = trpc.rbac.getRBACContext.useQuery(
     { userId: user?.id || "" },
-    { enabled: !!user?.id },
+    {
+      enabled: !!user?.id,
+      staleTime: 5 * 60 * 1000, // 5 minutes cache
+      refetchOnWindowFocus: false,
+    },
   );
 
-  // Check if user is super admin
-  const { data: isSuperAdmin, isLoading: superAdminLoading } =
-    trpc.rbac.isSuperAdmin.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
-    );
+  // Extract data from context with fallbacks
+  const userRoles = rbacContext?.userRoles || [];
+  const userPermissions = rbacContext?.permissions || [];
 
-  // Check if user can manage users
-  const { data: canManageUsers, isLoading: manageUsersLoading } =
-    trpc.rbac.canManageUsers.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
+  // Calculate specific permissions from roles and permissions
+  const isAdmin = useMemo(() => {
+    if (!userRoles.length) return false;
+    return userRoles.some(
+      (role) => ["super_admin", "admin"].includes(role.name) && role.isActive,
     );
+  }, [userRoles]);
 
-  // Check if user can manage roles
-  const { data: canManageRoles, isLoading: manageRolesLoading } =
-    trpc.rbac.canManageRoles.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
+  const isSuperAdmin = useMemo(() => {
+    if (!userRoles.length) return false;
+    return userRoles.some(
+      (role) => role.name === "super_admin" && role.isActive,
     );
+  }, [userRoles]);
 
-  // Check if user can access admin panel
-  const { data: canAccessAdmin, isLoading: accessAdminLoading } =
-    trpc.rbac.canAccessAdmin.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
+  const canManageUsers = useMemo(() => {
+    if (!userPermissions.length) return false;
+    return userPermissions.some(
+      (permission) =>
+        permission.action === PermissionAction.MANAGE &&
+        permission.resource === PermissionResource.USER &&
+        permission.isActive,
     );
+  }, [userPermissions]);
 
-  // Check if user can manage trading accounts
-  const {
-    data: canManageTradingAccounts,
-    isLoading: manageTradingAccountsLoading,
-  } = trpc.rbac.canManageTradingAccounts.useQuery(
-    { userId: user?.id || "" },
-    { enabled: !!user?.id },
+  const canManageRoles = useMemo(() => {
+    if (!userPermissions.length) return false;
+    return userPermissions.some(
+      (permission) =>
+        permission.action === PermissionAction.MANAGE &&
+        permission.resource === PermissionResource.ROLE &&
+        permission.isActive,
+    );
+  }, [userPermissions]);
+
+  const canAccessAdmin = useMemo(() => {
+    if (!userPermissions.length) return false;
+    return userPermissions.some(
+      (permission) =>
+        permission.action === PermissionAction.MANAGE &&
+        permission.resource === PermissionResource.ADMIN &&
+        permission.isActive,
+    );
+  }, [userPermissions]);
+
+  const canManageTradingAccounts = useMemo(() => {
+    if (!userPermissions.length) return false;
+    return userPermissions.some(
+      (permission) =>
+        permission.action === PermissionAction.MANAGE &&
+        permission.resource === PermissionResource.TRADING_ACCOUNT &&
+        permission.isActive,
+    );
+  }, [userPermissions]);
+
+  const canManageTrades = useMemo(() => {
+    if (!userPermissions.length) return false;
+    return userPermissions.some(
+      (permission) =>
+        permission.action === PermissionAction.MANAGE &&
+        permission.resource === PermissionResource.TRADE &&
+        permission.isActive,
+    );
+  }, [userPermissions]);
+
+  const canViewDashboard = useMemo(() => {
+    if (!userPermissions.length) return false;
+    return userPermissions.some(
+      (permission) =>
+        permission.action === PermissionAction.READ &&
+        permission.resource === PermissionResource.DASHBOARD &&
+        permission.isActive,
+    );
+  }, [userPermissions]);
+
+  // Memoized utility functions to prevent unnecessary re-renders
+  const utilityFunctions = useMemo(
+    () => ({
+      hasPermission: (
+        action: PermissionAction,
+        resource: PermissionResource,
+      ) => {
+        if (!userPermissions.length) return false;
+        return userPermissions.some(
+          (permission) =>
+            permission.action === action &&
+            permission.resource === resource &&
+            permission.isActive,
+        );
+      },
+
+      hasRole: (roleName: string) => {
+        if (!userRoles.length) return false;
+        return userRoles.some(
+          (role) => role.name === roleName && role.isActive,
+        );
+      },
+
+      hasAnyRole: (roleNames: string[]) => {
+        if (!userRoles.length) return false;
+        return userRoles.some(
+          (role) => roleNames.includes(role.name) && role.isActive,
+        );
+      },
+
+      hasAllRoles: (roleNames: string[]) => {
+        if (!userRoles.length) return false;
+        return roleNames.every((roleName) =>
+          userRoles.some((role) => role.name === roleName && role.isActive),
+        );
+      },
+
+      hasAnyPermission: (permissionChecks: PermissionCheck[]) => {
+        if (!userPermissions.length) return false;
+        return permissionChecks.some((check) =>
+          userPermissions.some(
+            (permission) =>
+              permission.action === check.action &&
+              permission.resource === check.resource &&
+              permission.isActive,
+          ),
+        );
+      },
+
+      hasAllPermissions: (permissionChecks: PermissionCheck[]) => {
+        if (!userPermissions.length) return false;
+        return permissionChecks.every((check) =>
+          userPermissions.some(
+            (permission) =>
+              permission.action === check.action &&
+              permission.resource === check.resource &&
+              permission.isActive,
+          ),
+        );
+      },
+    }),
+    [userRoles, userPermissions],
   );
-
-  // Check if user can manage trades
-  const { data: canManageTrades, isLoading: manageTradesLoading } =
-    trpc.rbac.canManageTrades.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
-    );
-
-  // Check if user can view dashboard
-  const { data: canViewDashboard, isLoading: viewDashboardLoading } =
-    trpc.rbac.canViewDashboard.useQuery(
-      { userId: user?.id || "" },
-      { enabled: !!user?.id },
-    );
-
-  const isLoading =
-    rolesLoading || permissionsLoading || adminLoading || superAdminLoading;
 
   return {
     // Data
-    userRoles: userRoles || [],
-    userPermissions: userPermissions || [],
+    userRoles,
+    userPermissions,
 
     // Status checks
-    isAdmin: isAdmin || false,
-    isSuperAdmin: isSuperAdmin || false,
-    canManageUsers: canManageUsers || false,
-    canManageRoles: canManageRoles || false,
-    canAccessAdmin: canAccessAdmin || false,
-    canManageTradingAccounts: canManageTradingAccounts || false,
-    canManageTrades: canManageTrades || false,
-    canViewDashboard: canViewDashboard || false,
+    isAdmin,
+    isSuperAdmin,
+    canManageUsers,
+    canManageRoles,
+    canAccessAdmin,
+    canManageTradingAccounts,
+    canManageTrades,
+    canViewDashboard,
 
-    // Loading states
+    // Loading state
     isLoading,
-    rolesLoading,
-    permissionsLoading,
-    adminLoading,
-    superAdminLoading,
-    manageUsersLoading,
-    manageRolesLoading,
-    accessAdminLoading,
-    manageTradingAccountsLoading,
-    manageTradesLoading,
-    viewDashboardLoading,
 
-    // Utility functions
-    hasPermission: (action: PermissionAction, resource: PermissionResource) => {
-      if (!userPermissions) return false;
-      return userPermissions.some(
-        (permission) =>
-          permission.action === action &&
-          permission.resource === resource &&
-          permission.isActive,
-      );
-    },
-
-    hasRole: (roleName: string) => {
-      if (!userRoles) return false;
-      return userRoles.some((role) => role.name === roleName && role.isActive);
-    },
-
-    hasAnyRole: (roleNames: string[]) => {
-      if (!userRoles) return false;
-      return userRoles.some(
-        (role) => roleNames.includes(role.name) && role.isActive,
-      );
-    },
-
-    hasAllRoles: (roleNames: string[]) => {
-      if (!userRoles) return false;
-      return roleNames.every((roleName) =>
-        userRoles.some((role) => role.name === roleName && role.isActive),
-      );
-    },
-
-    hasAnyPermission: (permissionChecks: PermissionCheck[]) => {
-      if (!userPermissions) return false;
-      return permissionChecks.some((check) =>
-        userPermissions.some(
-          (permission) =>
-            permission.action === check.action &&
-            permission.resource === check.resource &&
-            permission.isActive,
-        ),
-      );
-    },
-
-    hasAllPermissions: (permissionChecks: PermissionCheck[]) => {
-      if (!userPermissions) return false;
-      return permissionChecks.every((check) =>
-        userPermissions.some(
-          (permission) =>
-            permission.action === check.action &&
-            permission.resource === check.resource &&
-            permission.isActive,
-        ),
-      );
-    },
+    // Utility functions (memoized)
+    ...utilityFunctions,
   };
 }

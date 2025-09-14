@@ -1,6 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { notifications } from "@/lib/notifications";
+import { toast } from "sonner";
 import type { AuthUser } from "@/types/user";
 
 export function useAuth() {
@@ -14,6 +14,19 @@ export function useAuth() {
 
   const checkAuth = async () => {
     try {
+      // Verificar si hay un token en la URL (desde Google OAuth)
+      const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get("token");
+
+      if (tokenFromUrl) {
+        // Si hay token en la URL, guardarlo en localStorage y limpiar la URL
+        localStorage.setItem("auth_token", tokenFromUrl);
+        // Limpiar la URL sin recargar la página
+        const newUrl = new URL(window.location.href);
+        newUrl.searchParams.delete("token");
+        window.history.replaceState({}, "", newUrl.toString());
+      }
+
       // Verificar si hay un token en localStorage
       const token = localStorage.getItem("auth_token");
       if (token) {
@@ -72,11 +85,16 @@ export function useAuth() {
         localStorage.setItem("auth_token", result.result.data);
         // Actualizar el estado del usuario
         await checkAuth();
-        notifications.loginSuccess();
+        toast.success("Bienvenido", {
+          description: "Sesión iniciada correctamente",
+        });
         return { success: true };
       } else {
         const errorMessage = result.error?.message || "Error al iniciar sesión";
-        notifications.handleApiError(result.error, "Inicio de Sesión");
+        toast.error("Error en Inicio de Sesión", {
+          description:
+            result.error?.message || "Ha ocurrido un error inesperado",
+        });
         return {
           success: false,
           error: errorMessage,
@@ -84,7 +102,9 @@ export function useAuth() {
       }
     } catch (error) {
       console.error("Error signing in:", error);
-      notifications.handleApiError(error, "Inicio de Sesión");
+      toast.error("Error en Inicio de Sesión", {
+        description: "Error de red o servidor",
+      });
       return { success: false, error: "Error de red o servidor" };
     }
   };
@@ -93,11 +113,15 @@ export function useAuth() {
     try {
       localStorage.removeItem("auth_token");
       setUser(null);
-      notifications.logoutSuccess();
+      toast.success("Hasta Luego", {
+        description: "Sesión cerrada correctamente",
+      });
       router.push("/");
     } catch (error) {
       console.error("Error signing out:", error);
-      notifications.handleApiError(error, "Cierre de Sesión");
+      toast.error("Error en Cierre de Sesión", {
+        description: "Ha ocurrido un error inesperado",
+      });
     }
   };
 

@@ -10,7 +10,7 @@ import type {
   AuthToken,
   GoogleProfile,
 } from "@/types/auth";
-import type { AuthUser, JWTPayload } from "@/types/user";
+import type { AuthUser } from "@/types/user";
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),

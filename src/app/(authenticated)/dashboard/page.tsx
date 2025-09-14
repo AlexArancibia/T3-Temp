@@ -10,8 +10,15 @@ import { useRBAC } from "@/hooks/useRBAC";
 
 export default function DashboardPage() {
   const { user } = useAuthContext();
-  const { isSuperAdmin, isAdmin, hasRole, canViewDashboard, isLoading } =
-    useRBAC();
+  const {
+    isSuperAdmin,
+    isAdmin,
+    hasRole,
+    canViewDashboard,
+    isLoading,
+    userRoles,
+    userPermissions,
+  } = useRBAC();
 
   // Mostrar loading mientras se cargan los permisos
   if (isLoading) {
@@ -31,14 +38,108 @@ export default function DashboardPage() {
   if (!canViewDashboard && !isAdmin && !isSuperAdmin) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+          <div className="text-center max-w-2xl w-full">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
               Acceso Denegado
             </h1>
-            <p className="text-gray-600">
+            <p className="text-gray-600 mb-6">
               No tienes permisos para acceder al dashboard.
             </p>
+
+            {/* Información del usuario */}
+            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-left">
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+                Información de tu cuenta
+              </h3>
+
+              <div className="space-y-4">
+                {/* Tipo de usuario */}
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Tipo de usuario:
+                  </span>
+                  <span className="ml-2 text-sm text-gray-600">
+                    {user?.isAdmin ? "Administrador" : "Usuario estándar"}
+                  </span>
+                </div>
+
+                {/* Estado de confirmación */}
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Estado de cuenta:
+                  </span>
+                  <span
+                    className={`ml-2 text-sm ${user?.isConfirmed ? "text-green-600" : "text-red-600"}`}
+                  >
+                    {user?.isConfirmed ? "Verificada" : "Sin verificar"}
+                  </span>
+                </div>
+
+                {/* Roles asignados */}
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Roles asignados:
+                  </span>
+                  <div className="mt-1">
+                    {userRoles.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {userRoles.map((role) => (
+                          <span
+                            key={role.id}
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+                          >
+                            {role.displayName || role.name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500 italic">
+                        Sin roles asignados
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Permisos disponibles */}
+                <div>
+                  <span className="text-sm font-medium text-gray-700">
+                    Permisos disponibles:
+                  </span>
+                  <div className="mt-1">
+                    {userPermissions.length > 0 ? (
+                      <div className="flex flex-wrap gap-2">
+                        {userPermissions.slice(0, 5).map((permission) => (
+                          <span
+                            key={permission.id}
+                            className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800"
+                          >
+                            {permission.action} {permission.resource}
+                          </span>
+                        ))}
+                        {userPermissions.length > 5 && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                            +{userPermissions.length - 5} más
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-sm text-gray-500 italic">
+                        Sin permisos asignados
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>¿Necesitas acceso?</strong> Contacta al administrador
+                  del sistema para que te asigne los roles y permisos
+                  necesarios.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </ProtectedRoute>
