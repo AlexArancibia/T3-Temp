@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { toNextJsHandler } from "better-auth/next-js";
-import { config } from "@/lib/config";
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/mailer";
 import type {
@@ -45,8 +44,8 @@ export const auth = betterAuth({
   },
   socialProviders: {
     google: {
-      clientId: config.auth.google.clientId,
-      clientSecret: config.auth.google.clientSecret,
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       profile(profile: GoogleProfile) {
         return {
           id: profile.sub,
@@ -81,9 +80,9 @@ export const auth = betterAuth({
           });
         }
         return true;
-      } catch (error) {
-        console.error("Error in signIn callback:", error);
-        return true; // Permitir el login incluso si hay error en la actualización
+      } catch (_error) {
+        // Permitir el login incluso si hay error en la actualización
+        return true;
       }
     },
     async session({

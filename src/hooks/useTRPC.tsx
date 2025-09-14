@@ -10,7 +10,6 @@ import type { AppRouter } from "../server/routers/_app";
 export const trpc = createTRPCReact<AppRouter>();
 
 export const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
   const [queryClient] = React.useState(() => new QueryClient());
 
   const trpcClient = useMemo(() => {
@@ -21,12 +20,6 @@ export const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
           headers() {
             // Get token from localStorage
             const token = localStorage.getItem("auth_token");
-            console.log(
-              "tRPC client sending token:",
-              token ? "Present" : "Missing",
-              "User:",
-              user?.email,
-            );
             return {
               authorization: token ? `Bearer ${token}` : "",
             };
@@ -34,7 +27,7 @@ export const TRPCProvider = ({ children }: { children: React.ReactNode }) => {
         }),
       ],
     });
-  }, [user]); // Recreate client when user changes
+  }, []); // No dependencies needed
 
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>

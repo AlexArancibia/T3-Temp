@@ -56,8 +56,8 @@ export default function UserCRUD() {
       setEditingUser(null);
       form.reset();
     },
-    onError: (error) => {
-      console.error("Error updating user:", error);
+    onError: () => {
+      // Error handled silently
     },
   });
   const deleteUser = trpc.user.delete.useMutation({

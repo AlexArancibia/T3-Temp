@@ -35,7 +35,7 @@ Example:
 
 const toCamelCase = (str: string): string => str.replace(/-([a-z])/g, g => g[1].toUpperCase());
 
-const parseValue = (value: string): any => {
+const parseValue = (value: string): string | number | boolean | string[] => {
   if (value === "true") return true;
   if (value === "false") return false;
 
@@ -58,13 +58,13 @@ function parseArgs(): Partial<Bun.BuildConfig> {
 
     if (arg.startsWith("--no-")) {
       const key = toCamelCase(arg.slice(5));
-      (config as any)[key] = false;
+      (config as Record<string, unknown>)[key] = false;
       continue;
     }
 
     if (!arg.includes("=") && (i === args.length - 1 || args[i + 1]?.startsWith("--"))) {
       const key = toCamelCase(arg.slice(2));
-      (config as any)[key] = true;
+      (config as Record<string, unknown>)[key] = true;
       continue;
     }
 
@@ -82,10 +82,10 @@ function parseArgs(): Partial<Bun.BuildConfig> {
 
     if (key.includes(".")) {
       const [parentKey, childKey] = key.split(".");
-      (config as any)[parentKey] = (config as any)[parentKey] || {};
-      (config as any)[parentKey][childKey] = parseValue(value);
+      (config as Record<string, unknown>)[parentKey] = (config as Record<string, unknown>)[parentKey] || {};
+      ((config as Record<string, unknown>)[parentKey] as Record<string, unknown>)[childKey] = parseValue(value);
     } else {
-      (config as any)[key] = parseValue(value);
+      (config as Record<string, unknown>)[key] = parseValue(value);
     }
   }
 

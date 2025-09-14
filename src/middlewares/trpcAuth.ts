@@ -42,8 +42,7 @@ export const trpcAuth = t.middleware(async ({ ctx, next }) => {
     let rbacContext: RBACContext | null = null;
     try {
       rbacContext = await RBACService.getRBACContext(payload.userId);
-    } catch (error) {
-      console.warn("Failed to load RBAC context:", error);
+    } catch (_error) {
       // Continue without RBAC context if it fails
     }
 
@@ -54,8 +53,7 @@ export const trpcAuth = t.middleware(async ({ ctx, next }) => {
         rbac: rbacContext,
       },
     });
-  } catch (err) {
-    console.error("Error al verificar JWT:", err);
+  } catch (_err) {
     throw new TRPCError({
       code: "UNAUTHORIZED",
       message: "Invalid or expired token",

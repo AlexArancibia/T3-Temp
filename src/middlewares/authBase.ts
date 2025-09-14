@@ -28,15 +28,14 @@ export async function extractUserFromRequest(
     }
 
     const token = authHeader.substring(7);
-    const payload = jwt.verify(token, JWT_SECRET!) as unknown as JWTPayload;
+    const payload = jwt.verify(token, JWT_SECRET!) as JWTPayload;
 
     if (!payload.userId || !payload.email) {
       return null;
     }
 
     return payload;
-  } catch (error) {
-    console.error("Error extracting user from request:", error);
+  } catch (_error) {
     return null;
   }
 }
@@ -90,8 +89,7 @@ export function createPermissionMiddleware(
       }
 
       return { user };
-    } catch (error) {
-      console.error("Permission check error:", error);
+    } catch (_error) {
       return NextResponse.json(
         { error: "Permission check failed" },
         { status: 500 },
@@ -124,8 +122,7 @@ export function createRoleMiddleware(roleName: string) {
       }
 
       return { user };
-    } catch (error) {
-      console.error("Role check error:", error);
+    } catch (_error) {
       return NextResponse.json({ error: "Role check failed" }, { status: 500 });
     }
   };
@@ -160,8 +157,7 @@ export function createMultiPermissionMiddleware(
       }
 
       return { user };
-    } catch (error) {
-      console.error("Multi-permission check error:", error);
+    } catch (_error) {
       return NextResponse.json(
         { error: "Permission check failed" },
         { status: 500 },

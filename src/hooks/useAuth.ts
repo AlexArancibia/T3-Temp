@@ -53,8 +53,7 @@ export function useAuth() {
       } else {
         setUser(null);
       }
-    } catch (error) {
-      console.error("Error checking auth:", error);
+    } catch (_error) {
       localStorage.removeItem("auth_token");
       setUser(null);
     } finally {
@@ -65,8 +64,8 @@ export function useAuth() {
   const signInWithGoogle = async () => {
     try {
       window.location.href = "/api/auth/google/login";
-    } catch (error) {
-      console.error("Error signing in with Google:", error);
+    } catch (_error) {
+      // Error handled silently
     }
   };
 
@@ -100,8 +99,7 @@ export function useAuth() {
           error: errorMessage,
         };
       }
-    } catch (error) {
-      console.error("Error signing in:", error);
+    } catch (_error) {
       toast.error("Error en Inicio de Sesión", {
         description: "Error de red o servidor",
       });
@@ -117,8 +115,7 @@ export function useAuth() {
         description: "Sesión cerrada correctamente",
       });
       router.push("/");
-    } catch (error) {
-      console.error("Error signing out:", error);
+    } catch (_error) {
       toast.error("Error en Cierre de Sesión", {
         description: "Ha ocurrido un error inesperado",
       });

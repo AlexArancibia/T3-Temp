@@ -29,12 +29,6 @@ export async function GET(request: NextRequest) {
     });
 
     if (!tokenResponse.ok) {
-      const errorText = await tokenResponse.text();
-      console.error(
-        "❌ Error al obtener tokens:",
-        tokenResponse.status,
-        errorText,
-      );
       throw new Error(`Failed to get tokens: ${tokenResponse.status}`);
     }
 
@@ -51,20 +45,10 @@ export async function GET(request: NextRequest) {
     );
 
     if (!userResponse.ok) {
-      const errorText = await userResponse.text();
-      console.error(
-        "❌ Error al obtener información del usuario:",
-        userResponse.status,
-        errorText,
-      );
       throw new Error(`Failed to get user info: ${userResponse.status}`);
     }
 
     const userInfo = await userResponse.json();
-    console.log("✅ Información del usuario obtenida:", {
-      email: userInfo.email,
-      name: userInfo.name,
-    });
 
     // Buscar o crear usuario en la base de datos
     let user = await prisma.user.findUnique({
@@ -82,8 +66,6 @@ export async function GET(request: NextRequest) {
           isConfirmed: true, // Usuarios de Google están confirmados
         },
       });
-    } else {
-      console.log("✅ Usuario existente encontrado:");
     }
 
     // Crear JWT token para la sesión

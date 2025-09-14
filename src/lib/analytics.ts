@@ -25,8 +25,8 @@ export const event = ({
   if (typeof window !== "undefined" && window.gtag) {
     window.gtag("event", action, {
       event_category: category,
-      event_label: label,
-      value: value,
+      ...(label && { event_label: label }),
+      ...(value !== undefined && { value }),
     });
   }
 };
@@ -37,7 +37,7 @@ declare global {
     gtag: (
       command: "config" | "event",
       targetId: string,
-      config?: Record<string, unknown>,
+      config?: Record<string, string | number | boolean>,
     ) => void;
   }
 }

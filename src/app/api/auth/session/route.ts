@@ -36,8 +36,7 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ user });
-  } catch (error) {
-    console.error("Session error:", error);
+  } catch (_error) {
     return NextResponse.json({ user: null });
   }
 }
@@ -71,8 +70,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ user });
-  } catch (error) {
-    console.error("Session error:", error);
+  } catch (_error) {
     return NextResponse.json({ user: null });
   }
 }

@@ -243,10 +243,11 @@ export default function RoleCRUD() {
                             key={rolePermission.permission.id}
                             className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full"
                           >
-                            {/* biome-ignore lint/suspicious/noExplicitAny: API data type mismatch */}
                             {getPermissionText(
-                              rolePermission.permission.action as any,
-                              rolePermission.permission.resource as any,
+                              rolePermission.permission
+                                .action as PermissionAction,
+                              rolePermission.permission
+                                .resource as PermissionResource,
                             )}
                           </span>
                         ))}
@@ -263,10 +264,7 @@ export default function RoleCRUD() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          {
-                            /* biome-ignore lint/suspicious/noExplicitAny: API data type mismatch */
-                          }
-                          handleEdit(role as any);
+                          handleEdit(role);
                         }}
                       >
                         <Edit className="h-4 w-4" />
@@ -380,10 +378,9 @@ export default function RoleCRUD() {
                           className="rounded border-gray-300"
                         />
                         <span className="text-sm">
-                          {/* biome-ignore lint/suspicious/noExplicitAny: API data type mismatch */}
                           {getPermissionText(
-                            permission.action as any,
-                            permission.resource as any,
+                            permission.action as PermissionAction,
+                            permission.resource as PermissionResource,
                           )}
                         </span>
                       </label>
