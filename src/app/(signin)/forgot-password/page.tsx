@@ -3,7 +3,6 @@
 import * as Toast from "@radix-ui/react-toast";
 import { ArrowLeft, CheckCircle, Mail } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
@@ -25,7 +24,6 @@ export default function ForgotPasswordPage() {
   const [toastOpen, setToastOpen] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
-  const _router = useRouter();
 
   const form = useForm<ForgotPasswordFormValues>({
     defaultValues: {

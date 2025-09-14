@@ -2,7 +2,7 @@
 
 import * as Toast from "@radix-ui/react-toast";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function ConfirmEmailPage() {
   const [loading, setLoading] = useState(true);
@@ -16,6 +16,47 @@ export default function ConfirmEmailPage() {
   const router = useRouter();
   const token = searchParams.get("token");
 
+  const confirmEmail = useCallback(
+    async (token: string) => {
+      try {
+        const response = await fetch("/api/trpc/auth.confirmEmail", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ token }),
+        });
+
+        const result = await response.json();
+
+        if (response.ok && result.result?.data === true) {
+          setSuccess(true);
+          setToastType("success");
+          setToastMsg("¡Email confirmado exitosamente!");
+          setToastOpen(true);
+
+          // Redirigir al inicio después de 3 segundos
+          setTimeout(() => {
+            router.push("/");
+          }, 3000);
+        } else {
+          setError("Token inválido o expirado");
+          setToastType("error");
+          setToastMsg("Error al confirmar el email");
+          setToastOpen(true);
+        }
+      } catch (_err) {
+        setError("Error de conexión");
+        setToastType("error");
+        setToastMsg("Error de conexión al confirmar el email");
+        setToastOpen(true);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [router],
+  );
+
   useEffect(() => {
     if (!token) {
       setError("Token de confirmación no encontrado");
@@ -24,45 +65,7 @@ export default function ConfirmEmailPage() {
     }
 
     confirmEmail(token);
-  }, [token]);
-
-  const confirmEmail = async (token: string) => {
-    try {
-      const response = await fetch("/api/trpc/auth.confirmEmail", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token }),
-      });
-
-      const result = await response.json();
-
-      if (response.ok && result.result?.data === true) {
-        setSuccess(true);
-        setToastType("success");
-        setToastMsg("¡Email confirmado exitosamente!");
-        setToastOpen(true);
-
-        // Redirigir al inicio después de 3 segundos
-        setTimeout(() => {
-          router.push("/");
-        }, 3000);
-      } else {
-        setError("Token inválido o expirado");
-        setToastType("error");
-        setToastMsg("Error al confirmar el email");
-        setToastOpen(true);
-      }
-    } catch (_err) {
-      setError("Error de conexión");
-      setToastType("error");
-      setToastMsg("Error de conexión al confirmar el email");
-      setToastOpen(true);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [token, confirmEmail]);
 
   if (loading) {
     return (
