@@ -1,7 +1,16 @@
 "use client";
 
-import { BarChart3, Menu, Settings, Shield, Users, X } from "lucide-react";
+import {
+  BarChart3,
+  Building2,
+  Menu,
+  Settings,
+  Shield,
+  Users,
+  X,
+} from "lucide-react";
 import { useState } from "react";
+import PropfirmCRUD from "@/components/admin/PropfirmCRUD";
 import RoleCRUD from "@/components/admin/RoleCRUD";
 import UserCRUD from "@/components/admin/UserCRUD";
 import { Button } from "@/components/ui/button";
@@ -16,7 +25,7 @@ interface AdminDashboardProps {
   } | null;
 }
 
-type AdminSection = "users" | "roles" | "analytics" | "settings";
+type AdminSection = "users" | "roles" | "propfirms" | "analytics" | "settings";
 
 export default function AdminDashboard({ user }: AdminDashboardProps) {
   const [activeSection, setActiveSection] = useState<AdminSection>("users");
@@ -38,6 +47,14 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
       icon: <Shield className="h-5 w-5" />,
       color: "text-purple-600",
       bgColor: "bg-purple-50",
+    },
+    {
+      id: "propfirms" as AdminSection,
+      title: "Propfirms",
+      description: "Gestionar propfirms del sistema",
+      icon: <Building2 className="h-5 w-5" />,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
     },
     {
       id: "analytics" as AdminSection,
@@ -63,6 +80,8 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
         return <UserCRUD />;
       case "roles":
         return <RoleCRUD />;
+      case "propfirms":
+        return <PropfirmCRUD />;
       case "analytics":
         return (
           <div className="flex items-center justify-center h-64">

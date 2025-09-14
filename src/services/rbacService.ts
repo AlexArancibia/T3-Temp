@@ -469,4 +469,48 @@ export class RBACService {
       PermissionResource.DASHBOARD,
     );
   }
+
+  /**
+   * Check if user can manage propfirms
+   */
+  static async canManagePropfirms(userId: string): Promise<boolean> {
+    return await this.hasPermission(
+      userId,
+      PermissionAction.MANAGE,
+      PermissionResource.PROPFIRM,
+    );
+  }
+
+  /**
+   * Check if user can create propfirms
+   */
+  static async canCreatePropfirms(userId: string): Promise<boolean> {
+    return await this.hasPermission(
+      userId,
+      PermissionAction.CREATE,
+      PermissionResource.PROPFIRM,
+    );
+  }
+
+  /**
+   * Check if user can update propfirms
+   */
+  static async canUpdatePropfirms(userId: string): Promise<boolean> {
+    return await this.hasPermission(
+      userId,
+      PermissionAction.UPDATE,
+      PermissionResource.PROPFIRM,
+    );
+  }
+
+  /**
+   * Check if user can delete propfirms
+   */
+  static async canDeletePropfirms(userId: string): Promise<boolean> {
+    return await this.hasPermission(
+      userId,
+      PermissionAction.DELETE,
+      PermissionResource.PROPFIRM,
+    );
+  }
 }

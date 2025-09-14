@@ -35,11 +35,11 @@ interface Role {
   name: string;
   displayName: string;
   description: string | null;
-  rolePermissions: Array<{
+  rolePermissions?: Array<{
     permission: {
       id: string;
-      action: PermissionAction;
-      resource: PermissionResource;
+      action: string;
+      resource: string;
     };
   }>;
 }
