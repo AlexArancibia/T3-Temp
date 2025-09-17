@@ -2,20 +2,12 @@
 export interface User {
   id: string;
   email: string;
-  password: string | null;
-  firstName: string;
-  lastName?: string;
-  phone?: string;
-  image?: string;
-  isConfirmed: boolean;
-  confirmationToken?: string;
-  resetToken?: string;
-  resetTokenExpiry?: Date;
-  timezone: string;
+  name: string;
+  emailVerified: boolean;
+  image?: string | null;
+  phone?: string | null;
   language: string;
-  theme: string;
   defaultRiskPercentage: number;
-  isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,15 +16,11 @@ export interface User {
 export interface AuthUser {
   id: string;
   email: string;
-  firstName: string;
-  lastName?: string;
-  phone?: string;
-  image?: string;
-  isConfirmed: boolean;
-  isAdmin: boolean;
-  timezone: string;
+  name: string;
+  phone?: string | null;
+  image?: string | null;
+  emailVerified: boolean;
   language: string;
-  theme: string;
   defaultRiskPercentage: number;
   createdAt: Date;
   updatedAt: Date;
@@ -42,8 +30,7 @@ export interface AuthUser {
 export interface JWTPayload {
   userId: string;
   email: string;
-  firstName: string;
-  lastName?: string;
+  name: string;
   iat?: number;
   exp?: number;
 }

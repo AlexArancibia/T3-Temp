@@ -1,43 +1,36 @@
 import { initTRPC } from "@trpc/server";
-import jwt from "jsonwebtoken";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
 export interface Context {
   user?: {
     id: string;
     email: string;
-    firstName: string;
-    lastName?: string;
+    name: string;
   };
+  rbac?: unknown;
 }
 
 export const createContext = async (opts: {
   req: Request;
 }): Promise<Context> => {
   try {
-    // Get the authorization header
-    const authHeader = opts.req.headers.get("authorization");
+    // Get session from Better Auth using cookies
+    const session = await auth.api.getSession({
+      headers: opts.req.headers,
+    });
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!session?.user) {
       return {};
     }
 
-    const token = authHeader.substring(7); // Remove "Bearer "
-
-    // Verify the JWT token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "secret") as {
-      userId: string;
-      email: string;
-    };
-
-    // Get user from database
+    // Get user from database for additional info
     const user = await prisma.user.findUnique({
-      where: { id: decoded.userId },
+      where: { id: session.user.id },
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
+        name: true,
       },
     });
 
@@ -49,8 +42,7 @@ export const createContext = async (opts: {
       user: {
         id: user.id,
         email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName || undefined,
+        name: user.name,
       },
     };
   } catch (_error) {

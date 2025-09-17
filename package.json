@@ -17,8 +17,7 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
-    "seed:admin": "bun run scripts/seed-admin-simple.ts",
-    "seed:rbac": "bun run scripts/seed-rbac.js",
+    "seed": "bun run scripts/seed.ts",
     "sitemap": "next-sitemap --config ./config/next/next-sitemap.config.js",
     "commitlint": "commitlint --edit",
     "commit": "cz"

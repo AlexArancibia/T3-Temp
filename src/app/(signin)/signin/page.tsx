@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { useAuthContext } from "@/AuthContext";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import {
   Form,
@@ -16,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 type LoginFormValues = {
   email: string;
@@ -26,7 +26,6 @@ export default function SignInPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { signIn } = useAuthContext();
 
   const form = useForm<LoginFormValues>({
     defaultValues: {
@@ -70,13 +69,22 @@ export default function SignInPage() {
     }
 
     try {
-      const result = await signIn(data.email, data.password);
+      const { error } = await authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+        callbackURL: "/dashboard",
+        rememberMe: true,
+      });
 
-      if (result.success) {
-        // Redirigir al dashboard inmediatamente
-        router.push("/dashboard");
+      if (error) {
+        toast.error("Error al iniciar sesión", {
+          description: error.message,
+        });
       } else {
-        toast.error(result.error || "Error al iniciar sesión");
+        toast.success("Bienvenido", {
+          description: "Sesión iniciada correctamente",
+        });
+        router.push("/dashboard");
       }
     } catch (_error) {
       toast.error("Error de red o servidor");
@@ -87,7 +95,12 @@ export default function SignInPage() {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      window.location.href = "/api/auth/google/login";
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard",
+        errorCallbackURL: "/signin",
+        newUserCallbackURL: "/dashboard",
+      });
     } catch (_error) {
       toast.error("No se pudo redirigir a Google");
       setLoading(false);

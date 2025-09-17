@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit, Plus, Search, Trash2, Users, X } from "lucide-react";
+import { Edit, Search, Trash2, Users, X } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -20,8 +20,7 @@ import { trpc } from "@/utils/trpc";
 
 const updateUserSchema = z.object({
   email: z.string().email("Email inválido"),
-  firstName: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
-  lastName: z.string().min(2, "Apellido debe tener al menos 2 caracteres"),
+  name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
   password: z
     .string()
     .min(6, "Contraseña debe tener al menos 6 caracteres")
@@ -35,7 +34,6 @@ type UserFormData = z.infer<typeof updateUserSchema>;
 export default function UserCRUD() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const {
     data: users = [],
@@ -43,13 +41,6 @@ export default function UserCRUD() {
     error,
     isLoading,
   } = trpc.user.getAll.useQuery();
-  const createUser = trpc.user.create.useMutation({
-    onSuccess: () => {
-      refetch();
-      setIsCreateModalOpen(false);
-      form.reset();
-    },
-  });
   const updateUser = trpc.user.update.useMutation({
     onSuccess: () => {
       refetch();
@@ -70,8 +61,7 @@ export default function UserCRUD() {
     resolver: zodResolver(updateUserSchema),
     defaultValues: {
       email: "",
-      firstName: "",
-      lastName: "",
+      name: "",
       password: "",
     },
   });
@@ -79,52 +69,29 @@ export default function UserCRUD() {
   const filteredUsers = users.filter(
     (user) =>
       user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.lastName &&
-        user.lastName.toLowerCase().includes(searchTerm.toLowerCase())),
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()),
   );
 
   const handleEdit = (user: Partial<User>) => {
     setEditingUser(user);
     form.reset({
       email: user.email || "",
-      firstName: user.firstName || "",
-      lastName: user.lastName || "",
+      name: user.name || "",
       password: "",
     });
-  };
-
-  const handleCreate = () => {
-    setIsCreateModalOpen(true);
-    setEditingUser(null);
-    form.reset();
   };
 
   const onSubmit = (data: UserFormData) => {
     if (editingUser) {
       // For updates, only send password if it's provided
       const updateData = {
-        id: editingUser.id!,
         email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
+        name: data.name,
         ...(data.password &&
           data.password.trim() !== "" && { password: data.password }),
       };
 
       updateUser.mutate(updateData);
-    } else {
-      // For creates, password is required
-      if (!data.password) {
-        form.setError("password", { message: "Contraseña es requerida" });
-        return;
-      }
-      createUser.mutate({
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        password: data.password || "",
-      });
     }
   };
 
@@ -144,10 +111,6 @@ export default function UserCRUD() {
             Gestión de Usuarios
           </h2>
         </div>
-        <Button onClick={handleCreate} className="flex items-center space-x-2">
-          <Plus className="h-4 w-4" />
-          <span>Nuevo Usuario</span>
-        </Button>
       </div>
 
       {/* Search */}
@@ -219,13 +182,12 @@ export default function UserCRUD() {
                         <div className="flex items-center">
                           <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                             <span className="text-sm font-medium text-blue-600">
-                              {user.firstName?.charAt(0) || ""}
-                              {user.lastName?.charAt(0) || ""}
+                              {user.name?.charAt(0) || ""}
                             </span>
                           </div>
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
-                              {user.firstName} {user.lastName || ""}
+                              {user.name || ""}
                             </div>
                           </div>
                         </div>
@@ -236,12 +198,12 @@ export default function UserCRUD() {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span
                           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            user.isConfirmed
+                            user.emailVerified
                               ? "bg-green-100 text-green-800"
                               : "bg-yellow-100 text-yellow-800"
                           }`}
                         >
-                          {user.isConfirmed ? "Confirmado" : "Pendiente"}
+                          {user.emailVerified ? "Confirmado" : "Pendiente"}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -252,7 +214,12 @@ export default function UserCRUD() {
                             onClick={() =>
                               handleEdit({
                                 ...user,
-                                lastName: user.lastName ?? undefined,
+                                createdAt: user.createdAt
+                                  ? new Date(user.createdAt)
+                                  : undefined,
+                                updatedAt: user.updatedAt
+                                  ? new Date(user.updatedAt)
+                                  : undefined,
                               })
                             }
                           >
@@ -276,12 +243,11 @@ export default function UserCRUD() {
         </div>
       )}
 
-      {/* Create/Edit Modal */}
-      {(isCreateModalOpen || editingUser) && (
+      {/* Edit Modal */}
+      {editingUser && (
         <div
           className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
           onClick={() => {
-            setIsCreateModalOpen(false);
             setEditingUser(null);
             form.reset();
           }}
@@ -292,7 +258,6 @@ export default function UserCRUD() {
           >
             <button
               onClick={() => {
-                setIsCreateModalOpen(false);
                 setEditingUser(null);
                 form.reset();
               }}
@@ -300,9 +265,7 @@ export default function UserCRUD() {
             >
               <X className="h-5 w-5" />
             </button>
-            <h3 className="text-lg font-semibold mb-4 pr-8">
-              {editingUser ? "Editar Usuario" : "Nuevo Usuario"}
-            </h3>
+            <h3 className="text-lg font-semibold mb-4 pr-8">Editar Usuario</h3>
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -323,23 +286,10 @@ export default function UserCRUD() {
                 />
                 <FormField
                   control={form.control}
-                  name="firstName"
+                  name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="lastName"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Apellido</FormLabel>
+                      <FormLabel>Nombre Completo</FormLabel>
                       <FormControl>
                         <Input {...field} />
                       </FormControl>
@@ -368,18 +318,14 @@ export default function UserCRUD() {
                     type="button"
                     variant="outline"
                     onClick={() => {
-                      setIsCreateModalOpen(false);
                       setEditingUser(null);
                       form.reset();
                     }}
                   >
                     Cancelar
                   </Button>
-                  <Button
-                    type="submit"
-                    disabled={createUser.isPending || updateUser.isPending}
-                  >
-                    {editingUser ? "Actualizar" : "Crear"}
+                  <Button type="submit" disabled={updateUser.isPending}>
+                    Actualizar
                   </Button>
                 </div>
               </form>

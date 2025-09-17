@@ -71,13 +71,13 @@ export default function RootLayout({
           disableTransitionOnChange
           enableColorScheme
         >
-          <TRPCProvider>
-            <AuthProvider>
+          <AuthProvider>
+            <TRPCProvider>
               <GlobalNavbar />
               {children}
               <Toaster />
-            </AuthProvider>
-          </TRPCProvider>
+            </TRPCProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

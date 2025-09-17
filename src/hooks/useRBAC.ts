@@ -1,14 +1,14 @@
 import { useMemo } from "react";
+import { useAuthContext } from "@/AuthContext";
 import {
   PermissionAction,
   type PermissionCheck,
   PermissionResource,
 } from "@/types/rbac";
 import { trpc } from "@/utils/trpc";
-import { useAuth } from "./useAuth";
 
 export function useRBAC() {
-  const { user } = useAuth();
+  const { user } = useAuthContext();
 
   // Single query to get all RBAC context
   const { data: rbacContext, isLoading } = trpc.rbac.getRBACContext.useQuery(

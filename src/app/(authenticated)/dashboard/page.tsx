@@ -7,6 +7,7 @@ import TraderDashboard from "@/components/dashboard/TraderDashboard";
 import ViewerDashboard from "@/components/dashboard/ViewerDashboard";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useRBAC } from "@/hooks/useRBAC";
+import type { AuthUser } from "@/types/user";
 
 export default function DashboardPage() {
   const { user } = useAuthContext();
@@ -60,7 +61,7 @@ export default function DashboardPage() {
                     Tipo de usuario:
                   </span>
                   <span className="ml-2 text-sm text-gray-600">
-                    {user?.isAdmin ? "Administrador" : "Usuario estándar"}
+                    Usuario estándar
                   </span>
                 </div>
 
@@ -70,9 +71,9 @@ export default function DashboardPage() {
                     Estado de cuenta:
                   </span>
                   <span
-                    className={`ml-2 text-sm ${user?.isConfirmed ? "text-green-600" : "text-red-600"}`}
+                    className={`ml-2 text-sm ${user?.emailVerified ? "text-green-600" : "text-red-600"}`}
                   >
-                    {user?.isConfirmed ? "Verificada" : "Sin verificar"}
+                    {user?.emailVerified ? "Verificada" : "Sin verificar"}
                   </span>
                 </div>
 
@@ -146,17 +147,31 @@ export default function DashboardPage() {
     );
   }
 
+  // Adapter function to convert AuthUser to expected dashboard user format
+  const adaptUserForDashboard = (authUser: AuthUser | null) => {
+    if (!authUser) return null;
+
+    const nameParts = authUser.name.split(" ");
+    return {
+      id: authUser.id,
+      firstName: nameParts[0] || "",
+      lastName: nameParts.slice(1).join(" ") || undefined,
+      email: authUser.email,
+      isConfirmed: authUser.emailVerified,
+    };
+  };
+
   // Renderizar el dashboard apropiado según el rol del usuario
   if (isSuperAdmin || isAdmin) {
-    return <AdminDashboard user={user} />;
+    return <AdminDashboard user={adaptUserForDashboard(user)} />;
   }
 
   if (hasRole("trader")) {
-    return <TraderDashboard user={user} />;
+    return <TraderDashboard user={adaptUserForDashboard(user)} />;
   }
 
   if (hasRole("viewer")) {
-    return <ViewerDashboard user={user} />;
+    return <ViewerDashboard user={adaptUserForDashboard(user)} />;
   }
 
   // Dashboard por defecto para usuarios sin rol específico
@@ -166,7 +181,7 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">
-              ¡Bienvenido, {user?.firstName || "Usuario"}!
+              ¡Bienvenido, {user?.name || "Usuario"}!
             </h1>
             <p className="text-gray-600 mb-8">
               Tu cuenta está siendo configurada. Contacta al administrador para
@@ -177,7 +192,7 @@ export default function DashboardPage() {
                 Estado de la Cuenta
               </h3>
               <p className="text-sm text-gray-600">
-                {user?.isConfirmed
+                {user?.emailVerified
                   ? "Tu cuenta está verificada y activa"
                   : "Tu cuenta necesita ser verificada. Revisa tu email."}
               </p>

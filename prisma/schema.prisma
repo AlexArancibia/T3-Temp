@@ -107,65 +107,76 @@ enum PermissionResource {
 // ================================
 
 model User {
-  id                      String    @id @default(uuid())
-  email                   String    @unique
-  password                String?   // opcional, porque Google OAuth no usa password
-  firstName               String
-  lastName                String?
-  phone                   String?
-  image                   String?   // URL de la imagen de perfil de Google
-  isConfirmed             Boolean   @default(false)
-  confirmationToken       String?   @unique
-  resetToken              String?   @unique
-  resetTokenExpiry        DateTime?
-  
-  // User profile fields
-  timezone                String    @default("UTC")
-  language                Language  @default(ES)
-  theme                   Theme     @default(AUTO)
-  defaultRiskPercentage   Decimal   @default(1.00) @db.Decimal(5, 2)
-  isAdmin                 Boolean   @default(false)
-  
-  createdAt               DateTime  @default(now())
-  updatedAt               DateTime  @updatedAt
+  // Core Better Auth fields (required)
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  // Relaciones con Better Auth
+  // Additional application fields
+  phone                   String?
+  language                Language  @default(ES)
+  defaultRiskPercentage   Decimal   @default(1.00) @db.Decimal(5, 2)
+
+  // Relations
   sessions Session[]
   accounts Account[]
-
-  // Relaciones con el nuevo sistema
   userSubscriptions UserSubscription[]
   tradingAccounts   TradingAccount[]
   accountLinks      AccountLink[] @relation("UserAccountLinks")
-  
-  // RBAC Relations
   userRoles         UserRole[]
 }
 
 model Session {
+  // Core Better Auth fields (required)
   id        String   @id @default(cuid())
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  expires   DateTime
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Account {
-  id                String   @id @default(cuid())
-  userId            String
-  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?  @db.Text
-  access_token      String?  @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?  @db.Text
-  session_state     String?
+  // Core Better Auth fields (required)
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  idToken               String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
 
-  @@unique([provider, providerAccountId])
+  // Relations
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, accountId])
+}
+
+model Verification {
+  // Core Better Auth fields (required)
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([identifier, value])
 }
 
 // ================================

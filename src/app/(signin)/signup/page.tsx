@@ -1,11 +1,11 @@
 "use client";
 
-import * as Toast from "@radix-ui/react-toast";
 import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
+import { toast } from "sonner";
 import GoogleIcon from "@/components/icons/GoogleIcon";
 import {
   Form,
@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { authClient } from "@/lib/auth-client";
 
 const passwordRules = [
   { label: "Mínimo 8 caracteres", test: (v: string) => v.length >= 8 },
@@ -28,8 +29,6 @@ const passwordRules = [
 
 type RegisterFormValues = {
   name: string;
-  lastname: string;
-  phone: string;
   email: string;
   password: string;
   repeatPassword: string;
@@ -39,16 +38,11 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [toastOpen, setToastOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
-  const [toastType, setToastType] = useState<"success" | "error">("success");
   const router = useRouter();
 
   const form = useForm<RegisterFormValues>({
     defaultValues: {
       name: "",
-      lastname: "",
-      phone: "",
       email: "",
       password: "",
       repeatPassword: "",
@@ -78,9 +72,7 @@ export default function SignUpPage() {
         type: "manual",
         message: "Ingresa un correo válido",
       });
-      setToastType("error");
-      setToastMsg("Ingresa un correo válido");
-      setToastOpen(true);
+      toast.error("Ingresa un correo válido");
       setLoading(false);
       return;
     }
@@ -107,40 +99,27 @@ export default function SignUpPage() {
     }
 
     try {
-      const res = await fetch("/api/trpc/auth.register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-          name: data.name,
-          lastname: data.lastname,
-          phone: data.phone,
-        }),
+      const { error } = await authClient.signUp.email({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        callbackURL: "/dashboard",
       });
 
-      const result = await res.json();
-
-      if (res.ok) {
-        setToastType("success");
-        setToastMsg(
-          "¡Cuenta creada exitosamente! Revisa tu email para confirmar tu cuenta.",
-        );
-        setToastOpen(true);
-
-        // Redirigir al inicio después de un breve delay
+      if (error) {
+        toast.error("Error al crear cuenta", {
+          description: error.message,
+        });
+      } else {
+        toast.success("¡Cuenta creada exitosamente!", {
+          description: "Revisa tu email para confirmar tu cuenta.",
+        });
         setTimeout(() => {
           router.push("/");
-        }, 3000);
-      } else {
-        setToastType("error");
-        setToastMsg(result.error?.message || "Error al crear cuenta");
-        setToastOpen(true);
+        }, 2000);
       }
     } catch (_error) {
-      setToastType("error");
-      setToastMsg("Error de red o servidor");
-      setToastOpen(true);
+      toast.error("Error de red o servidor");
     }
     setLoading(false);
   };
@@ -148,11 +127,14 @@ export default function SignUpPage() {
   const handleGoogleSignUp = async () => {
     setLoading(true);
     try {
-      window.location.href = "/api/auth/google/login";
+      await authClient.signIn.social({
+        provider: "google",
+        callbackURL: "/dashboard",
+        errorCallbackURL: "/signup",
+        newUserCallbackURL: "/dashboard",
+      });
     } catch (_error) {
-      setToastType("error");
-      setToastMsg("No se pudo redirigir a Google");
-      setToastOpen(true);
+      toast.error("No se pudo redirigir a Google");
       setLoading(false);
     }
   };
@@ -191,49 +173,17 @@ export default function SignUpPage() {
         <div className="bg-white py-8 px-6 shadow-lg rounded-lg">
           <Form {...form}>
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-2 gap-4">
-                <Controller
-                  name="name"
-                  control={control}
-                  rules={{ required: "Nombre requerido" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Nombre</FormLabel>
-                      <FormControl>
-                        <Input type="text" placeholder="Nombre" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <Controller
-                  name="lastname"
-                  control={control}
-                  rules={{ required: "Apellido requerido" }}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Apellido</FormLabel>
-                      <FormControl>
-                        <Input type="text" placeholder="Apellido" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
               <Controller
-                name="phone"
+                name="name"
                 control={control}
-                rules={{ required: "Teléfono requerido" }}
+                rules={{ required: "Nombre requerido" }}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Teléfono</FormLabel>
+                    <FormLabel>Nombre completo</FormLabel>
                     <FormControl>
                       <Input
-                        type="tel"
-                        placeholder="+1 234 567 8900"
+                        type="text"
+                        placeholder="Tu nombre completo"
                         {...field}
                       />
                     </FormControl>
@@ -403,25 +353,6 @@ export default function SignUpPage() {
           </div>
         </div>
       </div>
-
-      {/* Toast */}
-      <Toast.Provider swipeDirection="right">
-        <Toast.Root
-          open={toastOpen}
-          onOpenChange={setToastOpen}
-          className={
-            toastType === "success"
-              ? "bg-green-600 text-white px-4 py-2 rounded"
-              : "bg-red-600 text-white px-4 py-2 rounded"
-          }
-        >
-          <Toast.Title>
-            {toastType === "success" ? "Éxito" : "Error"}
-          </Toast.Title>
-          <Toast.Description>{toastMsg}</Toast.Description>
-        </Toast.Root>
-        <Toast.Viewport className="fixed bottom-4 right-4 z-50" />
-      </Toast.Provider>
     </div>
   );
 }

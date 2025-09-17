@@ -23,8 +23,13 @@ export default function GlobalNavbar() {
   }
 
   const handleSignOut = async () => {
-    await signOut();
-    setIsMenuOpen(false);
+    try {
+      await signOut();
+      setIsMenuOpen(false);
+      router.push("/");
+    } catch (_error) {
+      // Error handled by Better Auth
+    }
   };
 
   const handleSignIn = () => {
@@ -83,7 +88,7 @@ export default function GlobalNavbar() {
                       {user?.image ? (
                         <img
                           src={user.image}
-                          alt={user.firstName}
+                          alt={user.name}
                           className="h-8 w-8 rounded-full"
                         />
                       ) : (
@@ -92,7 +97,7 @@ export default function GlobalNavbar() {
                         </div>
                       )}
                       <span className="text-sm font-medium text-foreground">
-                        {user?.firstName || "Usuario"}
+                        {user?.name || "Usuario"}
                       </span>
                     </div>
 
@@ -177,7 +182,7 @@ export default function GlobalNavbar() {
                       {user?.image ? (
                         <img
                           src={user.image}
-                          alt={user.firstName}
+                          alt={user.name}
                           className="h-8 w-8 rounded-full"
                         />
                       ) : (
@@ -186,7 +191,7 @@ export default function GlobalNavbar() {
                         </div>
                       )}
                       <span className="text-sm font-medium text-foreground">
-                        {user?.firstName || "Usuario"}
+                        {user?.name || "Usuario"}
                       </span>
                     </div>
                     <button

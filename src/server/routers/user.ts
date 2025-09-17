@@ -1,99 +1,127 @@
 import { z } from "zod";
 import { prisma } from "../../lib/db";
 import { validateEmail } from "../../utils/validate";
-import { protectedProcedure, publicProcedure, router } from "../trpc";
+import { protectedProcedure, router } from "../trpc";
 
 export const userRouter = router({
-  getAll: publicProcedure.query(async () => {
+  getAll: protectedProcedure.query(async () => {
     return prisma.user.findMany({
       select: {
         id: true,
         email: true,
-        firstName: true,
-        lastName: true,
-        isConfirmed: true,
+        name: true,
+        emailVerified: true,
+        image: true,
+        createdAt: true,
+        updatedAt: true,
       },
     });
   }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => {
-      const user = await prisma.user.findUnique({ where: { id: input.id } });
+    .query(async ({ input }) => {
+      const user = await prisma.user.findUnique({
+        where: { id: input.id },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          emailVerified: true,
+          image: true,
+          phone: true,
+          language: true,
+          defaultRiskPercentage: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
       if (!user) throw new Error("Usuario no encontrado");
       return user;
     }),
 
-  create: protectedProcedure
-    .input(
-      z.object({
-        email: z.string(),
-        password: z.string(),
-        firstName: z.string(),
-        lastName: z.string(),
-      }),
-    )
-    .mutation(async ({ input }) => {
-      if (!validateEmail(input.email)) throw new Error("Email inválido");
-      const exists = await prisma.user.findUnique({
-        where: { email: input.email },
-      });
-      if (exists) throw new Error("Email ya registrado");
-      const hashed = await import("bcryptjs").then((b) =>
-        b.default.hash(input.password, 10),
-      );
-      const user = await prisma.user.create({
-        data: {
-          email: input.email,
-          password: hashed,
-          firstName: input.firstName,
-          lastName: input.lastName,
-          isConfirmed: false,
-        },
-      });
-      return {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-      };
-    }),
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const user = await prisma.user.findUnique({
+      where: { id: ctx.user.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        emailVerified: true,
+        image: true,
+        phone: true,
+        language: true,
+        defaultRiskPercentage: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+    if (!user) throw new Error("Usuario no encontrado");
+    return user;
+  }),
 
-  update: publicProcedure
+  update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
-        firstName: z.string().optional(),
-        lastName: z.string().optional(),
+        name: z.string().optional(),
         email: z.string().optional(),
+        phone: z.string().optional(),
+        language: z.enum(["ES", "EN", "PT"]).optional(),
+        defaultRiskPercentage: z.number().min(0.01).max(100).optional(),
       }),
     )
-    .mutation(async ({ input }) => {
-      const user = await prisma.user.findUnique({ where: { id: input.id } });
+    .mutation(async ({ input, ctx }) => {
+      const user = await prisma.user.findUnique({ where: { id: ctx.user.id } });
       if (!user) throw new Error("Usuario no encontrado");
+
       if (input.email && !validateEmail(input.email))
         throw new Error("Email inválido");
+
+      // Check if email is already taken by another user
+      if (input.email && input.email !== user.email) {
+        const existingUser = await prisma.user.findUnique({
+          where: { email: input.email },
+        });
+        if (existingUser) throw new Error("Email ya registrado");
+      }
+
       const updated = await prisma.user.update({
-        where: { id: input.id },
+        where: { id: ctx.user.id },
         data: {
-          firstName: input.firstName,
-          lastName: input.lastName,
+          name: input.name,
           email: input.email,
+          phone: input.phone,
+          language: input.language,
+          defaultRiskPercentage: input.defaultRiskPercentage,
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          emailVerified: true,
+          image: true,
+          phone: true,
+          language: true,
+          defaultRiskPercentage: true,
+          createdAt: true,
+          updatedAt: true,
         },
       });
-      return {
-        id: updated.id,
-        email: updated.email,
-        firstName: updated.firstName,
-        lastName: updated.lastName,
-      };
+      return updated;
     }),
 
-  delete: publicProcedure
+  delete: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
+      // Only allow users to delete their own account or admins to delete any account
+      if (input.id !== ctx.user.id) {
+        // TODO: Add admin role check here
+        throw new Error("No tienes permisos para eliminar este usuario");
+      }
+
       const user = await prisma.user.findUnique({ where: { id: input.id } });
       if (!user) throw new Error("Usuario no encontrado");
+
       await prisma.user.delete({ where: { id: input.id } });
       return true;
     }),

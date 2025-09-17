@@ -1,65 +1,42 @@
-import jwt from "jsonwebtoken";
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 import { RBACService } from "@/services/rbacService";
 import {
   PermissionAction,
   type PermissionCheck,
   PermissionResource,
 } from "@/types/rbac";
-import type { JWTPayload } from "@/types/user";
-
-// Validar JWT_SECRET al inicializar
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET) {
-  throw new Error("JWT_SECRET environment variable is required");
-}
 
 /**
- * Extract and validate JWT token from request
- */
-export async function extractUserFromRequest(
-  req: NextRequest,
-): Promise<JWTPayload | null> {
-  try {
-    const authHeader = req.headers.get("authorization");
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return null;
-    }
-
-    const token = authHeader.substring(7);
-    const payload = jwt.verify(token, JWT_SECRET!) as JWTPayload;
-
-    if (!payload.userId || !payload.email) {
-      return null;
-    }
-
-    return payload;
-  } catch (_error) {
-    return null;
-  }
-}
-
-/**
- * Base middleware for authentication
+ * Create authentication middleware
  */
 export function createAuthMiddleware() {
   return async (req: NextRequest) => {
-    const user = await extractUserFromRequest(req);
+    try {
+      const session = await auth.api.getSession({
+        headers: req.headers,
+      });
 
-    if (!user) {
+      if (!session?.user) {
+        return NextResponse.json(
+          { error: "Authentication required" },
+          { status: 401 },
+        );
+      }
+
+      return { user: session.user };
+    } catch (error) {
+      console.error("Auth middleware error:", error);
       return NextResponse.json(
-        { error: "Authorization header required" },
+        { error: "Authentication failed" },
         { status: 401 },
       );
     }
-
-    return { user };
   };
 }
 
 /**
- * Base middleware for permission checking
+ * Create permission middleware
  */
 export function createPermissionMiddleware(
   action: PermissionAction,
@@ -76,7 +53,7 @@ export function createPermissionMiddleware(
 
     try {
       const hasPermission = await RBACService.hasPermission(
-        user.userId,
+        user.id,
         action,
         resource,
       );
@@ -89,7 +66,8 @@ export function createPermissionMiddleware(
       }
 
       return { user };
-    } catch (_error) {
+    } catch (error) {
+      console.error("Permission check error:", error);
       return NextResponse.json(
         { error: "Permission check failed" },
         { status: 500 },
@@ -99,37 +77,7 @@ export function createPermissionMiddleware(
 }
 
 /**
- * Base middleware for role checking
- */
-export function createRoleMiddleware(roleName: string) {
-  return async (req: NextRequest) => {
-    const authResult = await createAuthMiddleware()(req);
-
-    if (authResult instanceof NextResponse) {
-      return authResult;
-    }
-
-    const { user } = authResult;
-
-    try {
-      const hasRole = await RBACService.hasRole(user.userId, roleName);
-
-      if (!hasRole) {
-        return NextResponse.json(
-          { error: "Insufficient role permissions" },
-          { status: 403 },
-        );
-      }
-
-      return { user };
-    } catch (_error) {
-      return NextResponse.json({ error: "Role check failed" }, { status: 500 });
-    }
-  };
-}
-
-/**
- * Base middleware for multiple permissions checking
+ * Create multi-permission middleware
  */
 export function createMultiPermissionMiddleware(
   permissionChecks: PermissionCheck[],
@@ -145,9 +93,19 @@ export function createMultiPermissionMiddleware(
     const { user } = authResult;
 
     try {
-      const hasPermission = requireAll
-        ? await RBACService.hasAllPermissions(user.userId, permissionChecks)
-        : await RBACService.hasAnyPermission(user.userId, permissionChecks);
+      let hasPermission = false;
+
+      if (requireAll) {
+        hasPermission = await RBACService.hasAllPermissions(
+          user.id,
+          permissionChecks,
+        );
+      } else {
+        hasPermission = await RBACService.hasAnyPermission(
+          user.id,
+          permissionChecks,
+        );
+      }
 
       if (!hasPermission) {
         return NextResponse.json(
@@ -157,11 +115,43 @@ export function createMultiPermissionMiddleware(
       }
 
       return { user };
-    } catch (_error) {
+    } catch (error) {
+      console.error("Multi-permission check error:", error);
       return NextResponse.json(
         { error: "Permission check failed" },
         { status: 500 },
       );
+    }
+  };
+}
+
+/**
+ * Create role middleware
+ */
+export function createRoleMiddleware(roleName: string) {
+  return async (req: NextRequest) => {
+    const authResult = await createAuthMiddleware()(req);
+
+    if (authResult instanceof NextResponse) {
+      return authResult;
+    }
+
+    const { user } = authResult;
+
+    try {
+      const hasRole = await RBACService.hasRole(user.id, roleName);
+
+      if (!hasRole) {
+        return NextResponse.json(
+          { error: "Insufficient role permissions" },
+          { status: 403 },
+        );
+      }
+
+      return { user };
+    } catch (error) {
+      console.error("Role check error:", error);
+      return NextResponse.json({ error: "Role check failed" }, { status: 500 });
     }
   };
 }
