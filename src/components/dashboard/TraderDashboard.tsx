@@ -5,11 +5,8 @@ import {
   AlertTriangle,
   BarChart3,
   CheckCircle,
-  Clock,
   DollarSign,
   FileText,
-  PieChart,
-  Settings,
   Target,
   TrendingDown,
   TrendingUp,
@@ -19,10 +16,9 @@ import { useRouter } from "next/navigation";
 interface TraderDashboardProps {
   user: {
     id: string;
-    firstName: string;
-    lastName?: string;
+    name: string;
     email: string;
-    isConfirmed: boolean;
+    emailVerified: boolean;
   } | null;
 }
 
@@ -159,7 +155,7 @@ export default function TraderDashboard({ user }: TraderDashboardProps) {
               <div>
                 <h1 className="text-3xl font-bold">Dashboard de Trading</h1>
                 <p className="text-green-100 mt-1">
-                  Bienvenido, {user?.firstName || "Trader"}
+                  Bienvenido, {user?.name || "Trader"}
                 </p>
               </div>
               <div className="flex items-center space-x-2">

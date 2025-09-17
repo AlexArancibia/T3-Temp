@@ -18,10 +18,9 @@ import { Button } from "@/components/ui/button";
 interface AdminDashboardProps {
   user: {
     id: string;
-    firstName: string;
-    lastName?: string;
+    name: string;
     email: string;
-    isConfirmed: boolean;
+    emailVerified: boolean;
   } | null;
 }
 
@@ -139,7 +138,7 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
                   Panel de Administración
                 </h1>
                 <p className="text-sm text-gray-500">
-                  Bienvenido, {user?.firstName || "Administrador"}
+                  Bienvenido, {user?.name || "Administrador"}
                 </p>
               </div>
             </div>

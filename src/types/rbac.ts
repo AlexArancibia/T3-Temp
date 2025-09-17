@@ -67,10 +67,9 @@ export interface UserWithRoles {
   id: string;
   email: string;
   name: string;
-  lastname?: string;
   phone?: string;
   image?: string;
-  isConfirmed: boolean;
+  emailVerified: boolean;
   isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;

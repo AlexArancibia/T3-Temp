@@ -151,13 +151,11 @@ export default function DashboardPage() {
   const adaptUserForDashboard = (authUser: AuthUser | null) => {
     if (!authUser) return null;
 
-    const nameParts = authUser.name.split(" ");
     return {
       id: authUser.id,
-      firstName: nameParts[0] || "",
-      lastName: nameParts.slice(1).join(" ") || undefined,
+      name: authUser.name,
       email: authUser.email,
-      isConfirmed: authUser.emailVerified,
+      emailVerified: authUser.emailVerified,
     };
   };
 

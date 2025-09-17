@@ -30,7 +30,7 @@ export default function HomePage() {
                 ¡Bienvenido de vuelta,
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">
                   {" "}
-                  {user.firstName || "Usuario"}!
+                  {user.name || "Usuario"}!
                 </span>
               </h1>
               <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">

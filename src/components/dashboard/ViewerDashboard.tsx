@@ -3,8 +3,6 @@
 import {
   BarChart3,
   BookOpen,
-  Calendar,
-  CheckCircle,
   Clock,
   DollarSign,
   Eye,
@@ -19,10 +17,9 @@ import { useRouter } from "next/navigation";
 interface ViewerDashboardProps {
   user: {
     id: string;
-    firstName: string;
-    lastName?: string;
+    name: string;
     email: string;
-    isConfirmed: boolean;
+    emailVerified: boolean;
   } | null;
 }
 
@@ -145,7 +142,7 @@ export default function ViewerDashboard({ user }: ViewerDashboardProps) {
                   Dashboard de Visualización
                 </h1>
                 <p className="text-blue-100 mt-1">
-                  Bienvenido, {user?.firstName || "Usuario"}
+                  Bienvenido, {user?.name || "Usuario"}
                 </p>
               </div>
               <div className="flex items-center space-x-2">
