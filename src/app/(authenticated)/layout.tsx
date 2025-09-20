@@ -2,10 +2,9 @@ import type { Metadata } from "next";
 import { generateMetadata as generateSEOMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = generateSEOMetadata({
-  title: "Dashboard",
-  description:
-    "Panel de control personalizado según tu rol y permisos en la plataforma.",
-  keywords: ["dashboard", "panel de control", "gestión", "usuario"],
+  title: "Platform",
+  description: "Plataforma de trading y gestión administrativa.",
+  keywords: ["platform", "trading", "gestión", "dashboard"],
 });
 
 export default function AuthenticatedLayout({
@@ -13,5 +12,6 @@ export default function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Layout básico - cada ruta tendrá su propio layout específico
   return <>{children}</>;
 }

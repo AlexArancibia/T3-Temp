@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/AuthContext";
 import GlobalNavbar from "@/components/GlobalNavbar";
+import { RoleBasedRedirect } from "@/components/RoleBasedRedirect";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { TRPCProvider } from "@/hooks/useTRPC";
@@ -74,7 +75,7 @@ export default function RootLayout({
           <AuthProvider>
             <TRPCProvider>
               <GlobalNavbar />
-              {children}
+              <RoleBasedRedirect>{children}</RoleBasedRedirect>
               <Toaster />
             </TRPCProvider>
           </AuthProvider>

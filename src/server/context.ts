@@ -1,6 +1,5 @@
 import { initTRPC } from "@trpc/server";
 import { auth } from "@/lib/auth";
-import { prisma } from "@/lib/db";
 
 export interface Context {
   user?: {
@@ -24,25 +23,11 @@ export const createContext = async (opts: {
       return {};
     }
 
-    // Get user from database for additional info
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-      },
-    });
-
-    if (!user) {
-      return {};
-    }
-
     return {
       user: {
-        id: user.id,
-        email: user.email,
-        name: user.name,
+        id: session.user.id,
+        email: session.user.email,
+        name: session.user.name,
       },
     };
   } catch (_error) {

@@ -1,8 +1,11 @@
 #!/usr/bin/env bun
 
 import { prisma } from "../src/lib/db";
-import { DEFAULT_ROLES } from "../src/types/rbac";
-import { PermissionAction, PermissionResource } from "../src/types/rbac";
+import {
+  DEFAULT_ROLES,
+  PermissionAction,
+  PermissionResource,
+} from "../src/types/rbac";
 
 async function seedAll() {
   console.log("🌱 Starting complete database seed...");
@@ -25,7 +28,6 @@ async function seedAll() {
     console.log("   Email: admin@example.com");
     console.log("   Password: admin123");
     console.log("   Role: Super Administrator");
-
   } catch (error) {
     console.error("❌ Error during seeding:", error);
     throw error;
@@ -39,64 +41,232 @@ async function seedRBAC() {
 
   const permissions = [
     // User permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.USER, description: "Create users" },
-    { action: PermissionAction.READ, resource: PermissionResource.USER, description: "Read users" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.USER, description: "Update users" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.USER, description: "Delete users" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.USER, description: "Manage users" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.USER,
+      description: "Create users",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.USER,
+      description: "Read users",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.USER,
+      description: "Update users",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.USER,
+      description: "Delete users",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.USER,
+      description: "Manage users",
+    },
 
     // Role permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.ROLE, description: "Create roles" },
-    { action: PermissionAction.READ, resource: PermissionResource.ROLE, description: "Read roles" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.ROLE, description: "Update roles" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.ROLE, description: "Delete roles" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.ROLE, description: "Manage roles" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.ROLE,
+      description: "Create roles",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.ROLE,
+      description: "Read roles",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.ROLE,
+      description: "Update roles",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.ROLE,
+      description: "Delete roles",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.ROLE,
+      description: "Manage roles",
+    },
 
     // Trading Account permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.TRADING_ACCOUNT, description: "Create trading accounts" },
-    { action: PermissionAction.READ, resource: PermissionResource.TRADING_ACCOUNT, description: "Read trading accounts" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.TRADING_ACCOUNT, description: "Update trading accounts" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.TRADING_ACCOUNT, description: "Delete trading accounts" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.TRADING_ACCOUNT, description: "Manage trading accounts" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.TRADING_ACCOUNT,
+      description: "Create trading accounts",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.TRADING_ACCOUNT,
+      description: "Read trading accounts",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.TRADING_ACCOUNT,
+      description: "Update trading accounts",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.TRADING_ACCOUNT,
+      description: "Delete trading accounts",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.TRADING_ACCOUNT,
+      description: "Manage trading accounts",
+    },
 
     // Trade permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.TRADE, description: "Create trades" },
-    { action: PermissionAction.READ, resource: PermissionResource.TRADE, description: "Read trades" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.TRADE, description: "Update trades" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.TRADE, description: "Delete trades" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.TRADE, description: "Manage trades" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.TRADE,
+      description: "Create trades",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.TRADE,
+      description: "Read trades",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.TRADE,
+      description: "Update trades",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.TRADE,
+      description: "Delete trades",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.TRADE,
+      description: "Manage trades",
+    },
 
     // Propfirm permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.PROPFIRM, description: "Create propfirms" },
-    { action: PermissionAction.READ, resource: PermissionResource.PROPFIRM, description: "Read propfirms" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.PROPFIRM, description: "Update propfirms" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.PROPFIRM, description: "Delete propfirms" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.PROPFIRM, description: "Manage propfirms" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.PROPFIRM,
+      description: "Create propfirms",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.PROPFIRM,
+      description: "Read propfirms",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.PROPFIRM,
+      description: "Update propfirms",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.PROPFIRM,
+      description: "Delete propfirms",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.PROPFIRM,
+      description: "Manage propfirms",
+    },
 
     // Broker permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.BROKER, description: "Create brokers" },
-    { action: PermissionAction.READ, resource: PermissionResource.BROKER, description: "Read brokers" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.BROKER, description: "Update brokers" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.BROKER, description: "Delete brokers" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.BROKER, description: "Manage brokers" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.BROKER,
+      description: "Create brokers",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.BROKER,
+      description: "Read brokers",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.BROKER,
+      description: "Update brokers",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.BROKER,
+      description: "Delete brokers",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.BROKER,
+      description: "Manage brokers",
+    },
 
     // Symbol permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.SYMBOL, description: "Create symbols" },
-    { action: PermissionAction.READ, resource: PermissionResource.SYMBOL, description: "Read symbols" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.SYMBOL, description: "Update symbols" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.SYMBOL, description: "Delete symbols" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.SYMBOL, description: "Manage symbols" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.SYMBOL,
+      description: "Create symbols",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.SYMBOL,
+      description: "Read symbols",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.SYMBOL,
+      description: "Update symbols",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.SYMBOL,
+      description: "Delete symbols",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.SYMBOL,
+      description: "Manage symbols",
+    },
 
     // Subscription permissions
-    { action: PermissionAction.CREATE, resource: PermissionResource.SUBSCRIPTION, description: "Create subscriptions" },
-    { action: PermissionAction.READ, resource: PermissionResource.SUBSCRIPTION, description: "Read subscriptions" },
-    { action: PermissionAction.UPDATE, resource: PermissionResource.SUBSCRIPTION, description: "Update subscriptions" },
-    { action: PermissionAction.DELETE, resource: PermissionResource.SUBSCRIPTION, description: "Delete subscriptions" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.SUBSCRIPTION, description: "Manage subscriptions" },
+    {
+      action: PermissionAction.CREATE,
+      resource: PermissionResource.SUBSCRIPTION,
+      description: "Create subscriptions",
+    },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.SUBSCRIPTION,
+      description: "Read subscriptions",
+    },
+    {
+      action: PermissionAction.UPDATE,
+      resource: PermissionResource.SUBSCRIPTION,
+      description: "Update subscriptions",
+    },
+    {
+      action: PermissionAction.DELETE,
+      resource: PermissionResource.SUBSCRIPTION,
+      description: "Delete subscriptions",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.SUBSCRIPTION,
+      description: "Manage subscriptions",
+    },
 
     // Dashboard permissions
-    { action: PermissionAction.READ, resource: PermissionResource.DASHBOARD, description: "Read dashboard" },
-    { action: PermissionAction.MANAGE, resource: PermissionResource.ADMIN, description: "Manage admin" },
+    {
+      action: PermissionAction.READ,
+      resource: PermissionResource.DASHBOARD,
+      description: "Read dashboard",
+    },
+    {
+      action: PermissionAction.MANAGE,
+      resource: PermissionResource.ADMIN,
+      description: "Manage admin",
+    },
   ];
 
   for (const permission of permissions) {
@@ -200,7 +370,13 @@ async function seedRBAC() {
   }
 
   // Admin gets all permissions except MANAGE_ROLE
-  const adminPermissions = allPermissions.filter(p => !(p.action === PermissionAction.MANAGE && p.resource === PermissionResource.ROLE));
+  const adminPermissions = allPermissions.filter(
+    (p) =>
+      !(
+        p.action === PermissionAction.MANAGE &&
+        p.resource === PermissionResource.ROLE
+      ),
+  );
   for (const permission of adminPermissions) {
     await prisma.rolePermission.upsert({
       where: {
@@ -218,13 +394,20 @@ async function seedRBAC() {
   }
 
   // Moderator gets limited permissions
-  const moderatorPermissions = allPermissions.filter(p => 
-    (p.action === PermissionAction.CREATE && p.resource === PermissionResource.USER) ||
-    (p.action === PermissionAction.READ && p.resource === PermissionResource.USER) ||
-    (p.action === PermissionAction.UPDATE && p.resource === PermissionResource.USER) ||
-    (p.action === PermissionAction.MANAGE && p.resource === PermissionResource.USER) ||
-    (p.action === PermissionAction.READ && p.resource === PermissionResource.TRADE) ||
-    (p.action === PermissionAction.READ && p.resource === PermissionResource.DASHBOARD)
+  const moderatorPermissions = allPermissions.filter(
+    (p) =>
+      (p.action === PermissionAction.CREATE &&
+        p.resource === PermissionResource.USER) ||
+      (p.action === PermissionAction.READ &&
+        p.resource === PermissionResource.USER) ||
+      (p.action === PermissionAction.UPDATE &&
+        p.resource === PermissionResource.USER) ||
+      (p.action === PermissionAction.MANAGE &&
+        p.resource === PermissionResource.USER) ||
+      (p.action === PermissionAction.READ &&
+        p.resource === PermissionResource.TRADE) ||
+      (p.action === PermissionAction.READ &&
+        p.resource === PermissionResource.DASHBOARD),
   );
   for (const permission of moderatorPermissions) {
     await prisma.rolePermission.upsert({
@@ -243,13 +426,15 @@ async function seedRBAC() {
   }
 
   // Trader gets trading-related permissions
-  const traderPermissions = allPermissions.filter(p => 
-    p.resource === PermissionResource.TRADING_ACCOUNT ||
-    p.resource === PermissionResource.TRADE ||
-    p.resource === PermissionResource.PROPFIRM ||
-    p.resource === PermissionResource.BROKER ||
-    p.resource === PermissionResource.SYMBOL ||
-    (p.action === PermissionAction.READ && p.resource === PermissionResource.DASHBOARD)
+  const traderPermissions = allPermissions.filter(
+    (p) =>
+      p.resource === PermissionResource.TRADING_ACCOUNT ||
+      p.resource === PermissionResource.TRADE ||
+      p.resource === PermissionResource.PROPFIRM ||
+      p.resource === PermissionResource.BROKER ||
+      p.resource === PermissionResource.SYMBOL ||
+      (p.action === PermissionAction.READ &&
+        p.resource === PermissionResource.DASHBOARD),
   );
   for (const permission of traderPermissions) {
     await prisma.rolePermission.upsert({
@@ -268,14 +453,14 @@ async function seedRBAC() {
   }
 
   // Viewer gets read-only permissions
-  const viewerPermissions = allPermissions.filter(p => 
-    p.action === PermissionAction.READ && (
-      p.resource === PermissionResource.TRADE ||
-      p.resource === PermissionResource.PROPFIRM ||
-      p.resource === PermissionResource.BROKER ||
-      p.resource === PermissionResource.SYMBOL ||
-      p.resource === PermissionResource.DASHBOARD
-    )
+  const viewerPermissions = allPermissions.filter(
+    (p) =>
+      p.action === PermissionAction.READ &&
+      (p.resource === PermissionResource.TRADE ||
+        p.resource === PermissionResource.PROPFIRM ||
+        p.resource === PermissionResource.BROKER ||
+        p.resource === PermissionResource.SYMBOL ||
+        p.resource === PermissionResource.DASHBOARD),
   );
   for (const permission of viewerPermissions) {
     await prisma.rolePermission.upsert({
@@ -314,7 +499,9 @@ async function seedRBAC() {
     });
   }
 
-  console.log(`✅ Assigned default trader role to ${usersWithoutRoles.length} users without roles`);
+  console.log(
+    `✅ Assigned default trader role to ${usersWithoutRoles.length} users without roles`,
+  );
 }
 
 async function seedAdminUser() {
@@ -326,7 +513,7 @@ async function seedAdminUser() {
 
   if (existingAdmin) {
     console.log("⚠️ Admin user already exists:", existingAdmin.email);
-    
+
     // Check if user has Super Admin role
     const userRoles = await prisma.userRole.findMany({
       where: {
@@ -337,8 +524,10 @@ async function seedAdminUser() {
       },
     });
 
-    const hasSuperAdminRole = userRoles.some(ur => ur.role.name === DEFAULT_ROLES.SUPER_ADMIN);
-    
+    const hasSuperAdminRole = userRoles.some(
+      (ur) => ur.role.name === DEFAULT_ROLES.SUPER_ADMIN,
+    );
+
     if (hasSuperAdminRole) {
       console.log("✅ Admin user already has Super Admin role");
       return;
@@ -346,7 +535,7 @@ async function seedAdminUser() {
 
     // Fix the role
     console.log("🔧 Fixing admin user role...");
-    
+
     // Remove existing roles
     await prisma.userRole.deleteMany({
       where: {
@@ -360,7 +549,9 @@ async function seedAdminUser() {
     });
 
     if (!superAdminRole) {
-      console.log("❌ Super Admin role not found. Please run the RBAC seed first.");
+      console.log(
+        "❌ Super Admin role not found. Please run the RBAC seed first.",
+      );
       return;
     }
 
@@ -412,7 +603,9 @@ async function seedAdminUser() {
   });
 
   if (!superAdminRole) {
-    console.log("❌ Super Admin role not found. Please run the RBAC seed first.");
+    console.log(
+      "❌ Super Admin role not found. Please run the RBAC seed first.",
+    );
     return;
   }
 
@@ -430,7 +623,7 @@ async function seedAdminUser() {
 
 async function seedTradingData() {
   console.log("📈 Creating propfirms...");
-  
+
   const propfirms = [
     {
       id: "propfirm-1",
@@ -442,7 +635,7 @@ async function seedTradingData() {
       isActive: true,
     },
     {
-      id: "propfirm-2", 
+      id: "propfirm-2",
       name: "MyForexFunds",
       description: "Professional forex trading opportunities",
       website: "https://myforexfunds.com",
@@ -472,7 +665,7 @@ async function seedTradingData() {
   console.log("✅ Propfirms created");
 
   console.log("🏦 Creating brokers...");
-  
+
   const brokers = [
     {
       id: "broker-1",
@@ -508,18 +701,78 @@ async function seedTradingData() {
   console.log("✅ Brokers created");
 
   console.log("📊 Creating symbols...");
-  
+
   const symbols = [
-    { id: "symbol-1", name: "EURUSD", description: "Euro vs US Dollar", category: "Forex", isActive: true },
-    { id: "symbol-2", name: "GBPUSD", description: "British Pound vs US Dollar", category: "Forex", isActive: true },
-    { id: "symbol-3", name: "USDJPY", description: "US Dollar vs Japanese Yen", category: "Forex", isActive: true },
-    { id: "symbol-4", name: "AUDUSD", description: "Australian Dollar vs US Dollar", category: "Forex", isActive: true },
-    { id: "symbol-5", name: "USDCAD", description: "US Dollar vs Canadian Dollar", category: "Forex", isActive: true },
-    { id: "symbol-6", name: "NZDUSD", description: "New Zealand Dollar vs US Dollar", category: "Forex", isActive: true },
-    { id: "symbol-7", name: "EURGBP", description: "Euro vs British Pound", category: "Forex", isActive: true },
-    { id: "symbol-8", name: "EURJPY", description: "Euro vs Japanese Yen", category: "Forex", isActive: true },
-    { id: "symbol-9", name: "GBPJPY", description: "British Pound vs Japanese Yen", category: "Forex", isActive: true },
-    { id: "symbol-10", name: "AUDJPY", description: "Australian Dollar vs Japanese Yen", category: "Forex", isActive: true },
+    {
+      id: "symbol-1",
+      name: "EURUSD",
+      description: "Euro vs US Dollar",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-2",
+      name: "GBPUSD",
+      description: "British Pound vs US Dollar",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-3",
+      name: "USDJPY",
+      description: "US Dollar vs Japanese Yen",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-4",
+      name: "AUDUSD",
+      description: "Australian Dollar vs US Dollar",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-5",
+      name: "USDCAD",
+      description: "US Dollar vs Canadian Dollar",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-6",
+      name: "NZDUSD",
+      description: "New Zealand Dollar vs US Dollar",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-7",
+      name: "EURGBP",
+      description: "Euro vs British Pound",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-8",
+      name: "EURJPY",
+      description: "Euro vs Japanese Yen",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-9",
+      name: "GBPJPY",
+      description: "British Pound vs Japanese Yen",
+      category: "Forex",
+      isActive: true,
+    },
+    {
+      id: "symbol-10",
+      name: "AUDJPY",
+      description: "Australian Dollar vs Japanese Yen",
+      category: "Forex",
+      isActive: true,
+    },
   ];
 
   for (const symbol of symbols) {
@@ -533,11 +786,29 @@ async function seedTradingData() {
   console.log("✅ Symbols created");
 
   console.log("🎯 Creating phases...");
-  
+
   const phases = [
-    { id: "phase-1", name: "Phase 1", description: "First evaluation phase", order: 1, isActive: true },
-    { id: "phase-2", name: "Phase 2", description: "Second evaluation phase", order: 2, isActive: true },
-    { id: "phase-3", name: "Live", description: "Live trading phase", order: 3, isActive: true },
+    {
+      id: "phase-1",
+      name: "Phase 1",
+      description: "First evaluation phase",
+      order: 1,
+      isActive: true,
+    },
+    {
+      id: "phase-2",
+      name: "Phase 2",
+      description: "Second evaluation phase",
+      order: 2,
+      isActive: true,
+    },
+    {
+      id: "phase-3",
+      name: "Live",
+      description: "Live trading phase",
+      order: 3,
+      isActive: true,
+    },
   ];
 
   for (const phase of phases) {
@@ -551,11 +822,26 @@ async function seedTradingData() {
   console.log("✅ Phases created");
 
   console.log("💳 Creating account types...");
-  
+
   const accountTypes = [
-    { id: "account-type-1", name: "Challenge", description: "Evaluation challenge account", isActive: true },
-    { id: "account-type-2", name: "Live", description: "Live trading account", isActive: true },
-    { id: "account-type-3", name: "Demo", description: "Demo trading account", isActive: true },
+    {
+      id: "account-type-1",
+      name: "Challenge",
+      description: "Evaluation challenge account",
+      isActive: true,
+    },
+    {
+      id: "account-type-2",
+      name: "Live",
+      description: "Live trading account",
+      isActive: true,
+    },
+    {
+      id: "account-type-3",
+      name: "Demo",
+      description: "Demo trading account",
+      isActive: true,
+    },
   ];
 
   for (const accountType of accountTypes) {
@@ -569,7 +855,7 @@ async function seedTradingData() {
   console.log("✅ Account types created");
 
   console.log("⚙️ Creating symbol configurations...");
-  
+
   const symbolConfigs = [
     {
       id: "config-1",

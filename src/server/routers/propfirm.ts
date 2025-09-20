@@ -1,18 +1,59 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "../../lib/db";
+import {
+  calculateOffset,
+  createPaginatedResponse,
+  createSearchFilter,
+  createSortOrder,
+  paginationInputSchema,
+} from "../../lib/pagination";
 import { RBACService } from "../../services/rbacService";
 import { PermissionAction, PermissionResource } from "../../types/rbac";
 import { protectedProcedure, publicProcedure, router } from "../trpc";
 
 export const propfirmRouter = router({
   // Get all propfirms
-  getAll: publicProcedure.query(async () => {
-    return await prisma.propfirm.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: "desc" },
-    });
-  }),
+  getAll: publicProcedure
+    .input(paginationInputSchema.optional())
+    .query(async ({ input }) => {
+      // Si no se proporciona input de paginación, usar valores por defecto
+      const {
+        page = 1,
+        limit = 100,
+        search,
+        sortBy,
+        sortOrder = "desc",
+      } = input || {};
+      const offset = calculateOffset(page, limit);
+
+      const searchFilter = createSearchFilter(search, [
+        "name",
+        "displayName",
+        "description",
+      ]);
+      const orderBy = createSortOrder(sortBy, sortOrder);
+
+      const [propfirms, total] = await Promise.all([
+        prisma.propfirm.findMany({
+          where: {
+            isActive: true,
+            ...searchFilter,
+          },
+          orderBy,
+          skip: offset,
+          take: limit,
+        }),
+        prisma.propfirm.count({
+          where: {
+            isActive: true,
+            ...searchFilter,
+          },
+        }),
+      ]);
+
+      return createPaginatedResponse(propfirms, total, page, limit);
+    }),
 
   // Get propfirm by ID
   getById: publicProcedure

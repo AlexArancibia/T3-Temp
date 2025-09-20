@@ -67,8 +67,10 @@ export default function PropfirmCRUD() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
-  const { data: propfirms = [], refetch: refetchPropfirms } =
+  const { data: propfirmsResponse, refetch: refetchPropfirms } =
     trpc.propfirm.getAll.useQuery();
+
+  const propfirms = propfirmsResponse?.data || [];
 
   const createPropfirm = trpc.propfirm.create.useMutation({
     onSuccess: () => {

@@ -39,23 +39,23 @@ export default function GlobalNavbar() {
 
   const navigationItems = [
     { name: "Inicio", href: "/" },
-    { name: "Información", href: "/info" },
-    { name: "Servicios", href: "/services" },
-    { name: "Contacto", href: "/contact" },
+    { name: "Funcionalidades", href: "/#demo" },
+    { name: "Precios", href: "/pricing" },
+    { name: "Contacto", href: "/#contact" },
   ];
 
   return (
     <>
-      <nav className="bg-background shadow-lg border-b border-border">
+      <nav className="bg-gray-900 dark:bg-black shadow-lg border-b border-gray-800 dark:border-gray-900">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
               <Link href="/" className="flex items-center">
-                <div className="h-8 w-8 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+                <div className="h-8 w-8 bg-gradient-to-r from-amber-500 to-orange-500 dark:from-cyan-500 dark:to-purple-500 rounded-lg flex items-center justify-center">
                   <span className="text-white font-bold text-sm">A</span>
                 </div>
-                <span className="ml-2 text-xl font-bold text-foreground">
+                <span className="ml-2 text-xl font-bold text-white dark:text-gray-100">
                   MiApp
                 </span>
               </Link>
@@ -68,7 +68,7 @@ export default function GlobalNavbar() {
                   <Link
                     key={item.name}
                     href={item.href}
-                    className="text-muted-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                    className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
                   >
                     {item.name}
                   </Link>
@@ -92,11 +92,11 @@ export default function GlobalNavbar() {
                           className="h-8 w-8 rounded-full"
                         />
                       ) : (
-                        <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                        <div className="h-8 w-8 bg-gray-700 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-gray-300" />
                         </div>
                       )}
-                      <span className="text-sm font-medium text-foreground">
+                      <span className="text-sm font-medium text-white">
                         {user?.name || "Usuario"}
                       </span>
                     </div>
@@ -105,7 +105,7 @@ export default function GlobalNavbar() {
                     <div className="relative">
                       <button
                         onClick={() => router.push("/dashboard")}
-                        className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+                        className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
                       >
                         Dashboard
                       </button>
@@ -114,7 +114,7 @@ export default function GlobalNavbar() {
                     {/* Sign Out */}
                     <button
                       onClick={handleSignOut}
-                      className="text-muted-foreground hover:text-destructive p-2 rounded-md transition-colors"
+                      className="text-gray-300 hover:text-red-400 p-2 rounded-md transition-colors"
                       title="Cerrar sesión"
                     >
                       <LogOut className="h-5 w-5" />
@@ -124,13 +124,13 @@ export default function GlobalNavbar() {
                   <div className="flex items-center space-x-3">
                     <button
                       onClick={handleSignIn}
-                      className="text-muted-foreground hover:text-primary px-3 py-2 rounded-md text-sm font-medium transition-colors"
+                      className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition-colors"
                     >
                       Iniciar Sesión
                     </button>
                     <Link
                       href="/signup"
-                      className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-colors"
                     >
                       Registrarse
                     </Link>
@@ -143,7 +143,7 @@ export default function GlobalNavbar() {
             <div className="md:hidden">
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-muted-foreground hover:text-primary p-2 rounded-md transition-colors"
+                className="text-gray-300 hover:text-white p-2 rounded-md transition-colors"
               >
                 {isMenuOpen ? (
                   <X className="h-6 w-6" />
@@ -158,12 +158,12 @@ export default function GlobalNavbar() {
         {/* Mobile Navigation */}
         {isMenuOpen && (
           <div className="md:hidden">
-            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-background border-t border-border">
+            <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-gray-900 border-t border-gray-800">
               {navigationItems.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="text-muted-foreground hover:text-primary block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                  className="text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {item.name}
@@ -171,7 +171,7 @@ export default function GlobalNavbar() {
               ))}
 
               {/* Mobile Auth Section */}
-              <div className="pt-4 border-t border-border">
+              <div className="pt-4 border-t border-gray-800">
                 {/* Theme Toggle for Mobile */}
                 <div className="px-3 py-2">
                   <ThemeToggle />
@@ -186,11 +186,11 @@ export default function GlobalNavbar() {
                           className="h-8 w-8 rounded-full"
                         />
                       ) : (
-                        <div className="h-8 w-8 bg-muted rounded-full flex items-center justify-center">
-                          <User className="h-4 w-4 text-muted-foreground" />
+                        <div className="h-8 w-8 bg-gray-700 rounded-full flex items-center justify-center">
+                          <User className="h-4 w-4 text-gray-300" />
                         </div>
                       )}
-                      <span className="text-sm font-medium text-foreground">
+                      <span className="text-sm font-medium text-white">
                         {user?.name || "Usuario"}
                       </span>
                     </div>
@@ -199,13 +199,13 @@ export default function GlobalNavbar() {
                         router.push("/dashboard");
                         setIsMenuOpen(false);
                       }}
-                      className="w-full text-left text-muted-foreground hover:text-primary block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                      className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     >
                       Dashboard
                     </button>
                     <button
                       onClick={handleSignOut}
-                      className="w-full text-left text-foreground hover:text-destructive block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                      className="w-full text-left text-white hover:text-red-400 block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     >
                       Cerrar Sesión
                     </button>
@@ -214,13 +214,13 @@ export default function GlobalNavbar() {
                   <div className="space-y-2">
                     <button
                       onClick={handleSignIn}
-                      className="w-full text-left text-muted-foreground hover:text-primary block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                      className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
                     >
                       Iniciar Sesión
                     </button>
                     <Link
                       href="/signup"
-                      className="w-full text-left text-muted-foreground hover:text-primary block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                      className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       Registrarse

@@ -1,24 +1,64 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import {
+  calculateOffset,
+  createPaginatedResponse,
+  paginationInputSchema,
+} from "../../lib/pagination";
 import { RBACService } from "../../services/rbacService";
 import { PermissionAction, PermissionResource } from "../../types/rbac";
-import {
-  adminProcedure,
-  protectedProcedure,
-  publicProcedure,
-  router,
-} from "../trpc";
+import { adminProcedure, publicProcedure, router } from "../trpc";
 
 export const rbacRouter = router({
-  // Get all roles
-  getAllRoles: publicProcedure.query(async () => {
+  // Get all roles (simple array without pagination)
+  getRoles: publicProcedure.query(async () => {
     return await RBACService.getAllRoles();
   }),
 
+  // Get all roles (with pagination)
+  getAllRoles: publicProcedure
+    .input(paginationInputSchema.optional())
+    .query(async ({ input }) => {
+      const roles = await RBACService.getAllRoles();
+
+      if (!input) {
+        // Si no hay paginación, devolver todos los roles en formato compatible
+        return createPaginatedResponse(roles, roles.length, 1, roles.length);
+      }
+
+      const { page = 1, limit = 100 } = input;
+      const offset = calculateOffset(page, limit);
+      const paginatedRoles = roles.slice(offset, offset + limit);
+
+      return createPaginatedResponse(paginatedRoles, roles.length, page, limit);
+    }),
+
   // Get all permissions
-  getAllPermissions: publicProcedure.query(async () => {
-    return await RBACService.getAllPermissions();
-  }),
+  getAllPermissions: publicProcedure
+    .input(paginationInputSchema.optional())
+    .query(async ({ input }) => {
+      const permissions = await RBACService.getAllPermissions();
+
+      if (!input) {
+        return createPaginatedResponse(
+          permissions,
+          permissions.length,
+          1,
+          permissions.length,
+        );
+      }
+
+      const { page = 1, limit = 100 } = input;
+      const offset = calculateOffset(page, limit);
+      const paginatedPermissions = permissions.slice(offset, offset + limit);
+
+      return createPaginatedResponse(
+        paginatedPermissions,
+        permissions.length,
+        page,
+        limit,
+      );
+    }),
 
   // Get user roles
   getUserRoles: publicProcedure
