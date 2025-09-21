@@ -1,13 +1,22 @@
 "use client";
 
-import { LayoutDashboard, LogOut, Menu, Settings, X } from "lucide-react";
+import {
+  Cable,
+  Calculator,
+  Grid3X3,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Settings,
+  User,
+  Wallet,
+} from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthContext } from "@/AuthContext";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +25,49 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { useUserRole } from "@/hooks/useUserRole";
+
+interface NavItem {
+  title: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  description?: string;
+  badge?: string;
+}
+
+const traderNavItems: NavItem[] = [
+  {
+    title: "Panel Principal",
+    href: "/trader",
+    icon: Grid3X3,
+    description: "Vista general de tu actividad",
+  },
+  {
+    title: "Conexiones",
+    href: "/trader/connections",
+    icon: Cable,
+    description: "Gestiona tus conexiones propfirm-broker",
+  },
+  {
+    title: "Cuentas de Trading",
+    href: "/trader/accounts",
+    icon: Wallet,
+    description: "Administra todas tus cuentas",
+  },
+  {
+    title: "Calculadora",
+    href: "/trader/calculator",
+    icon: Calculator,
+    description: "Calculadora de capital y lotaje",
+  },
+];
 
 export default function GlobalNavbar() {
   const pathname = usePathname();
@@ -24,6 +75,9 @@ export default function GlobalNavbar() {
   const { user, isAuthenticated, signOut } = useAuthContext();
   const { primaryRole } = useUserRole();
   const router = useRouter();
+
+  // Verificar si estamos en la sección del trader
+  const isTraderSection = pathname?.startsWith("/trader");
 
   // No mostrar navbar solo en páginas de registro y recuperación de contraseña
   if (
@@ -64,11 +118,8 @@ export default function GlobalNavbar() {
 
   return (
     <>
-      <nav
-        className="border-b border-gray-700 shadow-lg"
-        style={{ backgroundColor: "#20252F" }}
-      >
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="px-4 sm:px-6 lg:px-8 border-b bg-[#20252F] border-gray-700 shadow-lg">
+        <div className="max-w-[1500px] mx-auto ">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0">
@@ -177,128 +228,206 @@ export default function GlobalNavbar() {
 
             {/* Mobile menu button */}
             <div className="md:hidden">
-              <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="text-gray-300 hover:text-white p-2 rounded-md transition-colors"
-              >
-                {isMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </button>
+              <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+                <SheetTrigger asChild>
+                  <button className="text-gray-300 hover:text-white p-2 rounded-md transition-colors">
+                    <Menu className="h-6 w-6" />
+                  </button>
+                </SheetTrigger>
+                <SheetContent
+                  side="right"
+                  className="w-96 bg-[#20252F] border-gray-700"
+                >
+                  <SheetHeader className="px-2">
+                    <SheetTitle className="text-white text-lg">
+                      {isTraderSection ? "Centro de Trading" : "Menú"}
+                    </SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 px-2">
+                    {isAuthenticated ? (
+                      <div className="space-y-4">
+                        {/* User Info */}
+                        <div className="flex items-center space-x-3 px-3 py-2">
+                          <Avatar>
+                            {user?.image ? (
+                              <AvatarImage
+                                src={user.image}
+                                alt={user?.name || "Usuario"}
+                              />
+                            ) : (
+                              <AvatarFallback className="bg-primary text-primary-foreground">
+                                {user?.name
+                                  ? user.name
+                                      .split(" ")
+                                      .map((n) => n[0])
+                                      .join("")
+                                      .toUpperCase()
+                                      .slice(0, 2)
+                                  : "U"}
+                              </AvatarFallback>
+                            )}
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-white">
+                              {user?.name || "Usuario"}
+                            </span>
+                            <span className="text-xs text-gray-300">
+                              {user?.email || ""}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Trader Navigation Items */}
+                        {isTraderSection && (
+                          <div className="space-y-3">
+                            {traderNavItems.map((item) => {
+                              const isActive =
+                                pathname === item.href ||
+                                (item.href !== "/trader" &&
+                                  pathname.startsWith(item.href));
+
+                              return (
+                                <Link
+                                  key={item.href}
+                                  href={item.href}
+                                  onClick={() => setIsMenuOpen(false)}
+                                  className={`
+                                    group flex items-center px-5 py-4 rounded-xl text-sm font-medium transition-all duration-200
+                                    ${
+                                      isActive
+                                        ? "bg-primary text-primary-foreground shadow-lg"
+                                        : "text-gray-300 hover:text-white hover:bg-accent"
+                                    }
+                                  `}
+                                >
+                                  <item.icon
+                                    className={`mr-3 h-5 w-5 transition-colors duration-200 ${
+                                      isActive
+                                        ? "text-primary-foreground"
+                                        : "text-gray-400 group-hover:text-white"
+                                    }`}
+                                  />
+                                  <div className="flex-1">
+                                    <div
+                                      className={`font-medium ${
+                                        isActive
+                                          ? "text-primary-foreground"
+                                          : "text-white"
+                                      }`}
+                                    >
+                                      {item.title}
+                                    </div>
+                                    <div
+                                      className={`text-xs ${
+                                        isActive
+                                          ? "text-primary-foreground/80"
+                                          : "text-gray-400"
+                                      }`}
+                                    >
+                                      {item.description}
+                                    </div>
+                                  </div>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Dashboard Link (if not in trader section) */}
+                        {!isTraderSection && (
+                          <button
+                            onClick={() => {
+                              router.push(getDashboardUrl());
+                              setIsMenuOpen(false);
+                            }}
+                            className="w-full flex items-center space-x-2 px-3 py-2 text-left text-gray-300 hover:text-white transition-colors"
+                          >
+                            <LayoutDashboard className="h-4 w-4" />
+                            <span>Dashboard</span>
+                          </button>
+                        )}
+
+                        {/* Theme Toggle */}
+                        <div className="px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Settings className="h-4 w-4 text-gray-300" />
+                              <span className="text-sm font-medium text-gray-300">
+                                Tema
+                              </span>
+                            </div>
+                            <ThemeToggle />
+                          </div>
+                        </div>
+
+                        {/* Trader Footer Actions */}
+                        {isTraderSection && (
+                          <div className="space-y-3 pt-6 border-t border-gray-600">
+                            <Link
+                              href="/trader/settings"
+                              onClick={() => setIsMenuOpen(false)}
+                              className="flex items-center px-5 py-3 text-sm text-gray-300 hover:text-white hover:bg-accent rounded-lg transition-colors duration-200"
+                            >
+                              <Settings className="mr-3 h-4 w-4" />
+                              Configuración
+                            </Link>
+                            <Link
+                              href="/trader/profile"
+                              onClick={() => setIsMenuOpen(false)}
+                              className="flex items-center px-5 py-3 text-sm text-gray-300 hover:text-white hover:bg-accent rounded-lg transition-colors duration-200"
+                            >
+                              <User className="mr-3 h-4 w-4" />
+                              Perfil
+                            </Link>
+                          </div>
+                        )}
+
+                        {/* Sign Out */}
+                        <button
+                          onClick={() => {
+                            handleSignOut();
+                            setIsMenuOpen(false);
+                          }}
+                          className="w-full flex items-center space-x-2 px-5 py-3 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-accent transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          <span>Cerrar sesión</span>
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="px-3 py-2">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <Settings className="h-4 w-4 text-gray-300" />
+                              <span className="text-sm font-medium text-gray-300">
+                                Tema
+                              </span>
+                            </div>
+                            <ThemeToggle />
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleSignIn}
+                          className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                        >
+                          Iniciar Sesión
+                        </button>
+                        <Link
+                          href="/signup"
+                          className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          Registrarse
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
         </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden">
-            <div
-              className="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-gray-700"
-              style={{ backgroundColor: "#20252F" }}
-            >
-              {/* Mobile Auth Section */}
-              <div className="pt-2">
-                {isAuthenticated ? (
-                  <div className="space-y-2">
-                    {/* User Info */}
-                    <div className="flex items-center space-x-3 px-3 py-2">
-                      <Avatar>
-                        {user?.image ? (
-                          <AvatarImage
-                            src={user.image}
-                            alt={user?.name || "Usuario"}
-                          />
-                        ) : (
-                          <AvatarFallback className="bg-primary text-primary-foreground">
-                            {user?.name
-                              ? user.name
-                                  .split(" ")
-                                  .map((n) => n[0])
-                                  .join("")
-                                  .toUpperCase()
-                                  .slice(0, 2)
-                              : "U"}
-                          </AvatarFallback>
-                        )}
-                      </Avatar>
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium text-white">
-                          {user?.name || "Usuario"}
-                        </span>
-                        <span className="text-xs text-gray-300">
-                          {user?.email || ""}
-                        </span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        router.push(getDashboardUrl());
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full flex items-center space-x-2 px-3 py-2 text-left text-gray-300 hover:text-white transition-colors"
-                    >
-                      <LayoutDashboard className="h-4 w-4" />
-                      <span>Dashboard</span>
-                    </button>
-
-                    <div className="px-3 py-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Settings className="h-4 w-4 text-gray-300" />
-                          <span className="text-sm font-medium text-gray-300">
-                            Tema
-                          </span>
-                        </div>
-                        <ThemeToggle />
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => {
-                        handleSignOut();
-                        setIsMenuOpen(false);
-                      }}
-                      className="w-full flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-red-400 hover:text-red-300 hover:bg-accent transition-colors"
-                    >
-                      <LogOut className="h-4 w-4" />
-                      <span>Cerrar sesión</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="px-3 py-2">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                          <Settings className="h-4 w-4 text-gray-300" />
-                          <span className="text-sm font-medium text-gray-300">
-                            Tema
-                          </span>
-                        </div>
-                        <ThemeToggle />
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleSignIn}
-                      className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
-                    >
-                      Iniciar Sesión
-                    </button>
-                    <Link
-                      href="/signup"
-                      className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      Registrarse
-                    </Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </nav>
     </>
   );

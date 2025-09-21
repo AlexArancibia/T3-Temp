@@ -22,16 +22,20 @@ export default function TraderLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Container principal - considera la altura del navbar (h-16 = 64px) */}
-      <div className="flex h-[calc(100vh-4rem)]">
-        {/* Sidebar - 280px de ancho fijo con diseño moderno */}
-        <TraderSidebar />
+    <div className="px-4 sm:px-6 lg:px-8 bg-background">
+      {/* Container principal con ancho máximo de 1500px */}
+      <div className="max-w-[1500px] py-8 mx-auto">
+        <div className="flex h-full">
+          {/* Primer div - delgado para el sidebar (oculto en móvil) */}
+          <div className="hidden md:block w-80 flex-shrink-0">
+            <TraderSidebar />
+          </div>
 
-        {/* Área de contenido principal */}
-        <main className="flex-1 overflow-auto bg-background">
-          <div className="p-8 max-w-7xl mx-auto">{children}</div>
-        </main>
+          {/* Segundo div - contenido principal */}
+          <div className="flex-1 overflow-auto bg-background">
+            <div className="p-8">{children}</div>
+          </div>
+        </div>
       </div>
     </div>
   );

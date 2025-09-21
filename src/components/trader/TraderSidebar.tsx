@@ -54,7 +54,7 @@ export function TraderSidebar() {
   const { signOut } = useAuthContext();
 
   return (
-    <div className="w-72 bg-card border-r border-border shadow-lg">
+    <div className="w-72 bg-card border border-border shadow-lg">
       {/* Header */}
       <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
@@ -62,7 +62,7 @@ export function TraderSidebar() {
             <TrendingUp className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-card-foreground">
+            <h2 className="text-lg font-medium tracking-tight text-card-foreground">
               Centro de Trading
             </h2>
             <p className="text-sm text-muted-foreground">
@@ -73,7 +73,7 @@ export function TraderSidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-3">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
@@ -84,10 +84,10 @@ export function TraderSidebar() {
               key={item.href}
               href={item.href}
               className={`
-                group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
+                group flex items-center px-5 py-4 rounded-xl text-sm font-medium transition-all duration-200
                 ${
                   isActive
-                    ? "bg-primary text-primary-foreground shadow-lg"
+                    ? "bg-gradient-to-r from-white to-primary/20 text-foreground shadow-none border border-primary/20"
                     : "text-card-foreground hover:bg-accent hover:text-accent-foreground"
                 }
               `}
@@ -95,21 +95,19 @@ export function TraderSidebar() {
               <item.icon
                 className={`mr-3 h-5 w-5 transition-colors duration-200 ${
                   isActive
-                    ? "text-primary-foreground"
+                    ? "text-primary"
                     : "text-muted-foreground group-hover:text-accent-foreground"
                 }`}
               />
               <div className="flex-1">
                 <div
-                  className={`font-medium ${isActive ? "text-primary-foreground" : "text-card-foreground"}`}
+                  className={`font-medium ${isActive ? "text-foreground" : "text-card-foreground"}`}
                 >
                   {item.title}
                 </div>
                 <div
                   className={`text-xs ${
-                    isActive
-                      ? "text-primary-foreground/80"
-                      : "text-muted-foreground"
+                    isActive ? "text-foreground/70" : "text-muted-foreground"
                   }`}
                 >
                   {item.description}
