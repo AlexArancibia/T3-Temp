@@ -69,8 +69,8 @@ export default function TraderDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -80,10 +80,10 @@ export default function TraderDashboard() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Bienvenido de vuelta, {user?.name?.split(" ")[0] || "Trader"}
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Esto es lo que está pasando con tu trading hoy
           </p>
         </div>
@@ -101,35 +101,37 @@ export default function TraderDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg shadow-gray-900/5">
+        <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 font-medium">Balance Total</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground font-medium">
+                Balance Total
+              </p>
+              <p className="text-2xl font-bold text-card-foreground">
                 ${totalBalance.toLocaleString()}
               </p>
             </div>
-            <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-white" />
+            <div className="h-12 w-12 bg-primary rounded-xl flex items-center justify-center">
+              <DollarSign className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg shadow-gray-900/5">
+        <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 font-medium">P&L Total</p>
+              <p className="text-sm text-muted-foreground font-medium">
+                P&L Total
+              </p>
               <p
-                className={`text-2xl font-bold ${totalPnL >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                className={`text-2xl font-bold ${totalPnL >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
               >
                 {totalPnL >= 0 ? "+" : ""}${totalPnL.toLocaleString()}
               </p>
             </div>
             <div
               className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                totalPnL >= 0
-                  ? "bg-gradient-to-br from-emerald-500 to-green-600"
-                  : "bg-gradient-to-br from-red-500 to-rose-600"
+                totalPnL >= 0 ? "bg-green-500" : "bg-red-500"
               }`}
             >
               {totalPnL >= 0 ? (
@@ -141,31 +143,33 @@ export default function TraderDashboard() {
           </div>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg shadow-gray-900/5">
+        <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 font-medium">
+              <p className="text-sm text-muted-foreground font-medium">
                 Conexiones Activas
               </p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-2xl font-bold text-card-foreground">
                 {activeConnections}
               </p>
             </div>
-            <div className="h-12 w-12 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center">
+            <div className="h-12 w-12 bg-blue-500 rounded-xl flex items-center justify-center">
               <Cable className="h-6 w-6 text-white" />
             </div>
           </div>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg shadow-gray-900/5">
+        <div className="bg-card rounded-2xl p-6 border border-border shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-gray-600 font-medium">Tasa de Éxito</p>
-              <p className="text-2xl font-bold text-gray-900">
+              <p className="text-sm text-muted-foreground font-medium">
+                Tasa de Éxito
+              </p>
+              <p className="text-2xl font-bold text-card-foreground">
                 {winRate.toFixed(1)}%
               </p>
             </div>
-            <div className="h-12 w-12 bg-gradient-to-br from-orange-500 to-amber-600 rounded-xl flex items-center justify-center">
+            <div className="h-12 w-12 bg-orange-500 rounded-xl flex items-center justify-center">
               <Activity className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -176,10 +180,10 @@ export default function TraderDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Active Connections */}
         <div className="lg:col-span-2">
-          <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 shadow-lg shadow-gray-900/5">
-            <div className="p-6 border-b border-gray-200/50">
+          <div className="bg-card rounded-2xl border border-border shadow-lg">
+            <div className="p-6 border-b border-border">
               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
+                <h3 className="text-lg font-semibold text-card-foreground">
                   Conexiones Activas
                 </h3>
                 <Button variant="ghost" size="sm">

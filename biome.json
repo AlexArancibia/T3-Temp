@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!build.ts", "!.next/**"]
+    "includes": ["**", "!build.ts", "!.next/**", "!**/*.css"]
   },
   "formatter": {
     "enabled": true,

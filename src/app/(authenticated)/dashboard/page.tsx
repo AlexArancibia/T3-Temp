@@ -3,7 +3,6 @@
 import { Loader2 } from "lucide-react";
 import { useAuthContext } from "@/AuthContext";
 import AdminDashboard from "@/components/dashboard/AdminDashboard";
-import TraderDashboard from "@/components/dashboard/TraderDashboard";
 import ViewerDashboard from "@/components/dashboard/ViewerDashboard";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useRBAC } from "@/hooks/useRBAC";
@@ -162,10 +161,6 @@ export default function DashboardPage() {
   // Renderizar el dashboard apropiado según el rol del usuario
   if (isSuperAdmin || isAdmin) {
     return <AdminDashboard user={adaptUserForDashboard(user)} />;
-  }
-
-  if (hasRole("trader")) {
-    return <TraderDashboard user={adaptUserForDashboard(user)} />;
   }
 
   if (hasRole("viewer")) {

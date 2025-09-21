@@ -21,7 +21,6 @@ import {
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthContext } from "@/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -29,8 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function HomePage() {
-  const { user, isAuthenticated, loading } = useAuthContext();
-  const router = useRouter();
+  const { loading } = useAuthContext();
 
   const [contactForm, setContactForm] = useState({
     name: "",
@@ -51,18 +49,8 @@ export default function HomePage() {
     );
   }
 
-  // Si el usuario está autenticado, redirigir al dashboard
-  if (isAuthenticated && user) {
-    router.push("/dashboard");
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Redirigiendo...</p>
-        </div>
-      </div>
-    );
-  }
+  // Permitir que usuarios autenticados vean la landing page
+  // La redirección se maneja en RoleBasedRedirect para otras rutas
 
   const features = [
     {

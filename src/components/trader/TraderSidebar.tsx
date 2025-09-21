@@ -54,18 +54,20 @@ export function TraderSidebar() {
   const { signOut } = useAuthContext();
 
   return (
-    <div className="w-72 bg-white/80 backdrop-blur-xl border-r border-gray-200/50 shadow-xl">
+    <div className="w-72 bg-card border-r border-border shadow-lg">
       {/* Header */}
-      <div className="p-6 border-b border-gray-200/50">
+      <div className="p-6 border-b border-border">
         <div className="flex items-center space-x-3">
-          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-            <TrendingUp className="h-5 w-5 text-white" />
+          <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
+            <TrendingUp className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-gray-900">
+            <h2 className="text-lg font-bold text-card-foreground">
               Centro de Trading
             </h2>
-            <p className="text-sm text-gray-500">Plataforma Profesional</p>
+            <p className="text-sm text-muted-foreground">
+              Plataforma Profesional
+            </p>
           </div>
         </div>
       </div>
@@ -85,27 +87,29 @@ export function TraderSidebar() {
                 group flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200
                 ${
                   isActive
-                    ? "bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/25"
-                    : "text-gray-700 hover:bg-gray-50 hover:text-gray-900"
+                    ? "bg-primary text-primary-foreground shadow-lg"
+                    : "text-card-foreground hover:bg-accent hover:text-accent-foreground"
                 }
               `}
             >
               <item.icon
                 className={`mr-3 h-5 w-5 transition-colors duration-200 ${
                   isActive
-                    ? "text-white"
-                    : "text-gray-500 group-hover:text-gray-700"
+                    ? "text-primary-foreground"
+                    : "text-muted-foreground group-hover:text-accent-foreground"
                 }`}
               />
               <div className="flex-1">
                 <div
-                  className={`font-medium ${isActive ? "text-white" : "text-gray-900"}`}
+                  className={`font-medium ${isActive ? "text-primary-foreground" : "text-card-foreground"}`}
                 >
                   {item.title}
                 </div>
                 <div
                   className={`text-xs ${
-                    isActive ? "text-blue-100" : "text-gray-500"
+                    isActive
+                      ? "text-primary-foreground/80"
+                      : "text-muted-foreground"
                   }`}
                 >
                   {item.description}
@@ -122,24 +126,24 @@ export function TraderSidebar() {
       </nav>
 
       {/* Footer Actions */}
-      <div className="p-4 border-t border-gray-200/30 space-y-2">
+      <div className="p-4 border-t border-border space-y-2">
         <Link
           href="/trader/settings"
-          className="flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+          className="flex items-center px-4 py-2 text-sm text-muted-foreground hover:text-card-foreground hover:bg-accent rounded-lg transition-colors duration-200"
         >
           <Settings className="mr-3 h-4 w-4" />
           Configuración
         </Link>
         <Link
           href="/trader/profile"
-          className="flex items-center px-4 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-lg transition-colors duration-200"
+          className="flex items-center px-4 py-2 text-sm text-muted-foreground hover:text-card-foreground hover:bg-accent rounded-lg transition-colors duration-200"
         >
           <User className="mr-3 h-4 w-4" />
           Perfil
         </Link>
         <button
           onClick={() => signOut()}
-          className="w-full flex items-center px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200"
+          className="w-full flex items-center px-4 py-2 text-sm text-destructive hover:text-destructive-foreground hover:bg-destructive/10 rounded-lg transition-colors duration-200"
         >
           <LogOut className="mr-3 h-4 w-4" />
           Cerrar Sesión

@@ -22,12 +22,6 @@ export async function GET() {
       changeFrequency: "monthly",
       priority: 0.8,
     },
-    {
-      url: `${baseUrl}/info`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.6,
-    },
   ];
 
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>

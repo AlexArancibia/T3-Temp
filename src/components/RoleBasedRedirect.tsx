@@ -21,7 +21,7 @@ export function RoleBasedRedirect({ children }: RoleBasedRedirectProps) {
       return;
     }
 
-    // Don't redirect if we're already on the correct path or on allowed paths
+    // Define routes that should be accessible to authenticated users without redirection
     const isOnSignInRoutes =
       pathname.startsWith("/signin") ||
       pathname.startsWith("/signup") ||
@@ -29,12 +29,17 @@ export function RoleBasedRedirect({ children }: RoleBasedRedirectProps) {
       pathname.startsWith("/reset-password") ||
       pathname.startsWith("/confirm-email");
 
-    const isOnPublicRoutes =
-      pathname === "/" ||
-      pathname.startsWith("/info") ||
-      pathname.startsWith("/api");
+    const isOnLandingPage = pathname === "/"; // Allow authenticated users to visit landing page
+    const isOnApiRoutes = pathname.startsWith("/api");
+    const isOnPublicRoutes = pathname.startsWith("/(public)"); // Allow access to public routes
 
-    if (isOnSignInRoutes || isOnPublicRoutes) {
+    // Don't redirect if user is on allowed routes
+    if (
+      isOnSignInRoutes ||
+      isOnLandingPage ||
+      isOnApiRoutes ||
+      isOnPublicRoutes
+    ) {
       return;
     }
 
@@ -49,11 +54,8 @@ export function RoleBasedRedirect({ children }: RoleBasedRedirectProps) {
 
       case "admin":
       case "super_admin":
-        // Redirect admins to /dashboard unless they're already there or on /trader (allow both)
-        if (
-          !pathname.startsWith("/dashboard") &&
-          !pathname.startsWith("/trader")
-        ) {
+        // Redirect admins to /dashboard unless they're already there
+        if (!pathname.startsWith("/dashboard")) {
           router.replace("/dashboard");
         }
         break;
@@ -67,10 +69,7 @@ export function RoleBasedRedirect({ children }: RoleBasedRedirectProps) {
 
       default:
         // For unknown roles, redirect to trader by default (most common use case)
-        if (
-          !pathname.startsWith("/trader") &&
-          !pathname.startsWith("/dashboard")
-        ) {
+        if (!pathname.startsWith("/trader")) {
           router.replace("/trader");
         }
         break;
