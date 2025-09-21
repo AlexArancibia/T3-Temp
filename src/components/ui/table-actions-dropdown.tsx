@@ -60,7 +60,7 @@ export function TableActionsDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align={align === "right" ? "end" : "start"}
-        className="w-56"
+        className="w-56 border-border"
       >
         {visibleItems.map((item, index) => (
           <div key={index}>

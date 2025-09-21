@@ -12,6 +12,5 @@ export default function AuthenticatedLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Layout básico - cada ruta tendrá su propio layout específico
   return <>{children}</>;
 }

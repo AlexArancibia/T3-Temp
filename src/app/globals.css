@@ -4,7 +4,7 @@
   --font-family-sans: "Poppins", "sans-serif";
 
   /* Colors for light mode */
-  --color-background: hsl(0 0% 100%);
+  --color-background: hsl(0 0% 98%);
   --color-foreground: hsl(240 10% 3.9%);
   --color-card: hsl(0 0% 100%);
   --color-card-foreground: hsl(240 10% 3.9%);
@@ -29,9 +29,9 @@
 
 .dark {
   /* Colors for dark mode */
-  --color-background: hsl(220 19% 15%);
+  --color-background: hsl(223 42% 13%);
   --color-foreground: hsl(0 0% 98%);
-  --color-card: hsl(240 10% 3.9%);
+  --color-card: hsl(222, 35%, 22%);
   --color-card-foreground: hsl(0 0% 98%);
   --color-popover: hsl(240 10% 3.9%);
   --color-popover-foreground: hsl(0 0% 98%);
@@ -45,7 +45,7 @@
   --color-accent-foreground: hsl(0 0% 98%);
   --color-destructive: hsl(0 62.8% 30.6%);
   --color-destructive-foreground: hsl(0 0% 98%);
-  --color-border: hsl(240 3.7% 25%);
+  --color-border: hsl(223 69% 9%);
   --color-input: hsl(240 3.7% 15.9%);
   --color-ring: hsl(142 76% 36%);
 }

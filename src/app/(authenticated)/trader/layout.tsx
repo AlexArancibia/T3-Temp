@@ -27,13 +27,13 @@ export default function TraderLayout({
       <div className="max-w-[1500px] py-8 mx-auto">
         <div className="flex h-full">
           {/* Primer div - delgado para el sidebar (oculto en móvil) */}
-          <div className="hidden md:block w-80 flex-shrink-0">
+          <div className="hidden lg:block w-80 flex-shrink-0">
             <TraderSidebar />
           </div>
 
           {/* Segundo div - contenido principal */}
           <div className="flex-1 overflow-auto bg-background">
-            <div className="p-8">{children}</div>
+            <div className="">{children}</div>
           </div>
         </div>
       </div>

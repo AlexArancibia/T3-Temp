@@ -118,7 +118,7 @@ export default function GlobalNavbar() {
 
   return (
     <>
-      <nav className="px-4 sm:px-6 lg:px-8 border-b bg-[#20252F] border-gray-700 shadow-lg">
+      <nav className="px-4 sm:px-6 lg:px-8 border-b bg-[#131B2F] border-gray-700 shadow-lg">
         <div className="max-w-[1500px] mx-auto ">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -134,7 +134,7 @@ export default function GlobalNavbar() {
             </div>
 
             {/* Desktop Auth Section */}
-            <div className="hidden md:block">
+            <div className="hidden lg:block">
               <div className="ml-4 flex items-center md:ml-6">
                 {isAuthenticated ? (
                   <div className="flex items-center space-x-4">
@@ -227,7 +227,7 @@ export default function GlobalNavbar() {
             </div>
 
             {/* Mobile menu button */}
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <SheetTrigger asChild>
                   <button className="text-gray-300 hover:text-white p-2 rounded-md transition-colors">
