@@ -137,9 +137,6 @@ export default function PropfirmDetailPage() {
   const [isCreateRulesConfigModalOpen, setIsCreateRulesConfigModalOpen] =
     useState(false);
 
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [activeTab, setActiveTab] = useState<
     "phases" | "account-types" | "rules"
   >("phases");
@@ -388,33 +385,28 @@ export default function PropfirmDetailPage() {
     }
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    setSortBy(sortByField);
-    setSortOrder(sortOrderField);
-  };
-
   // Definir columnas de la tabla de fases
   const columns: TableColumn<PropfirmPhase>[] = [
     {
       key: "displayName",
       title: "Fase",
-      sortable: true,
       render: (_, record) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             {record.displayName}
           </div>
-          <div className="text-sm text-gray-500">{record.phaseName}</div>
+          <div className="text-sm text-muted-foreground">
+            {record.phaseName}
+          </div>
         </div>
       ),
     },
     {
       key: "displayOrder",
       title: "Orden",
-      sortable: true,
       render: (value) => (
         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-          {value}
+          {value as string}
         </span>
       ),
       className: "text-center",
@@ -422,7 +414,6 @@ export default function PropfirmDetailPage() {
     {
       key: "isEvaluation",
       title: "Tipo",
-      sortable: true,
       render: (value) => (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -438,7 +429,6 @@ export default function PropfirmDetailPage() {
     {
       key: "isActive",
       title: "Estado",
-      sortable: true,
       render: (value) => (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -452,9 +442,8 @@ export default function PropfirmDetailPage() {
     {
       key: "createdAt",
       title: "Creado",
-      sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
-      className: "text-sm text-gray-500",
+      render: (value) => new Date(value as string).toLocaleDateString(),
+      className: "text-sm text-muted-foreground",
     },
   ];
 
@@ -480,30 +469,27 @@ export default function PropfirmDetailPage() {
     {
       key: "displayName",
       title: "Tipo de Cuenta",
-      sortable: true,
       render: (_, record) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             {record.displayName}
           </div>
-          <div className="text-sm text-gray-500">{record.typeName}</div>
+          <div className="text-sm text-muted-foreground">{record.typeName}</div>
         </div>
       ),
     },
     {
       key: "initialBalance",
       title: "Balance Inicial",
-      sortable: true,
       render: (value) => (
-        <span className="text-sm font-medium text-gray-900">
-          ${parseFloat(value).toLocaleString()}
+        <span className="text-sm font-medium text-foreground">
+          ${parseFloat(value as string).toLocaleString()}
         </span>
       ),
     },
     {
       key: "isActive",
       title: "Estado",
-      sortable: true,
       render: (value) => (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -517,9 +503,8 @@ export default function PropfirmDetailPage() {
     {
       key: "createdAt",
       title: "Creado",
-      sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
-      className: "text-sm text-gray-500",
+      render: (value) => new Date(value as string).toLocaleDateString(),
+      className: "text-sm text-muted-foreground",
     },
   ];
 
@@ -545,13 +530,12 @@ export default function PropfirmDetailPage() {
     {
       key: "accountType",
       title: "Tipo de Cuenta",
-      sortable: true,
       render: (_, record) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             {record.accountType.displayName}
           </div>
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             {record.accountType.typeName}
           </div>
         </div>
@@ -560,50 +544,47 @@ export default function PropfirmDetailPage() {
     {
       key: "phase",
       title: "Fase",
-      sortable: true,
       render: (_, record) => (
         <div>
-          <div className="text-sm font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             {record.phase.displayName}
           </div>
-          <div className="text-sm text-gray-500">{record.phase.phaseName}</div>
+          <div className="text-sm text-muted-foreground">
+            {record.phase.phaseName}
+          </div>
         </div>
       ),
     },
     {
       key: "maxDrawdown",
       title: "Max Drawdown",
-      sortable: true,
       render: (value) => (
         <span className="text-sm font-medium text-red-600">
-          {parseFloat(value).toFixed(2)}%
+          {parseFloat(value as string).toFixed(2)}%
         </span>
       ),
     },
     {
       key: "dailyDrawdown",
       title: "Daily Drawdown",
-      sortable: true,
       render: (value) => (
         <span className="text-sm font-medium text-orange-600">
-          {parseFloat(value).toFixed(2)}%
+          {parseFloat(value as string).toFixed(2)}%
         </span>
       ),
     },
     {
       key: "profitTarget",
       title: "Profit Target",
-      sortable: true,
       render: (value) => (
         <span className="text-sm font-medium text-green-600">
-          {value ? `${parseFloat(value).toFixed(2)}%` : "N/A"}
+          {value ? `${parseFloat(value as string).toFixed(2)}%` : "N/A"}
         </span>
       ),
     },
     {
       key: "isActive",
       title: "Estado",
-      sortable: true,
       render: (value) => (
         <span
           className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
@@ -617,9 +598,8 @@ export default function PropfirmDetailPage() {
     {
       key: "createdAt",
       title: "Creado",
-      sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
-      className: "text-sm text-gray-500",
+      render: (value) => new Date(value as string).toLocaleDateString(),
+      className: "text-sm text-muted-foreground",
     },
   ];
 
@@ -645,7 +625,7 @@ export default function PropfirmDetailPage() {
       <div className="flex items-center justify-center py-12">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-500">Cargando propfirm...</p>
+          <p className="text-muted-foreground">Cargando propfirm...</p>
         </div>
       </div>
     );
@@ -692,31 +672,31 @@ export default function PropfirmDetailPage() {
               </div>
             )}
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-foreground">
                 {propfirm.displayName}
               </h1>
-              <p className="text-gray-500">{propfirm.name}</p>
+              <p className="text-muted-foreground">{propfirm.name}</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* Propfirm Info */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+      <div className="bg-card rounded-xl shadow-sm border border-border p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">
           Información
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <div>
-            <label className="text-sm font-medium text-gray-500">
+            <label className="text-sm font-medium text-muted-foreground">
               Descripción
             </label>
-            <p className="text-sm text-gray-900">
+            <p className="text-sm text-foreground">
               {propfirm.description || "Sin descripción"}
             </p>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-500">
+            <label className="text-sm font-medium text-muted-foreground">
               Sitio Web
             </label>
             {propfirm.website ? (
@@ -729,11 +709,13 @@ export default function PropfirmDetailPage() {
                 {propfirm.website}
               </a>
             ) : (
-              <p className="text-sm text-gray-400">No especificado</p>
+              <p className="text-sm text-muted-foreground">No especificado</p>
             )}
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-500">Estado</label>
+            <label className="text-sm font-medium text-muted-foreground">
+              Estado
+            </label>
             <p
               className={`text-sm font-medium ${propfirm.isActive ? "text-green-600" : "text-red-600"}`}
             >
@@ -751,7 +733,7 @@ export default function PropfirmDetailPage() {
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "phases"
                 ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             }`}
           >
             Fases ({phases.length})
@@ -761,7 +743,7 @@ export default function PropfirmDetailPage() {
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "account-types"
                 ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             }`}
           >
             Tipos de Cuenta ({accountTypes.length})
@@ -771,7 +753,7 @@ export default function PropfirmDetailPage() {
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "rules"
                 ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             }`}
           >
             Reglas ({rulesConfigs.length})
@@ -784,7 +766,7 @@ export default function PropfirmDetailPage() {
         {/* Phases Tab */}
         {activeTab === "phases" && (
           <>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               Fases de la Propfirm
             </h2>
 
@@ -808,12 +790,6 @@ export default function PropfirmDetailPage() {
               onPageSizeChange={() => {
                 /* No pagination needed */
               }}
-              searchValue={search}
-              onSearchChange={setSearch}
-              searchPlaceholder="Buscar fases..."
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSortChange={handleSort}
               actions={actions}
               headerActions={
                 <Button
@@ -825,7 +801,9 @@ export default function PropfirmDetailPage() {
                 </Button>
               }
               emptyMessage="No se han configurado fases para esta propfirm"
-              emptyIcon={<Settings className="h-12 w-12 text-gray-400" />}
+              emptyIcon={
+                <Settings className="h-12 w-12 text-muted-foreground" />
+              }
             />
           </>
         )}
@@ -833,7 +811,7 @@ export default function PropfirmDetailPage() {
         {/* Account Types Tab */}
         {activeTab === "account-types" && (
           <>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               Tipos de Cuenta
             </h2>
 
@@ -857,12 +835,6 @@ export default function PropfirmDetailPage() {
               onPageSizeChange={() => {
                 /* No pagination needed */
               }}
-              searchValue={search}
-              onSearchChange={setSearch}
-              searchPlaceholder="Buscar tipos de cuenta..."
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSortChange={handleSort}
               actions={accountTypeActions}
               headerActions={
                 <Button
@@ -874,7 +846,9 @@ export default function PropfirmDetailPage() {
                 </Button>
               }
               emptyMessage="No se han configurado tipos de cuenta para esta propfirm"
-              emptyIcon={<Building className="h-12 w-12 text-gray-400" />}
+              emptyIcon={
+                <Building className="h-12 w-12 text-muted-foreground" />
+              }
             />
           </>
         )}
@@ -882,7 +856,7 @@ export default function PropfirmDetailPage() {
         {/* Rules Tab */}
         {activeTab === "rules" && (
           <>
-            <h2 className="text-xl font-semibold text-gray-900">
+            <h2 className="text-xl font-semibold text-foreground">
               Reglas de Configuración
             </h2>
 
@@ -906,12 +880,6 @@ export default function PropfirmDetailPage() {
               onPageSizeChange={() => {
                 /* No pagination needed */
               }}
-              searchValue={search}
-              onSearchChange={setSearch}
-              searchPlaceholder="Buscar reglas..."
-              sortBy={sortBy}
-              sortOrder={sortOrder}
-              onSortChange={handleSort}
               actions={rulesConfigActions}
               headerActions={
                 <Button
@@ -923,7 +891,9 @@ export default function PropfirmDetailPage() {
                 </Button>
               }
               emptyMessage="No se han configurado reglas para esta propfirm"
-              emptyIcon={<Settings className="h-12 w-12 text-gray-400" />}
+              emptyIcon={
+                <Settings className="h-12 w-12 text-muted-foreground" />
+              }
             />
           </>
         )}
@@ -940,7 +910,7 @@ export default function PropfirmDetailPage() {
           }}
         >
           <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
+            className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -949,7 +919,7 @@ export default function PropfirmDetailPage() {
                 setEditingAccountType(null);
                 accountTypeForm.reset();
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-muted-foreground hover:text-muted-foreground"
             >
               <X className="h-5 w-5" />
             </button>
@@ -1048,7 +1018,7 @@ export default function PropfirmDetailPage() {
           }}
         >
           <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
+            className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1057,7 +1027,7 @@ export default function PropfirmDetailPage() {
                 setEditingPhase(null);
                 form.reset();
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-muted-foreground hover:text-muted-foreground"
             >
               <X className="h-5 w-5" />
             </button>
@@ -1124,7 +1094,7 @@ export default function PropfirmDetailPage() {
                         <FormLabel className="text-base">
                           Fase de Evaluación
                         </FormLabel>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-muted-foreground">
                           Marca si esta fase es de evaluación o funded
                         </div>
                       </div>
@@ -1175,7 +1145,7 @@ export default function PropfirmDetailPage() {
           }}
         >
           <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
+            className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -1184,7 +1154,7 @@ export default function PropfirmDetailPage() {
                 setEditingRulesConfig(null);
                 rulesConfigForm.reset();
               }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+              className="absolute top-4 right-4 text-muted-foreground hover:text-muted-foreground"
             >
               <X className="h-5 w-5" />
             </button>
@@ -1205,7 +1175,7 @@ export default function PropfirmDetailPage() {
                       <FormControl>
                         <select
                           {...field}
-                          className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <option value="">Seleccionar tipo de cuenta</option>
                           {accountTypes.map((accountType) => (
@@ -1228,7 +1198,7 @@ export default function PropfirmDetailPage() {
                       <FormControl>
                         <select
                           {...field}
-                          className="flex h-10 w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-gray-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <option value="">Seleccionar fase</option>
                           {phases.map((phase) => (

@@ -108,23 +108,23 @@ export default function SignInPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div className="text-center">
           <Link
             href="/"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-8 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver al inicio
           </Link>
 
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xl">A</span>
+          <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-2xl">F</span>
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
-            Iniciar Sesión
+            Bienvenido a Feniz
           </h2>
           <p className="mt-2 text-sm text-gray-600">
             ¿No tienes cuenta?{" "}

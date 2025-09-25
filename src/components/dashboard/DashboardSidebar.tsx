@@ -1,314 +1,184 @@
 "use client";
 
 import {
-  BarChart3,
   Briefcase,
   Building2,
   LayoutDashboard,
+  LogOut,
   Settings,
   Shield,
   TrendingUp,
-  UserCheck,
   Users,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuthContext } from "@/AuthContext";
 import { useRBAC } from "@/hooks/useRBAC";
 
-interface SidebarItem {
-  name: string;
+interface NavItem {
+  title: string;
   href: string;
-  icon: React.ElementType;
+  icon: React.ComponentType<{ className?: string }>;
   description?: string;
+  badge?: string;
   requiredRoles?: string[];
   requiredPermissions?: Array<{ action: string; resource: string }>;
 }
 
-interface SidebarSection {
-  title: string;
-  items: SidebarItem[];
-}
-
 export function DashboardSidebar() {
   const pathname = usePathname();
+  const { signOut } = useAuthContext();
   const { isSuperAdmin, isAdmin, hasRole } = useRBAC();
 
   // Configuración de navegación por rol
-  const getSidebarSections = (): SidebarSection[] => {
-    // Super Admin - acceso completo
-    if (isSuperAdmin) {
-      return [
-        {
-          title: "Dashboard",
-          items: [
-            {
-              name: "Inicio",
-              href: "/dashboard",
-              icon: LayoutDashboard,
-              description: "Vista general del sistema",
-            },
-          ],
-        },
-        {
-          title: "Administración",
-          items: [
-            {
-              name: "Usuarios",
-              href: "/dashboard/users",
-              icon: Users,
-              description: "Gestión de usuarios del sistema",
-            },
-            {
-              name: "Roles",
-              href: "/dashboard/roles",
-              icon: Shield,
-              description: "Gestión de roles y permisos",
-            },
-          ],
-        },
-        {
-          title: "Trading",
-          items: [
-            {
-              name: "Propfirms",
-              href: "/dashboard/propfirms",
-              icon: Briefcase,
-              description: "Gestión de firmas de prop trading",
-            },
-            {
-              name: "Brokers",
-              href: "/dashboard/brokers",
-              icon: Building2,
-              description: "Gestión de brokers",
-            },
-            {
-              name: "Símbolos",
-              href: "/dashboard/symbols",
-              icon: TrendingUp,
-              description: "Gestión de instrumentos financieros",
-            },
-            {
-              name: "Configuraciones",
-              href: "/dashboard/symbol-configs",
-              icon: Settings,
-              description: "Configuración de símbolos por broker/propfirm",
-            },
-          ],
-        },
-      ];
-    }
-
-    // Admin - TODO: definir permisos específicos
-    if (isAdmin) {
-      return [
-        {
-          title: "Dashboard",
-          items: [
-            {
-              name: "Inicio",
-              href: "/dashboard",
-              icon: LayoutDashboard,
-              description: "Vista general",
-            },
-          ],
-        },
-        {
-          title: "Gestión",
-          items: [
-            // TODO: Definir rutas específicas para admin
-            {
-              name: "Usuarios",
-              href: "/dashboard/users",
-              icon: Users,
-              description: "Gestión básica de usuarios",
-            },
-          ],
-        },
-      ];
-    }
-
-    // Trader - TODO: definir rutas específicas
-    if (hasRole("trader")) {
-      return [
-        {
-          title: "Dashboard",
-          items: [
-            {
-              name: "Inicio",
-              href: "/dashboard",
-              icon: LayoutDashboard,
-              description: "Mi dashboard de trading",
-            },
-          ],
-        },
-        {
-          title: "Trading",
-          items: [
-            // TODO: Definir rutas específicas para trader
-            {
-              name: "Mis Cuentas",
-              href: "/dashboard/my-accounts",
-              icon: Briefcase,
-              description: "Mis cuentas de trading",
-            },
-            {
-              name: "Mis Trades",
-              href: "/dashboard/my-trades",
-              icon: BarChart3,
-              description: "Historial de operaciones",
-            },
-            {
-              name: "Análisis",
-              href: "/dashboard/analytics",
-              icon: TrendingUp,
-              description: "Análisis de rendimiento",
-            },
-          ],
-        },
-      ];
-    }
-
-    // Viewer - TODO: definir rutas específicas
-    if (hasRole("viewer")) {
-      return [
-        {
-          title: "Dashboard",
-          items: [
-            {
-              name: "Inicio",
-              href: "/dashboard",
-              icon: LayoutDashboard,
-              description: "Vista de solo lectura",
-            },
-          ],
-        },
-        {
-          title: "Informes",
-          items: [
-            // TODO: Definir rutas específicas para viewer
-            {
-              name: "Reportes",
-              href: "/dashboard/reports",
-              icon: BarChart3,
-              description: "Visualización de reportes",
-            },
-          ],
-        },
-      ];
-    }
-
-    // Por defecto - acceso mínimo
-    return [
+  const getNavItems = (): NavItem[] => {
+    const baseItems: NavItem[] = [
       {
-        title: "Dashboard",
-        items: [
-          {
-            name: "Inicio",
-            href: "/dashboard",
-            icon: LayoutDashboard,
-            description: "Dashboard básico",
-          },
-        ],
+        title: "Panel Principal",
+        href: "/dashboard",
+        icon: LayoutDashboard,
+        description: "Vista general del sistema",
       },
     ];
+
+    // Super Admin y Admin - acceso completo
+    if (isSuperAdmin || isAdmin) {
+      return [
+        ...baseItems,
+        {
+          title: "Usuarios",
+          href: "/dashboard/users",
+          icon: Users,
+          description: "Gestionar usuarios del sistema",
+        },
+        {
+          title: "Roles y Permisos",
+          href: "/dashboard/roles",
+          icon: Shield,
+          description: "Configurar sistema RBAC",
+        },
+        {
+          title: "Propfirms",
+          href: "/dashboard/propfirms",
+          icon: Building2,
+          description: "Gestionar propfirms del sistema",
+        },
+        {
+          title: "Brokers",
+          href: "/dashboard/brokers",
+          icon: Briefcase,
+          description: "Gestionar brokers del sistema",
+        },
+        {
+          title: "Símbolos",
+          href: "/dashboard/symbols",
+          icon: TrendingUp,
+          description: "Gestionar símbolos de trading",
+        },
+        {
+          title: "Configuraciones",
+          href: "/dashboard/symbol-configs",
+          icon: Settings,
+          description: "Configuraciones de símbolos",
+        },
+        {
+          title: "Información de la Empresa",
+          href: "/dashboard/company-info",
+          icon: Building2,
+          description: "Gestionar información de Feniz",
+        },
+      ];
+    }
+
+    // Viewer - acceso de solo lectura
+    if (hasRole("viewer")) {
+      return [
+        ...baseItems,
+        {
+          title: "Usuarios",
+          href: "/dashboard/users",
+          icon: Users,
+          description: "Ver usuarios del sistema",
+        },
+        {
+          title: "Propfirms",
+          href: "/dashboard/propfirms",
+          icon: Building2,
+          description: "Ver propfirms del sistema",
+        },
+        {
+          title: "Brokers",
+          href: "/dashboard/brokers",
+          icon: Briefcase,
+          description: "Ver brokers del sistema",
+        },
+        {
+          title: "Símbolos",
+          href: "/dashboard/symbols",
+          icon: TrendingUp,
+          description: "Ver símbolos de trading",
+        },
+        {
+          title: "Configuraciones",
+          href: "/dashboard/symbol-configs",
+          icon: Settings,
+          description: "Ver configuraciones de símbolos",
+        },
+      ];
+    }
+
+    // Usuario sin permisos específicos
+    return baseItems;
   };
 
-  const sidebarSections = getSidebarSections();
-
-  const isActive = (href: string) => {
-    if (href === "/dashboard") {
-      return pathname === href;
-    }
-    // Para rutas con parámetros dinámicos (ej: /dashboard/propfirms/[id])
-    if (
-      href === "/dashboard/propfirms" &&
-      pathname.startsWith("/dashboard/propfirms/")
-    ) {
-      return true;
-    }
-    return pathname.startsWith(href);
-  };
+  const navItems = getNavItems();
 
   return (
-    <div className="w-[300px] bg-white border-r border-gray-200 flex flex-col">
-      {/* Header */}
-      <div className="p-6 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-900">Dashboard</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          {isSuperAdmin
-            ? "Super Administrador"
-            : isAdmin
-              ? "Administrador"
-              : hasRole("trader")
-                ? "Trader"
-                : hasRole("viewer")
-                  ? "Viewer"
-                  : "Usuario"}
-        </p>
-      </div>
-
+    <div className="w-64 bg-card shadow-md">
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-8 overflow-y-auto">
-        {sidebarSections.map((section) => (
-          <div key={section.title}>
-            <h3 className="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              {section.title}
-            </h3>
-            <div className="space-y-1">
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const active = isActive(item.href);
+      <nav className="flex-1 p-4 space-y-3">
+        {navItems.map((item) => {
+          const isActive =
+            pathname === item.href ||
+            (item.href !== "/dashboard" && pathname.startsWith(item.href));
 
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
-                      active
-                        ? "bg-gray-900 text-white"
-                        : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
-                    }`}
-                  >
-                    <Icon
-                      className={`mr-3 flex-shrink-0 h-5 w-5 ${
-                        active
-                          ? "text-white"
-                          : "text-gray-400 group-hover:text-gray-500"
-                      }`}
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium">{item.name}</div>
-                      {item.description && (
-                        <div
-                          className={`text-xs mt-0.5 ${
-                            active ? "text-gray-300" : "text-gray-500"
-                          }`}
-                        >
-                          {item.description}
-                        </div>
-                      )}
-                    </div>
-                  </Link>
-                );
-              })}
-            </div>
-          </div>
-        ))}
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`
+                group flex items-center px-5 py-4 rounded-xl text-sm font-medium transition-all duration-200 text-card-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none border
+                ${isActive ? "bg-background border-border" : "border-transparent"}
+              `}
+            >
+              <item.icon className="mr-3 h-5 w-5 transition-colors duration-200 text-muted-foreground group-hover:text-accent-foreground" />
+              <div className="flex-1">
+                <div className="font-medium text-card-foreground">
+                  {item.title}
+                </div>
+                <div className="text-xs text-muted-foreground font-normal">
+                  {item.description}
+                </div>
+              </div>
+              {item.badge && (
+                <span className="ml-2 px-2 py-1 text-xs font-medium bg-red-100 text-red-600 rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </Link>
+          );
+        })}
       </nav>
 
-      {/* Footer */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="text-xs text-gray-500 text-center">
-          {isSuperAdmin && (
-            <div className="flex items-center justify-center space-x-1 text-green-600">
-              <UserCheck className="h-3 w-3" />
-              <span>Acceso Total</span>
-            </div>
-          )}
-          {!isSuperAdmin && (
-            <div className="text-gray-400">Acceso limitado por rol</div>
-          )}
-        </div>
+      {/* Footer Actions */}
+      <div className="p-4">
+        <button
+          onClick={() => signOut()}
+          className="w-full flex items-center px-4 py-2 text-sm text-destructive hover:text-destructive-foreground hover:bg-destructive/10 rounded-lg transition-colors duration-200 focus:outline-none"
+        >
+          <LogOut className="mr-3 h-4 w-4" />
+          Cerrar Sesión
+        </button>
       </div>
     </div>
   );

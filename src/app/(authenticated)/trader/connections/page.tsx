@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   ScrollableTable,
@@ -68,23 +69,21 @@ type Connection = {
 const statusConfig = {
   active: {
     label: "Activa",
-    color:
-      "bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400",
+    color: "bg-green-100 border border-green-500 text-green-600",
     icon: CheckCircle,
     dotColor: "bg-green-500",
   },
   inactive: {
     label: "Inactiva",
-    color:
-      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/20 dark:text-yellow-400",
+    color: "bg-yellow-100 border border-yellow-500 text-yellow-600",
     icon: PauseCircle,
     dotColor: "bg-yellow-500",
   },
   error: {
     label: "Error",
-    color: "bg-destructive/10 text-destructive",
+    color: "bg-red-100 border border-red-500 text-red-600",
     icon: AlertCircle,
-    dotColor: "bg-destructive",
+    dotColor: "bg-red-500",
   },
 };
 
@@ -109,15 +108,6 @@ export default function ConnectionsPage() {
     isLoading,
   } = trpc.accountLink.getAll.useQuery(queryParams);
 
-  const _updateConnection = trpc.accountLink.update.useMutation({
-    onSuccess: () => {
-      refetch();
-    },
-    onError: (error) => {
-      console.error("Error updating connection:", error.message);
-    },
-  });
-
   const deleteConnection = trpc.accountLink.delete.useMutation({
     onSuccess: () => {
       refetch();
@@ -137,9 +127,9 @@ export default function ConnectionsPage() {
     hasPrev: false,
   };
 
-  const handleEdit = (connection: Connection) => {
-    // TODO: Open edit modal
-    console.log("Edit connection:", connection.id);
+  const handleEdit = (_connection: Connection) => {
+    // Navigate to edit page or open edit modal
+    alert("Funcionalidad de edición de conexión no implementada aún");
   };
 
   const handleDelete = (connection: Connection) => {
@@ -148,41 +138,42 @@ export default function ConnectionsPage() {
     }
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    _setSortBy(sortByField);
-    _setSortOrder(sortOrderField);
-  };
-
   // Define table columns
   const columns: TableColumn<Connection>[] = [
     {
       key: "connection",
       title: "Conexión",
-      sortable: false,
       render: (_, record) => (
-        <div className="flex items-center space-x-2">
-          <div className="h-8 w-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
-            <Cable className="h-4 w-4 text-primary-foreground" />
-          </div>
-          <div>
-            <div className="text-sm font-medium text-foreground">
-              {record.propfirmAccount.propfirm?.displayName ||
-                record.propfirmAccount.accountName}
-              →
-              {record.brokerAccount.broker?.displayName ||
-                record.brokerAccount.accountName}
+        <Link href={`/trader/connections/${record.id}`} className="block">
+          <div className="flex items-center space-x-2 hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors cursor-pointer">
+            <div className="h-8 w-8 bg-gradient-to-br from-primary to-primary/80 rounded-lg flex items-center justify-center">
+              <Cable className="h-4 w-4 text-primary-foreground" />
             </div>
-            <div className="text-xs text-muted-foreground">
-              {new Date(record.createdAt).toLocaleDateString()}
+            <div>
+              <div className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+                {record.propfirmAccount.propfirm?.displayName ||
+                  record.propfirmAccount.accountName}
+                →
+                {record.brokerAccount.broker?.displayName ||
+                  record.brokerAccount.accountName}
+              </div>
+              <div className="text-xs text-muted-foreground">
+                {new Date(record.createdAt).toLocaleString("es-ES", {
+                  year: "numeric",
+                  month: "2-digit",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        </Link>
       ),
     },
     {
       key: "propfirmAccount",
       title: "Cuenta propfirm",
-      sortable: false,
       render: (_, record) => (
         <div>
           <div className="text-sm font-medium text-foreground">
@@ -201,7 +192,6 @@ export default function ConnectionsPage() {
     {
       key: "brokerAccount",
       title: "Cuenta broker",
-      sortable: false,
       render: (_, record) => (
         <div>
           <div className="text-sm font-medium text-foreground">
@@ -219,33 +209,37 @@ export default function ConnectionsPage() {
     {
       key: "status",
       title: "Estado",
-      sortable: true,
       render: (_, record) => {
         const status = record.isActive ? "active" : "inactive";
         const statusInfo = statusConfig[status];
 
         return (
-          <div className="flex items-center space-x-1.5">
-            <div
-              className={`h-1.5 w-1.5 rounded-full ${statusInfo.dotColor}`}
-            />
-            <span
-              className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${statusInfo.color}`}
-            >
-              {statusInfo.label}
-            </span>
-          </div>
+          <Badge
+            variant="outline"
+            className={`text-xs font-medium ${
+              record.isActive
+                ? "bg-green-100 text-green-600 border-green-200 hover:bg-green-200"
+                : "bg-orange-100 text-orange-600 border-orange-200 hover:bg-orange-200"
+            }`}
+          >
+            {statusInfo.label}
+          </Badge>
         );
       },
     },
     {
       key: "lastActivity",
       title: "Última actividad",
-      sortable: true,
       render: (_, record) => (
         <div className="text-xs text-muted-foreground">
           {record.lastCopyAt
-            ? new Date(record.lastCopyAt).toLocaleDateString()
+            ? new Date(record.lastCopyAt).toLocaleString("es-ES", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
             : "-"}
         </div>
       ),
@@ -277,7 +271,7 @@ export default function ConnectionsPage() {
   ];
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -305,8 +299,6 @@ export default function ConnectionsPage() {
         pagination={paginationInfo}
         onPageChange={pagination.setPage}
         onPageSizeChange={pagination.setLimit}
-        onSortChange={handleSort}
-        searchable={false}
         loading={isLoading}
         emptyMessage="No se encontraron conexiones"
         emptyIcon={<Cable className="h-12 w-12 text-muted-foreground" />}

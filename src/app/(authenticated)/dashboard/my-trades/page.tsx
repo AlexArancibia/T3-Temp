@@ -14,15 +14,15 @@ export default function MyTradesPage() {
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-4">
+      <div className="bg-card rounded-lg shadow p-6">
+        <h1 className="text-2xl font-bold text-foreground mb-4">
           Mis Operaciones
         </h1>
-        <p className="text-gray-600">
+        <p className="text-muted-foreground">
           Esta funcionalidad está pendiente de implementación. Aquí se
           mostrarán:
         </p>
-        <ul className="mt-4 space-y-2 text-sm text-gray-600">
+        <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
           <li>• Historial completo de trades</li>
           <li>• Filtros por fecha, símbolo, tipo de operación</li>
           <li>• P&L de cada operación</li>

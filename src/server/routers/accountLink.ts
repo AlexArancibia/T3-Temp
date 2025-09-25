@@ -7,6 +7,8 @@ import {
   createSortOrder,
   paginationInputSchema,
 } from "../../lib/pagination";
+import { RBACService } from "../../services/rbacService";
+import { PermissionAction, PermissionResource } from "../../types/rbac";
 import { protectedProcedure, router } from "../trpc";
 
 export const accountLinkRouter = router({
@@ -34,6 +36,45 @@ export const accountLinkRouter = router({
     return accountLinks;
   }),
 
+  // Get account links by user ID (for admin view)
+  getByUserId: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // Check if user has permission to view other users' data
+      const canManageUsers = await RBACService.hasPermission(
+        ctx.user.id,
+        PermissionAction.READ,
+        PermissionResource.USER,
+      );
+
+      if (input.userId !== ctx.user.id && !canManageUsers) {
+        throw new Error(
+          "No tienes permisos para ver las conexiones de este usuario",
+        );
+      }
+
+      const accountLinks = await prisma.accountLink.findMany({
+        where: { userId: input.userId },
+        include: {
+          propfirmAccount: {
+            include: {
+              propfirm: true,
+              broker: true,
+            },
+          },
+          brokerAccount: {
+            include: {
+              propfirm: true,
+              broker: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return accountLinks;
+    }),
+
   // Get all account links with pagination (for admin)
   getAll: protectedProcedure
     .input(paginationInputSchema.optional())
@@ -51,7 +92,14 @@ export const accountLinkRouter = router({
         "propfirmAccount.accountName",
         "brokerAccount.accountName",
       ]);
-      const orderBy = createSortOrder(sortBy, sortOrder);
+
+      // Map frontend field names to database field names
+      const fieldMapping: Record<string, string> = {
+        status: "isActive",
+        lastActivity: "lastCopyAt",
+      };
+
+      const orderBy = createSortOrder(sortBy, sortOrder, fieldMapping);
 
       const [accountLinks, total] = await Promise.all([
         prisma.accountLink.findMany({

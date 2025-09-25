@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import "./globals.css";
 import { AuthProvider } from "@/AuthContext";
+import { Footer } from "@/components/Footer";
 import GlobalNavbar from "@/components/GlobalNavbar";
 import { RoleBasedRedirect } from "@/components/RoleBasedRedirect";
 import { ThemeProvider } from "@/components/ThemeProvider";
@@ -78,14 +79,16 @@ export default function RootLayout({
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
-          enableSystem
+          enableSystem={false}
           disableTransitionOnChange
-          enableColorScheme
+          enableColorScheme={false}
+          forcedTheme="light"
         >
           <AuthProvider>
             <TRPCProvider>
               <GlobalNavbar />
               <RoleBasedRedirect>{children}</RoleBasedRedirect>
+              <Footer />
               <Toaster />
             </TRPCProvider>
           </AuthProvider>

@@ -55,12 +55,12 @@ export function PaginationComponent({
   }
 
   return (
-    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-1 py-2">
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 py-2">
       {/* Información de resultados */}
-      <div className="text-sm text-gray-500 order-2 sm:order-1">
+      <div className="text-sm text-gray-500 order-2 sm:order-1 whitespace-nowrap">
         {total > 0 && (
           <span>
-            {startItem}–{endItem} de {total.toLocaleString()}
+            {startItem}-{endItem} de {total.toLocaleString()}
           </span>
         )}
       </div>

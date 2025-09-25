@@ -1,37 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit, Plus, Settings, ToggleLeft, Trash2, X } from "lucide-react";
+import { Edit, Plus, Settings, ToggleLeft, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-
-interface SymbolConfigResponse {
-  id: string;
-  propfirmId?: string | null;
-  brokerId?: string | null;
-  symbolId: string;
-  commissionPerLot: string | null;
-  pipValuePerLot: string;
-  pipTicks: string;
-  spreadTypical: string | null;
-  spreadRecommended: string | null;
-  isAvailable: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  symbol?: {
-    symbol: string;
-    displayName: string;
-  };
-  propfirm?: {
-    displayName: string;
-  };
-  broker?: {
-    displayName: string;
-  };
-}
-
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -41,11 +23,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type {
-  TableAction,
-  TableColumn,
+import {
+  ScrollableTable,
+  type TableAction,
+  type TableColumn,
 } from "@/components/ui/scrollable-table";
-import { ScrollableTable } from "@/components/ui/scrollable-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { usePagination } from "@/hooks/usePagination";
 import { trpc } from "@/utils/trpc";
 
@@ -63,6 +52,36 @@ const symbolConfigSchema = z.object({
 
 type SymbolConfigFormData = z.infer<typeof symbolConfigSchema>;
 
+// Raw data from API
+interface SymbolConfigRaw {
+  id: string;
+  propfirmId: string | null;
+  brokerId: string | null;
+  symbolId: string;
+  commissionPerLot: string | null;
+  pipValuePerLot: string;
+  pipTicks: number;
+  spreadTypical: string | null;
+  spreadRecommended: string | null;
+  isAvailable: boolean;
+  createdAt: string;
+  updatedAt: string;
+  propfirm: {
+    name: string;
+    displayName: string;
+  } | null;
+  broker: {
+    name: string;
+    displayName: string;
+  } | null;
+  symbol: {
+    symbol: string;
+    displayName: string;
+    category: string;
+  };
+}
+
+// Processed data for display
 interface SymbolConfig {
   id: string;
   propfirmId: string | null;
@@ -97,8 +116,6 @@ export default function SymbolConfigsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const pagination = usePagination({ defaultLimit: 10 });
-  const { search, setSearch, sortBy, sortOrder, setSortBy, setSortOrder } =
-    pagination;
   const queryParams = pagination.getQueryParams();
 
   const {
@@ -165,13 +182,13 @@ export default function SymbolConfigsPage() {
   });
 
   const configs = (response?.data || []).map(
-    (config: SymbolConfigResponse) => ({
+    (config: SymbolConfigRaw): SymbolConfig => ({
       ...config,
       commissionPerLot: config.commissionPerLot
         ? parseFloat(config.commissionPerLot)
         : null,
       pipValuePerLot: parseFloat(config.pipValuePerLot),
-      pipTicks: parseInt(config.pipTicks, 10),
+      pipTicks: config.pipTicks,
       spreadTypical: config.spreadTypical
         ? parseFloat(config.spreadTypical)
         : null,
@@ -196,8 +213,8 @@ export default function SymbolConfigsPage() {
   const handleEdit = (config: SymbolConfig) => {
     setEditingConfig(config);
     form.reset({
-      propfirmId: config.propfirmId || "",
-      brokerId: config.brokerId || "",
+      propfirmId: config.propfirmId || "none",
+      brokerId: config.brokerId || "none",
       symbolId: config.symbolId || "",
       commissionPerLot: config.commissionPerLot || 0,
       pipValuePerLot: config.pipValuePerLot || 10,
@@ -215,13 +232,20 @@ export default function SymbolConfigsPage() {
   };
 
   const onSubmit = (data: SymbolConfigFormData) => {
+    // Convert "none" values to undefined for optional fields
+    const processedData = {
+      ...data,
+      propfirmId: data.propfirmId === "none" ? undefined : data.propfirmId,
+      brokerId: data.brokerId === "none" ? undefined : data.brokerId,
+    };
+
     if (editingConfig) {
       updateConfig.mutate({
         id: editingConfig.id!,
-        ...data,
+        ...processedData,
       });
     } else {
-      createConfig.mutate(data);
+      createConfig.mutate(processedData);
     }
   };
 
@@ -235,29 +259,18 @@ export default function SymbolConfigsPage() {
     toggleAvailable.mutate({ id: config.id });
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    setSortBy(sortByField);
-    setSortOrder(sortOrderField);
-  };
-
   // Definir columnas de la tabla
   const columns: TableColumn<SymbolConfig>[] = [
     {
       key: "symbol",
       title: "Símbolo",
-      sortable: true,
       render: (_, record) => (
-        <div className="flex items-center">
-          <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
-            <Settings className="h-5 w-5 text-indigo-600" />
+        <div>
+          <div className="text-sm font-medium text-foreground">
+            {record.symbol.symbol}
           </div>
-          <div>
-            <div className="text-sm font-medium text-gray-900">
-              {record.symbol.symbol}
-            </div>
-            <div className="text-sm text-gray-500">
-              {record.symbol.displayName}
-            </div>
+          <div className="text-sm text-muted-foreground">
+            {record.symbol.displayName}
           </div>
         </div>
       ),
@@ -267,11 +280,11 @@ export default function SymbolConfigsPage() {
       title: "Propfirm",
       render: (_, record) =>
         record.propfirm ? (
-          <span className="text-sm text-gray-900">
+          <span className="text-sm text-foreground">
             {record.propfirm.displayName}
           </span>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-muted-foreground">-</span>
         ),
     },
     {
@@ -279,33 +292,34 @@ export default function SymbolConfigsPage() {
       title: "Broker",
       render: (_, record) =>
         record.broker ? (
-          <span className="text-sm text-gray-900">
+          <span className="text-sm text-foreground">
             {record.broker.displayName}
           </span>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-muted-foreground">-</span>
         ),
     },
     {
       key: "pipValuePerLot",
       title: "Valor Pip/Lote",
-      sortable: true,
       render: (value) => (
-        <span className="text-sm text-gray-900">${value}</span>
+        <span className="text-sm text-foreground">${value as number}</span>
       ),
     },
     {
       key: "isAvailable",
       title: "Disponible",
-      sortable: true,
-      render: (value) => (
-        <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+      render: (_, record) => (
+        <Badge
+          variant="outline"
+          className={`text-xs font-medium ${
+            record.isAvailable
+              ? "bg-green-50 text-green-600 border-green-200"
+              : "bg-red-50 text-red-600 border-red-200"
           }`}
         >
-          {value ? "Sí" : "No"}
-        </span>
+          {record.isAvailable ? "Sí" : "No"}
+        </Badge>
       ),
     },
   ];
@@ -334,15 +348,25 @@ export default function SymbolConfigsPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Settings className="h-6 w-6 text-indigo-600" />
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">
             Configuraciones de Símbolos
           </h1>
+          <p className="text-sm text-muted-foreground mt-0.5 mr-8">
+            Configura parámetros específicos para cada símbolo de trading
+          </p>
         </div>
+        <Button
+          size="sm"
+          className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white border-0"
+          onClick={handleCreate}
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
+          <span>Nueva Configuración</span>
+        </Button>
       </div>
 
       {/* Tabla con ScrollableTable */}
@@ -354,295 +378,293 @@ export default function SymbolConfigsPage() {
         pagination={paginationInfo}
         onPageChange={pagination.setPage}
         onPageSizeChange={pagination.setLimit}
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar configuraciones..."
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSortChange={handleSort}
         actions={actions}
-        headerActions={
-          <Button
-            onClick={handleCreate}
-            className="flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Nueva Configuración</span>
-          </Button>
-        }
         emptyMessage="No se encontraron configuraciones"
-        emptyIcon={<Settings className="h-12 w-12 text-gray-400" />}
+        emptyIcon={<Settings className="h-12 w-12 text-muted-foreground" />}
       />
 
-      {/* Create/Edit Modal */}
-      {(isCreateModalOpen || editingConfig) && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
-          onClick={() => {
+      {/* Create/Edit Dialog */}
+      <Dialog
+        open={isCreateModalOpen || !!editingConfig}
+        onOpenChange={(open) => {
+          if (!open) {
             setIsCreateModalOpen(false);
             setEditingConfig(null);
             form.reset();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => {
-                setIsCreateModalOpen(false);
-                setEditingConfig(null);
-                form.reset();
-              }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="text-lg font-semibold mb-4 pr-8">
-              {editingConfig ? "Editar Configuración" : "Nueva Configuración"}
-            </h3>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="symbolId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Símbolo *</FormLabel>
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-4xl border-border">
+          <DialogHeader>
+            <DialogTitle>
+              {editingConfig
+                ? "Editar Configuración"
+                : "Crear Nueva Configuración"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingConfig
+                ? "Modifica la configuración del símbolo seleccionado."
+                : "Completa la información para crear una nueva configuración de símbolo."}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="symbolId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Símbolo *</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
-                          <select
-                            {...field}
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                          >
-                            <option value="">Seleccionar símbolo</option>
-                            {symbols.map((symbol) => (
-                              <option key={symbol.id} value={symbol.id}>
-                                {symbol.symbol} - {symbol.displayName}
-                              </option>
-                            ))}
-                          </select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar símbolo" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          {symbols.map((symbol) => (
+                            <SelectItem key={symbol.id} value={symbol.id}>
+                              {symbol.symbol} - {symbol.displayName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="propfirmId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Propfirm</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="propfirmId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Propfirm</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
-                          <select
-                            {...field}
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                          >
-                            <option value="">Sin propfirm</option>
-                            {propfirms.map((propfirm) => (
-                              <option key={propfirm.id} value={propfirm.id}>
-                                {propfirm.displayName}
-                              </option>
-                            ))}
-                          </select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar propfirm" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                        <SelectContent>
+                          <SelectItem value="none">Sin propfirm</SelectItem>
+                          {propfirms.map((propfirm) => (
+                            <SelectItem key={propfirm.id} value={propfirm.id}>
+                              {propfirm.displayName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="brokerId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Broker</FormLabel>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="brokerId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Broker</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
                         <FormControl>
-                          <select
-                            {...field}
-                            className="w-full p-2 border border-gray-300 rounded-md"
-                          >
-                            <option value="">Sin broker</option>
-                            {brokers.map((broker) => (
-                              <option key={broker.id} value={broker.id}>
-                                {broker.displayName}
-                              </option>
-                            ))}
-                          </select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Seleccionar broker" />
+                          </SelectTrigger>
                         </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          <SelectItem value="none">Sin broker</SelectItem>
+                          {brokers.map((broker) => (
+                            <SelectItem key={broker.id} value={broker.id}>
+                              {broker.displayName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="pipValuePerLot"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Valor Pip por Lote *</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value))
-                            }
+                <FormField
+                  control={form.control}
+                  name="pipValuePerLot"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Valor Pip por Lote *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="commissionPerLot"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comisión por Lote</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="spreadTypical"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Spread Típico</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="spreadRecommended"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Spread Recomendado</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          onChange={(e) =>
+                            field.onChange(parseFloat(e.target.value) || 0)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="pipTicks"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pip Ticks *</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          min="1"
+                          onChange={(e) =>
+                            field.onChange(parseInt(e.target.value, 10))
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="isAvailable"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Disponible</FormLabel>
+                      <FormControl>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            checked={field.value}
+                            onChange={field.onChange}
+                            className="rounded border-gray-300"
                           />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
+                          <span className="text-sm text-foreground">
+                            Configuración disponible
+                          </span>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="commissionPerLot"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Comisión por Lote</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="spreadTypical"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Spread Típico</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="spreadRecommended"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Spread Recomendado</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            step="0.1"
-                            min="0"
-                            onChange={(e) =>
-                              field.onChange(parseFloat(e.target.value) || 0)
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="pipTicks"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Pip Ticks *</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            type="number"
-                            min="1"
-                            onChange={(e) =>
-                              field.onChange(parseInt(e.target.value, 10))
-                            }
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="isAvailable"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Disponible</FormLabel>
-                        <FormControl>
-                          <div className="flex items-center space-x-2">
-                            <input
-                              type="checkbox"
-                              checked={field.value}
-                              onChange={field.onChange}
-                              className="rounded border-gray-300"
-                            />
-                            <span className="text-sm text-gray-700">
-                              Configuración disponible
-                            </span>
-                          </div>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsCreateModalOpen(false);
-                      setEditingConfig(null);
-                      form.reset();
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={createConfig.isPending || updateConfig.isPending}
-                  >
-                    {editingConfig ? "Actualizar" : "Crear"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </div>
-        </div>
-      )}
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setEditingConfig(null);
+                    form.reset();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createConfig.isPending || updateConfig.isPending}
+                >
+                  {createConfig.isPending || updateConfig.isPending
+                    ? editingConfig
+                      ? "Actualizando..."
+                      : "Creando..."
+                    : editingConfig
+                      ? "Actualizar"
+                      : "Crear"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -125,7 +125,7 @@ export default function ResetPasswordPage() {
   // Si no hay token, mostrar error
   if (!token) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <div className="mx-auto h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -155,7 +155,7 @@ export default function ResetPasswordPage() {
   // Si el token no es válido, mostrar error
   if (tokenValid === false) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-8 px-4 sm:px-6 lg:px-8">
         <div className="max-w-md w-full space-y-8">
           <div className="text-center">
             <div className="mx-auto h-12 w-12 bg-red-100 rounded-lg flex items-center justify-center">
@@ -189,14 +189,14 @@ export default function ResetPasswordPage() {
         <div className="text-center">
           <Link
             href="/signin"
-            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-6"
+            className="inline-flex items-center text-blue-600 hover:text-blue-700 mb-8 transition-colors"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Volver al inicio de sesión
           </Link>
 
-          <div className="mx-auto h-12 w-12 bg-blue-600 rounded-lg flex items-center justify-center">
-            <CheckCircle className="h-6 w-6 text-white" />
+          <div className="mx-auto h-16 w-16 bg-gradient-to-br from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
+            <CheckCircle className="h-8 w-8 text-white" />
           </div>
           <h2 className="mt-6 text-3xl font-bold text-gray-900">
             Restablecer Contraseña

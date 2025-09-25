@@ -248,6 +248,53 @@ model RolePermission {
 }
 
 // ================================
+// COMPANY INFORMATION
+// ================================
+
+model CompanyInfo {
+  id          String    @id @default(uuid())
+  name        String    @default("Feniz")
+  displayName String    @default("Feniz Trading Platform")
+  description String?
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  country     String?
+  website     String?
+  
+  // Social Media
+  facebookUrl  String?
+  twitterUrl   String?
+  instagramUrl String?
+  linkedinUrl  String?
+  youtubeUrl   String?
+  
+  // Additional Info
+  foundedYear  Int?
+  logoUrl      String?
+  faviconUrl   String?
+  
+  // SEO
+  metaTitle       String?
+  metaDescription String?
+  metaKeywords    String?
+  
+  // Legal
+  termsUrl      String?
+  privacyUrl    String?
+  cookiesUrl    String?
+  complaintsUrl String?
+  
+  // Status
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("company_info")
+}
+
+// ================================
 // USER MANAGEMENT
 // ================================
 

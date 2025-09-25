@@ -7,10 +7,10 @@ export default function CalculatorPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">
+        <h1 className="text-2xl font-semibold text-foreground">
           Calculadora de Trading
         </h1>
-        <p className="text-gray-600 mt-1">
+        <p className="text-sm text-muted-foreground mt-0.5 mr-8">
           Herramientas avanzadas para cálculo de capital, lotaje y gestión de
           riesgo
         </p>

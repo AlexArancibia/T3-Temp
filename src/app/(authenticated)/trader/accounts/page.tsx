@@ -8,15 +8,17 @@ import {
   DollarSign,
   Eye,
   Plus,
-  Server,
   Settings,
+  Trash2,
   TrendingDown,
   TrendingUp,
   Wallet,
 } from "lucide-react";
 import { useState } from "react";
 import { CreateTradingAccountDialog } from "@/components/trader/CreateTradingAccountDialog";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import type {
   TableAction,
   TableColumn,
@@ -70,19 +72,19 @@ type TradingAccount = {
 
 const statusConfig = {
   active: {
-    label: "Active",
+    label: "Activa",
     color: "bg-emerald-100 text-emerald-700",
     icon: CheckCircle,
     dotColor: "bg-emerald-500",
   },
   warning: {
-    label: "Warning",
+    label: "Advertencia",
     color: "bg-orange-100 text-orange-700",
     icon: AlertCircle,
     dotColor: "bg-orange-500",
   },
   inactive: {
-    label: "Inactive",
+    label: "Inactiva",
     color: "bg-gray-100 text-gray-700",
     icon: Clock,
     dotColor: "bg-gray-500",
@@ -92,13 +94,13 @@ const statusConfig = {
 const typeConfig = {
   PROPFIRM: {
     label: "Propfirm",
-    color: "bg-purple-100 text-purple-700",
-    gradient: "from-purple-500 to-indigo-600",
+    color: "bg-blue-100 text-blue-700",
+    gradient: "from-blue-500 to-blue-600",
   },
   BROKER: {
     label: "Broker",
-    color: "bg-blue-100 text-blue-700",
-    gradient: "from-blue-500 to-cyan-600",
+    color: "bg-red-100 text-red-700",
+    gradient: "from-red-500 to-red-600",
   },
 };
 
@@ -106,7 +108,6 @@ export default function AccountsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   const pagination = usePagination({ defaultLimit: 10 });
-  const { search, setSearch, setSortBy, setSortOrder } = pagination;
   const queryParams = pagination.getQueryParams();
 
   // Real tRPC queries
@@ -137,25 +138,26 @@ export default function AccountsPage() {
 
   // Calculate summary stats with defensive checks
   const totalBalance = accounts.reduce(
-    (sum, acc) => sum + Number(acc.currentBalance || 0),
+    (sum: number, acc: TradingAccount) => sum + Number(acc.currentBalance || 0),
     0,
   );
   const totalEquity = accounts.reduce(
-    (sum, acc) => sum + Number(acc.equity || 0),
+    (sum: number, acc: TradingAccount) => sum + Number(acc.equity || 0),
     0,
   );
-  const totalPnL = accounts.reduce((sum, acc) => {
+  const totalPnL = accounts.reduce((sum: number, acc: TradingAccount) => {
     const trades = acc.trades || [];
     const accountPnL = trades.reduce(
-      (tradeSum, trade) => tradeSum + Number(trade?.netProfit || 0),
+      (tradeSum: number, trade: { netProfit?: string | number }) =>
+        tradeSum + Number(trade?.netProfit || 0),
       0,
     );
     return sum + accountPnL;
   }, 0);
 
   const handleEdit = (account: TradingAccount) => {
-    // TODO: Open edit modal
-    console.log("Edit account:", account.id);
+    // Navigate to account details page
+    window.open(`/trader/accounts/${account.id}`, "_self");
   };
 
   const handleDelete = (account: TradingAccount) => {
@@ -164,38 +166,34 @@ export default function AccountsPage() {
     }
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    setSortBy(sortByField);
-    setSortOrder(sortOrderField);
-  };
-
   // Define table columns
   const columns: TableColumn<TradingAccount>[] = [
     {
       key: "account",
-      title: "Account",
-      sortable: true,
+      title: "Cuenta",
       render: (_, record) => {
         const typeInfo = typeConfig[record.accountType];
         return (
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2">
             <div
-              className={`h-10 w-10 bg-gradient-to-br ${typeInfo.gradient} rounded-xl flex items-center justify-center`}
+              className={`h-8 w-8 bg-gradient-to-br ${typeInfo.gradient} rounded-lg flex items-center justify-center`}
             >
-              <Wallet className="h-5 w-5 text-white" />
+              <Wallet className="h-4 w-4 text-white" />
             </div>
             <div>
-              <div className="font-medium text-gray-900">
+              <div className="text-sm font-medium text-foreground">
                 {record.accountName}
               </div>
-              <div className="text-sm text-gray-500">
-                #{record.accountNumber || record.id.slice(-8)}
-              </div>
-              <span
-                className={`text-xs font-medium px-2 py-1 rounded-full ${typeInfo.color}`}
+              <Badge
+                variant="outline"
+                className={`text-xs font-medium ${
+                  record.accountType === "PROPFIRM"
+                    ? "bg-blue-100 text-blue-600 border-blue-200 hover:bg-blue-200"
+                    : "bg-red-100 text-red-600 border-red-200 hover:bg-red-200"
+                }`}
               >
                 {typeInfo.label}
-              </span>
+              </Badge>
             </div>
           </div>
         );
@@ -203,21 +201,16 @@ export default function AccountsPage() {
     },
     {
       key: "provider",
-      title: "Provider",
-      sortable: false,
+      title: "Proveedor",
       render: (_, record) => (
         <div>
-          <div className="font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             {record.propfirm?.displayName ||
               record.broker?.displayName ||
-              "Unknown"}
-          </div>
-          <div className="text-sm text-gray-500 flex items-center">
-            <Server className="h-3 w-3 mr-1" />
-            {record.server || "No server"}
+              "Desconocido"}
           </div>
           {record.accountTypeRef && (
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-muted-foreground">
               {record.accountTypeRef.displayName}
             </div>
           )}
@@ -226,26 +219,24 @@ export default function AccountsPage() {
     },
     {
       key: "balance",
-      title: "Balance & Equity",
-      sortable: true,
+      title: "Balance y Equity",
       render: (_, record) => (
         <div>
-          <div className="font-medium text-gray-900">
+          <div className="text-sm font-medium text-foreground">
             ${Number(record.currentBalance).toLocaleString()}
           </div>
-          <div className="text-sm text-gray-500">
-            Equity: ${Number(record.equity).toLocaleString()}
+          <div className="text-xs text-muted-foreground">
+            Eq: ${Number(record.equity).toLocaleString()}
           </div>
-          <div className="text-xs text-gray-500">
-            Initial: ${Number(record.initialBalance).toLocaleString()}
+          <div className="text-xs text-muted-foreground">
+            Inicial: ${Number(record.initialBalance).toLocaleString()}
           </div>
         </div>
       ),
     },
     {
       key: "trades",
-      title: "Trading Activity",
-      sortable: false,
+      title: "Actividad",
       render: (_, record) => {
         const totalTrades = record._count?.trades || 0;
         const trades = record.trades || [];
@@ -257,14 +248,14 @@ export default function AccountsPage() {
 
         return (
           <div>
-            <div className="text-sm">
-              <span className="font-medium">{totalTrades}</span> total trades
+            <div className="text-sm font-medium text-foreground">
+              {totalTrades} operaciones
             </div>
-            <div className="text-sm text-blue-600">
-              {openTrades} open positions
+            <div className="text-xs text-muted-foreground">
+              {openTrades} abiertas
             </div>
             <div
-              className={`text-sm font-medium ${accountPnL >= 0 ? "text-emerald-600" : "text-red-600"}`}
+              className={`text-xs font-medium ${accountPnL >= 0 ? "text-emerald-600" : "text-red-600"}`}
             >
               {accountPnL >= 0 ? "+" : ""}${accountPnL.toLocaleString()} P&L
             </div>
@@ -274,8 +265,7 @@ export default function AccountsPage() {
     },
     {
       key: "performance",
-      title: "Performance",
-      sortable: false,
+      title: "Rendimiento",
       render: (_, record) => {
         const initialBalance = Number(record.initialBalance);
         const currentBalance = Number(record.currentBalance);
@@ -290,9 +280,9 @@ export default function AccountsPage() {
               {returnPct >= 0 ? "+" : ""}
               {returnPct.toFixed(2)}%
             </div>
-            <div className="text-xs text-gray-500">Return on initial</div>
+            <div className="text-xs text-muted-foreground">Retorno inicial</div>
             {record.currentPhase && (
-              <div className="text-xs text-blue-600">
+              <div className="text-xs text-muted-foreground">
                 {record.currentPhase.displayName}
               </div>
             )}
@@ -302,55 +292,48 @@ export default function AccountsPage() {
     },
     {
       key: "status",
-      title: "Status",
-      sortable: true,
+      title: "Estado",
       render: (_, record) => {
         const statusInfo =
           statusConfig[record.status as keyof typeof statusConfig] ||
           statusConfig.active;
 
         return (
-          <div className="flex items-center space-x-2">
-            <div className={`h-2 w-2 rounded-full ${statusInfo.dotColor}`} />
-            <span
-              className={`text-xs font-medium px-2 py-1 rounded-full ${statusInfo.color}`}
-            >
-              {statusInfo.label}
-            </span>
-          </div>
+          <Badge
+            variant="outline"
+            className={`text-xs font-medium ${
+              record.status === "active"
+                ? "bg-green-100 text-green-600 border-green-200 hover:bg-green-200"
+                : record.status === "warning"
+                  ? "bg-yellow-100 text-yellow-600 border-yellow-200 hover:bg-yellow-200"
+                  : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
+            }`}
+          >
+            {statusInfo.label}
+          </Badge>
         );
       },
-    },
-    {
-      key: "lastActivity",
-      title: "Last Update",
-      sortable: true,
-      render: (_, record) => (
-        <div className="text-sm text-gray-500">
-          {new Date(record.updatedAt).toLocaleDateString()}
-        </div>
-      ),
     },
   ];
 
   // Define table actions
   const actions: TableAction<TradingAccount>[] = [
     {
-      label: "View Details",
+      label: "Ver Detalles",
       icon: <Eye className="h-4 w-4" />,
       onClick: (account) =>
         window.open(`/trader/accounts/${account.id}`, "_self"),
       variant: "default",
     },
     {
-      label: "Settings",
+      label: "Configurar",
       icon: <Settings className="h-4 w-4" />,
       onClick: handleEdit,
       variant: "default",
     },
     {
-      label: "Delete",
-      icon: <Settings className="h-4 w-4" />,
+      label: "Eliminar",
+      icon: <Trash2 className="h-4 w-4" />,
       onClick: handleDelete,
       variant: "destructive",
       separator: true,
@@ -358,78 +341,87 @@ export default function AccountsPage() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl font-semibold text-foreground">
             Cuentas de Trading
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-sm text-muted-foreground mt-0.5 mr-8">
             Gestiona todas tus cuentas propfirm y broker para trading
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Agregar Cuenta
+        <Button
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white border-0"
+        >
+          <Plus className="h-4 w-4 mr-0 lg:mr-2" />
+          <span className="hidden lg:block">Agregar Cuenta</span>
         </Button>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg shadow-gray-900/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Balance Total</p>
-              <p className="text-2xl font-bold text-gray-900">
-                ${totalBalance.toLocaleString()}
-              </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Balance Total
+                </p>
+                <p className="text-2xl font-semibold text-foreground">
+                  ${totalBalance.toLocaleString()}
+                </p>
+              </div>
+              <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center">
+                <DollarSign className="h-5 w-5 text-primary" />
+              </div>
             </div>
-            <div className="h-12 w-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg shadow-gray-900/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">Equity Total</p>
-              <p className="text-2xl font-bold text-gray-900">
-                ${totalEquity.toLocaleString()}
-              </p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">
+                  Equity Total
+                </p>
+                <p className="text-2xl font-semibold text-foreground">
+                  ${totalEquity.toLocaleString()}
+                </p>
+              </div>
+              <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center">
+                <Activity className="h-5 w-5 text-primary" />
+              </div>
             </div>
-            <div className="h-12 w-12 bg-gradient-to-br from-emerald-500 to-green-600 rounded-xl flex items-center justify-center">
-              <Activity className="h-6 w-6 text-white" />
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
-        <div className="bg-white/70 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 shadow-lg shadow-gray-900/5">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600 font-medium">P&L Total</p>
-              <p
-                className={`text-2xl font-bold ${totalPnL >= 0 ? "text-emerald-600" : "text-red-600"}`}
-              >
-                {totalPnL >= 0 ? "+" : ""}${totalPnL.toLocaleString()}
-              </p>
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium">
+                  P&L Total
+                </p>
+                <p
+                  className={`text-2xl font-semibold ${totalPnL >= 0 ? "text-emerald-600" : "text-red-600"}`}
+                >
+                  {totalPnL >= 0 ? "+" : ""}${totalPnL.toLocaleString()}
+                </p>
+              </div>
+              <div className="h-10 w-10 bg-muted rounded-lg flex items-center justify-center">
+                {totalPnL >= 0 ? (
+                  <TrendingUp className="h-5 w-5 text-emerald-600" />
+                ) : (
+                  <TrendingDown className="h-5 w-5 text-red-600" />
+                )}
+              </div>
             </div>
-            <div
-              className={`h-12 w-12 rounded-xl flex items-center justify-center ${
-                totalPnL >= 0
-                  ? "bg-gradient-to-br from-emerald-500 to-green-600"
-                  : "bg-gradient-to-br from-red-500 to-rose-600"
-              }`}
-            >
-              {totalPnL >= 0 ? (
-                <TrendingUp className="h-6 w-6 text-white" />
-              ) : (
-                <TrendingDown className="h-6 w-6 text-white" />
-              )}
-            </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Table with ScrollableTable */}
@@ -440,9 +432,6 @@ export default function AccountsPage() {
         pagination={paginationInfo}
         onPageChange={pagination.setPage}
         onPageSizeChange={pagination.setLimit}
-        onSearchChange={setSearch}
-        onSortChange={handleSort}
-        searchValue={search}
         loading={isLoading}
         emptyMessage="No se encontraron cuentas de trading"
         emptyIcon={<Wallet className="h-12 w-12 text-gray-400" />}

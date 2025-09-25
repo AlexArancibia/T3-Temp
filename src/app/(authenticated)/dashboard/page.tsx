@@ -24,10 +24,10 @@ export default function DashboardPage() {
   if (isLoading) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
-            <p className="text-gray-600">Cargando dashboard...</p>
+            <p className="text-muted-foreground">Cargando dashboard...</p>
           </div>
         </div>
       </ProtectedRoute>
@@ -38,35 +38,35 @@ export default function DashboardPage() {
   if (!canViewDashboard && !isAdmin && !isSuperAdmin) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4">
           <div className="text-center max-w-2xl w-full">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               Acceso Denegado
             </h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               No tienes permisos para acceder al dashboard.
             </p>
 
             {/* Información del usuario */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-left">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+            <div className="bg-card rounded-lg shadow-sm border border-border p-6 text-left">
+              <h3 className="text-lg font-semibold text-foreground mb-4">
                 Información de tu cuenta
               </h3>
 
               <div className="space-y-4">
                 {/* Tipo de usuario */}
                 <div>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-foreground">
                     Tipo de usuario:
                   </span>
-                  <span className="ml-2 text-sm text-gray-600">
+                  <span className="ml-2 text-sm text-muted-foreground">
                     Usuario estándar
                   </span>
                 </div>
 
                 {/* Estado de confirmación */}
                 <div>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-foreground">
                     Estado de cuenta:
                   </span>
                   <span
@@ -78,7 +78,7 @@ export default function DashboardPage() {
 
                 {/* Roles asignados */}
                 <div>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-foreground">
                     Roles asignados:
                   </span>
                   <div className="mt-1">
@@ -94,7 +94,7 @@ export default function DashboardPage() {
                         ))}
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-500 italic">
+                      <span className="text-sm text-muted-foreground italic">
                         Sin roles asignados
                       </span>
                     )}
@@ -103,7 +103,7 @@ export default function DashboardPage() {
 
                 {/* Permisos disponibles */}
                 <div>
-                  <span className="text-sm font-medium text-gray-700">
+                  <span className="text-sm font-medium text-foreground">
                     Permisos disponibles:
                   </span>
                   <div className="mt-1">
@@ -118,13 +118,13 @@ export default function DashboardPage() {
                           </span>
                         ))}
                         {userPermissions.length > 5 && (
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground">
                             +{userPermissions.length - 5} más
                           </span>
                         )}
                       </div>
                     ) : (
-                      <span className="text-sm text-gray-500 italic">
+                      <span className="text-sm text-muted-foreground italic">
                         Sin permisos asignados
                       </span>
                     )}
@@ -160,31 +160,39 @@ export default function DashboardPage() {
 
   // Renderizar el dashboard apropiado según el rol del usuario
   if (isSuperAdmin || isAdmin) {
-    return <AdminDashboard user={adaptUserForDashboard(user)} />;
+    return (
+      <ProtectedRoute>
+        <AdminDashboard user={adaptUserForDashboard(user)} />
+      </ProtectedRoute>
+    );
   }
 
   if (hasRole("viewer")) {
-    return <ViewerDashboard user={adaptUserForDashboard(user)} />;
+    return (
+      <ProtectedRoute>
+        <ViewerDashboard user={adaptUserForDashboard(user)} />
+      </ProtectedRoute>
+    );
   }
 
   // Dashboard por defecto para usuarios sin rol específico
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <h1 className="text-2xl font-bold text-gray-900 mb-4">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               ¡Bienvenido, {user?.name || "Usuario"}!
             </h1>
-            <p className="text-gray-600 mb-8">
+            <p className="text-muted-foreground mb-8">
               Tu cuenta está siendo configurada. Contacta al administrador para
               asignar roles y permisos.
             </p>
-            <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200 max-w-md mx-auto">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <div className="bg-card rounded-lg shadow-sm p-6 border border-border max-w-md mx-auto">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Estado de la Cuenta
               </h3>
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 {user?.emailVerified
                   ? "Tu cuenta está verificada y activa"
                   : "Tu cuenta necesita ser verificada. Revisa tu email."}

@@ -355,6 +355,23 @@ export class RBACService {
   }
 
   /**
+   * Get permissions for a specific role
+   */
+  static async getRolePermissions(roleId: string) {
+    return await prisma.rolePermission.findMany({
+      where: { roleId },
+      include: {
+        permission: true,
+      },
+      orderBy: {
+        permission: {
+          resource: "asc",
+        },
+      },
+    });
+  }
+
+  /**
    * Get role by name
    */
   static async getRoleByName(name: string): Promise<Role | null> {

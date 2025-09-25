@@ -69,7 +69,7 @@ export function usePagination(
       page,
       limit,
       search: search || undefined,
-      sortBy: sortBy || undefined,
+      sortBy: sortBy && sortBy.trim() !== "" ? sortBy : undefined,
       sortOrder,
     }),
     [page, limit, search, sortBy, sortOrder],

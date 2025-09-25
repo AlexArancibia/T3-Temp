@@ -1,20 +1,21 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Edit,
-  RefreshCw,
-  Trash2,
-  UserCheck,
-  Users,
-  UserX,
-  X,
-} from "lucide-react";
-import { useState } from "react";
+import { Edit, Eye, Plus, Trash2, UserCheck, Users, UserX } from "lucide-react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useAuthContext } from "@/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -38,11 +39,24 @@ const updateUserSchema = z.object({
   name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
   password: z
     .string()
-    .min(6, "Contraseña debe tener al menos 6 caracteres")
-    .optional(),
+    .transform((val) => (val === "" ? undefined : val))
+    .optional()
+    .refine((val) => !val || val.length >= 6, {
+      message: "Contraseña debe tener al menos 6 caracteres",
+    }),
+});
+
+const createUserSchema = z.object({
+  email: z.string().email("Email inválido"),
+  name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
+  password: z.string().min(6, "Contraseña debe tener al menos 6 caracteres"),
+  phone: z.string().optional(),
+  language: z.enum(["ES", "EN", "PT"]).optional(),
+  defaultRiskPercentage: z.number().min(0.01).max(100).optional(),
 });
 
 type UserFormData = z.infer<typeof updateUserSchema>;
+type CreateUserFormData = z.infer<typeof createUserSchema>;
 
 interface User {
   id: string;
@@ -65,33 +79,390 @@ function UserRolesCell({ userId }: { userId: string }) {
   );
 
   if (isLoading) {
-    return <span className="text-gray-400">Cargando...</span>;
+    return <span className="text-muted-foreground">Cargando...</span>;
   }
 
   if (!userRoles || userRoles.length === 0) {
-    return <span className="text-gray-400">Sin roles</span>;
+    return <span className="text-muted-foreground">Sin roles</span>;
   }
 
   const activeRoles = userRoles.filter((role) => role.isActive);
 
   if (activeRoles.length === 0) {
-    return <span className="text-gray-400">Sin roles activos</span>;
+    return <span className="text-muted-foreground">Sin roles activos</span>;
   }
 
   return (
     <div className="flex flex-wrap gap-1">
       {activeRoles.slice(0, 2).map((userRole) => (
-        <span
+        <Badge
           key={userRole.id}
-          className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800"
+          variant="secondary"
+          className="bg-blue-100 text-blue-800 hover:bg-blue-200"
         >
           {userRole.roleDisplayName}
-        </span>
+        </Badge>
       ))}
       {activeRoles.length > 2 && (
-        <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-600">
+        <Badge variant="outline" className="bg-muted text-muted-foreground">
           +{activeRoles.length - 2}
-        </span>
+        </Badge>
+      )}
+    </div>
+  );
+}
+
+// Unified dialog component for creating and editing users
+function UserDialog({
+  user,
+  isOpen,
+  onClose,
+  onSubmit,
+  isLoading,
+}: {
+  user: Partial<User> | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (data: {
+    email: string;
+    name: string;
+    password?: string;
+    phone?: string;
+    selectedRoles?: string[];
+  }) => void;
+  isLoading: boolean;
+}) {
+  const [selectedInitialRoles, setSelectedInitialRoles] = useState<string[]>(
+    [],
+  );
+  const { canManageUsers } = useRBAC();
+
+  const isEdit = !!user?.id;
+
+  const form = useForm<UserFormData | CreateUserFormData>({
+    resolver: zodResolver(isEdit ? updateUserSchema : createUserSchema),
+    defaultValues: {
+      email: user?.email || "",
+      name: user?.name || "",
+      password: "",
+      phone: "",
+      language: "ES",
+      defaultRiskPercentage: 1.0,
+    },
+  });
+
+  // Reset form when user changes
+  React.useEffect(() => {
+    if (user && user.id) {
+      form.reset({
+        email: user.email || "",
+        name: user.name || "",
+        password: "",
+        phone: "",
+        language: "ES",
+        defaultRiskPercentage: 1.0,
+      });
+      setSelectedInitialRoles([]);
+    }
+  }, [user, form]); // Depend on user object and form
+
+  const handleSubmit = (data: UserFormData | CreateUserFormData) => {
+    // For new users, include selected roles
+    if (!isEdit && selectedInitialRoles.length > 0) {
+      onSubmit({ ...data, selectedRoles: selectedInitialRoles });
+    } else {
+      onSubmit(data);
+    }
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {isEdit ? `Editar Usuario - ${user.name}` : "Crear Nuevo Usuario"}
+          </DialogTitle>
+          <DialogDescription>
+            {isEdit
+              ? "Modifica la información del usuario y gestiona sus roles."
+              : "Completa la información para crear un nuevo usuario en el sistema."}
+          </DialogDescription>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(handleSubmit)}
+            className="space-y-6"
+          >
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - User Information */}
+              <div className="space-y-4">
+                <h4 className="text-md font-medium text-foreground border-b border-border pb-2">
+                  Información Personal
+                </h4>
+                <div className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email *</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="email"
+                            placeholder="usuario@ejemplo.com"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Nombre Completo *</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Nombre del usuario" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Contraseña{" "}
+                          {isEdit
+                            ? "(dejar vacío para mantener la actual)"
+                            : "*"}
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="password"
+                            placeholder={
+                              isEdit
+                                ? "Nueva contraseña"
+                                : "Mínimo 6 caracteres"
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="phone"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Teléfono</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="+1234567890" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="language"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Idioma</FormLabel>
+                        <FormControl>
+                          <select
+                            {...field}
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <option value="ES">Español</option>
+                            <option value="EN">English</option>
+                            <option value="PT">Português</option>
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="defaultRiskPercentage"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>% Riesgo por defecto</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            type="number"
+                            min="0.01"
+                            max="100"
+                            step="0.01"
+                            placeholder="1.00"
+                            onChange={(e) =>
+                              field.onChange(parseFloat(e.target.value) || 0)
+                            }
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              {/* Right Column - Roles Management */}
+              {canManageUsers && (
+                <div className="space-y-4">
+                  <h4 className="text-md font-medium text-foreground border-b border-border pb-2">
+                    {isEdit ? "Gestión de Roles" : "Roles Iniciales"}
+                  </h4>
+                  {isEdit ? (
+                    <UserRolesManager userId={user.id || ""} />
+                  ) : (
+                    <InitialRolesManager
+                      selectedRoles={selectedInitialRoles}
+                      onRolesChange={setSelectedInitialRoles}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-2 pt-6 border-t border-border">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading
+                  ? isEdit
+                    ? "Actualizando..."
+                    : "Creando..."
+                  : isEdit
+                    ? "Actualizar Usuario"
+                    : "Crear Usuario"}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Component for selecting initial roles when creating a user
+function InitialRolesManager({
+  selectedRoles,
+  onRolesChange,
+}: {
+  selectedRoles: string[];
+  onRolesChange: (roles: string[]) => void;
+}) {
+  const {
+    data: availableRoles = [],
+    isLoading: rolesLoading,
+    error: rolesError,
+  } = trpc.rbac.getRoles.useQuery();
+
+  const handleRoleToggle = (roleId: string) => {
+    const newRoles = selectedRoles.includes(roleId)
+      ? selectedRoles.filter((id) => id !== roleId)
+      : [...selectedRoles, roleId];
+    onRolesChange(newRoles);
+  };
+
+  if (rolesLoading) {
+    return <p className="text-sm text-muted-foreground">Cargando roles...</p>;
+  }
+
+  if (rolesError) {
+    return (
+      <p className="text-sm text-red-500">
+        Error cargando roles: {rolesError.message}
+      </p>
+    );
+  }
+
+  const activeRoles = availableRoles.filter((role) => role.isActive);
+
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Selecciona los roles que tendrá el usuario al ser creado:
+      </p>
+
+      {activeRoles.length > 0 ? (
+        <div className="space-y-3 max-h-[20rem] overflow-y-auto">
+          {activeRoles.map((role) => (
+            <div
+              key={role.id}
+              className={`flex items-center justify-between p-3 border border-border rounded-lg cursor-pointer transition-colors ${
+                selectedRoles.includes(role.id)
+                  ? "bg-primary/10 border-primary"
+                  : "hover:bg-muted/50"
+              }`}
+              onClick={() => handleRoleToggle(role.id)}
+            >
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    checked={selectedRoles.includes(role.id)}
+                    onChange={() => handleRoleToggle(role.id)}
+                    className="h-4 w-4 text-primary focus:ring-primary border-border rounded"
+                  />
+                  <div>
+                    <div className="text-sm font-medium text-foreground">
+                      {role.displayName}
+                    </div>
+                    <div className="text-xs text-muted-foreground">
+                      {role.description}
+                    </div>
+                  </div>
+                </div>
+                {role.isSystem && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-blue-100 text-blue-800 hover:bg-blue-200 mt-1"
+                  >
+                    Sistema
+                  </Badge>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          No hay roles disponibles
+        </p>
+      )}
+
+      {selectedRoles.length > 0 && (
+        <div className="mt-4 p-3 bg-primary/5 border border-primary/20 rounded-lg">
+          <p className="text-sm font-medium text-primary mb-2">
+            Roles seleccionados ({selectedRoles.length}):
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {selectedRoles.map((roleId) => {
+              const role = activeRoles.find((r) => r.id === roleId);
+              return role ? (
+                <Badge
+                  key={roleId}
+                  variant="secondary"
+                  className="bg-primary/10 text-primary border-primary/20"
+                >
+                  {role.displayName}
+                </Badge>
+              ) : null;
+            })}
+          </div>
+        </div>
       )}
     </div>
   );
@@ -110,22 +481,27 @@ function UserRolesManager({ userId }: { userId: string }) {
   const assignRole = trpc.user.assignRole.useMutation({
     onSuccess: () => {
       refetchUserRoles();
+      // TODO: Add toast notification for success
     },
     onError: (error) => {
       console.error("Error assigning role:", error.message);
+      // TODO: Add toast notification for error
     },
   });
 
   const removeRole = trpc.user.removeRole.useMutation({
     onSuccess: () => {
       refetchUserRoles();
+      // TODO: Add toast notification for success
     },
     onError: (error) => {
       console.error("Error removing role:", error.message);
+      // TODO: Add toast notification for error
     },
   });
 
   const handleAssignRole = (roleId: string) => {
+    console.log("Assigning role:", roleId, "to user:", userId);
     assignRole.mutate({
       userId,
       roleId,
@@ -140,7 +516,7 @@ function UserRolesManager({ userId }: { userId: string }) {
   };
 
   if (!userId) {
-    return <div className="text-gray-400">Usuario no seleccionado</div>;
+    return <div className="text-muted-foreground">Usuario no seleccionado</div>;
   }
 
   // Debug logs (temporary)
@@ -154,7 +530,7 @@ function UserRolesManager({ userId }: { userId: string }) {
   });
 
   return (
-    <div className="space-y-4 max-h-96 overflow-y-auto">
+    <div className="space-y-4 max-h-[28rem] overflow-y-auto">
       {/* Current Roles */}
       <div>
         <h5 className="text-sm font-medium mb-2">Roles Asignados</h5>
@@ -163,13 +539,13 @@ function UserRolesManager({ userId }: { userId: string }) {
             {userRoles.map((userRole) => (
               <div
                 key={userRole.id}
-                className="flex items-center justify-between p-2 bg-gray-50 rounded border"
+                className="flex items-center justify-between p-2 bg-muted rounded border border-border"
               >
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-medium truncate">
                     {userRole.roleDisplayName}
                   </div>
-                  <div className="text-xs text-gray-500 truncate">
+                  <div className="text-xs text-muted-foreground truncate">
                     {userRole.roleDescription}
                   </div>
                   {userRole.expiresAt && (
@@ -192,7 +568,9 @@ function UserRolesManager({ userId }: { userId: string }) {
             ))}
           </div>
         ) : (
-          <p className="text-sm text-gray-500">No hay roles asignados</p>
+          <p className="text-sm text-muted-foreground">
+            No hay roles asignados
+          </p>
         )}
       </div>
 
@@ -200,7 +578,7 @@ function UserRolesManager({ userId }: { userId: string }) {
       <div>
         <h5 className="text-sm font-medium mb-2">Roles Disponibles</h5>
         {rolesLoading ? (
-          <p className="text-sm text-gray-500">Cargando roles...</p>
+          <p className="text-sm text-muted-foreground">Cargando roles...</p>
         ) : rolesError ? (
           <p className="text-sm text-red-500">
             Error cargando roles: {rolesError.message}
@@ -216,19 +594,22 @@ function UserRolesManager({ userId }: { userId: string }) {
               .map((role) => (
                 <div
                   key={role.id}
-                  className="flex items-center justify-between p-2 border rounded hover:bg-gray-50"
+                  className="flex items-center justify-between p-2 border border-border rounded hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium truncate">
                       {role.displayName}
                     </div>
-                    <div className="text-xs text-gray-500 truncate">
+                    <div className="text-xs text-muted-foreground truncate">
                       {role.description}
                     </div>
                     {role.isSystem && (
-                      <span className="inline-flex px-1 py-0.5 text-xs font-semibold rounded bg-blue-100 text-blue-800 mt-1">
+                      <Badge
+                        variant="secondary"
+                        className="bg-blue-100 text-blue-800 hover:bg-blue-200 mt-1"
+                      >
                         Sistema
-                      </span>
+                      </Badge>
                     )}
                   </div>
                   <Button
@@ -243,7 +624,7 @@ function UserRolesManager({ userId }: { userId: string }) {
               ))}
           </div>
         ) : (
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-muted-foreground">
             <p>No hay roles disponibles</p>
             <p className="text-xs mt-1">
               Roles totales: {availableRoles?.length || 0}
@@ -259,13 +640,12 @@ function UserRolesManager({ userId }: { userId: string }) {
 }
 
 export default function UsersPage() {
-  const [editingUser, setEditingUser] = useState<Partial<User> | null>(null);
+  const [dialogUser, setDialogUser] = useState<Partial<User> | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { canManageUsers } = useRBAC();
   const { user: currentUser } = useAuthContext();
 
   const pagination = usePagination({ defaultLimit: 10 });
-  const { search, setSearch, sortBy, sortOrder, setSortBy, setSortOrder } =
-    pagination;
   const queryParams = pagination.getQueryParams();
 
   const {
@@ -277,9 +657,10 @@ export default function UsersPage() {
 
   const updateUser = trpc.user.update.useMutation({
     onSuccess: () => {
+      console.log("User updated successfully, closing dialog");
       refetch();
-      setEditingUser(null);
-      form.reset();
+      setIsDialogOpen(false);
+      setDialogUser(null);
       // TODO: Add toast notification for success
     },
     onError: (error) => {
@@ -287,6 +668,21 @@ export default function UsersPage() {
       console.error("Error updating user:", error.message);
     },
   });
+
+  const createUser = trpc.user.create.useMutation({
+    onSuccess: async () => {
+      refetch();
+      setIsDialogOpen(false);
+      setDialogUser(null);
+      // TODO: Add toast notification for success
+    },
+    onError: (error) => {
+      // TODO: Add toast notification for error
+      console.error("Error creating user:", error.message);
+    },
+  });
+
+  const assignRoleMutation = trpc.user.assignRole.useMutation();
 
   const deleteUser = trpc.user.delete.useMutation({
     onSuccess: () => {
@@ -296,15 +692,6 @@ export default function UsersPage() {
     onError: (error) => {
       // TODO: Add toast notification for error
       console.error("Error deleting user:", error.message);
-    },
-  });
-
-  const form = useForm<UserFormData>({
-    resolver: zodResolver(updateUserSchema),
-    defaultValues: {
-      email: "",
-      name: "",
-      password: "",
     },
   });
 
@@ -319,25 +706,56 @@ export default function UsersPage() {
   };
 
   const handleEdit = (user: User) => {
-    setEditingUser(user);
-    form.reset({
-      email: user.email || "",
-      name: user.name || "",
-      password: "",
-    });
+    setDialogUser(user);
+    setIsDialogOpen(true);
   };
 
-  const onSubmit = (data: UserFormData) => {
-    if (editingUser) {
+  const handleCreate = () => {
+    setDialogUser(null);
+    setIsDialogOpen(true);
+  };
+
+  const handleDialogClose = () => {
+    setIsDialogOpen(false);
+    setDialogUser(null);
+  };
+
+  const handleDialogSubmit = async (data: {
+    email: string;
+    name: string;
+    password?: string;
+    phone?: string;
+    selectedRoles?: string[];
+  }) => {
+    if (dialogUser?.id) {
+      // Edit existing user
       const updateData = {
-        id: editingUser.id,
+        id: dialogUser.id,
         email: data.email,
         name: data.name,
-        ...(data.password &&
-          data.password.trim() !== "" && { password: data.password }),
+        ...(data.password && { password: data.password }),
       };
-
       updateUser.mutate(updateData);
+    } else {
+      // Create new user
+      const { selectedRoles, ...userData } = data;
+      const newUser = await createUser.mutateAsync(
+        userData as CreateUserFormData,
+      );
+
+      // Assign initial roles if any were selected
+      if (selectedRoles && selectedRoles.length > 0) {
+        try {
+          for (const roleId of selectedRoles) {
+            await assignRoleMutation.mutateAsync({
+              userId: newUser.id,
+              roleId: roleId,
+            });
+          }
+        } catch (error) {
+          console.error("Error assigning initial roles:", error);
+        }
+      }
     }
   };
 
@@ -347,29 +765,27 @@ export default function UsersPage() {
     }
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    setSortBy(sortByField);
-    setSortOrder(sortOrderField);
-  };
-
   // Definir columnas de la tabla
   const columns: TableColumn<User>[] = [
     {
       key: "name",
       title: "Usuario",
-      sortable: true,
       render: (_, record) => (
         <div className="flex items-center">
-          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-            <span className="text-sm font-medium text-blue-600">
-              {record.name?.charAt(0) || ""}
-            </span>
-          </div>
+          <Avatar className="h-8 w-8 mr-3">
+            <AvatarImage
+              src={record.image || undefined}
+              alt={record.name || "Usuario"}
+            />
+            <AvatarFallback className="bg-blue-100 text-blue-600">
+              {record.name?.charAt(0)?.toUpperCase() || "U"}
+            </AvatarFallback>
+          </Avatar>
           <div>
-            <div className="text-sm font-medium text-gray-900">
+            <div className="text-sm font-medium text-foreground">
               {record.name}
             </div>
-            <div className="text-sm text-gray-500">{record.email}</div>
+            <div className="text-sm text-muted-foreground">{record.email}</div>
           </div>
         </div>
       ),
@@ -377,37 +793,46 @@ export default function UsersPage() {
     {
       key: "emailVerified",
       title: "Estado",
-      sortable: true,
       render: (value) => (
-        <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+        <Badge
+          variant="secondary"
+          className={`text-xs font-medium ${
             value
-              ? "bg-green-100 text-green-800"
-              : "bg-yellow-100 text-yellow-800"
+              ? "bg-green-100 text-green-800 hover:bg-green-200"
+              : "bg-yellow-100 text-yellow-800 hover:bg-yellow-200"
           }`}
         >
           {value ? "Confirmado" : "Pendiente"}
-        </span>
+        </Badge>
       ),
     },
     {
       key: "roles",
       title: "Roles",
-      sortable: false,
       render: (_, record) => <UserRolesCell userId={record.id} />,
       className: "text-sm",
     },
     {
       key: "createdAt",
       title: "Creado",
-      sortable: true,
       render: (value) => new Date(value as string).toLocaleDateString(),
-      className: "text-sm text-gray-500",
+      className: "text-sm text-muted-foreground",
     },
   ];
 
+  // Función para ver detalles del trader
+  const handleViewTrader = (user: User) => {
+    window.location.href = `/dashboard/users/${user.id}`;
+  };
+
   // Definir acciones de la tabla
   const actions: TableAction<User>[] = [
+    {
+      label: "Ver Detalles",
+      icon: <Eye className="h-4 w-4" />,
+      onClick: handleViewTrader,
+      variant: "default",
+    },
     {
       label: "Editar",
       icon: <Edit className="h-4 w-4" />,
@@ -428,23 +853,24 @@ export default function UsersPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Users className="h-6 w-6 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">
             Gestión de Usuarios
           </h1>
+          <p className="text-sm text-muted-foreground mt-0.5 mr-8">
+            Administra usuarios del sistema y asigna roles y permisos
+          </p>
         </div>
         <Button
-          onClick={() => refetch()}
-          variant="outline"
           size="sm"
-          className="flex items-center space-x-2"
+          className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white border-0"
+          onClick={handleCreate}
         >
-          <RefreshCw className="h-4 w-4" />
-          <span>Actualizar</span>
+          <Plus className="h-4 w-4 mr-1.5" />
+          <span>Nuevo Usuario</span>
         </Button>
       </div>
 
@@ -457,132 +883,19 @@ export default function UsersPage() {
         pagination={paginationInfo}
         onPageChange={pagination.setPage}
         onPageSizeChange={pagination.setLimit}
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar usuarios..."
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSortChange={handleSort}
         actions={actions}
         emptyMessage="No se encontraron usuarios"
-        emptyIcon={<Users className="h-12 w-12 text-gray-400" />}
+        emptyIcon={<Users className="h-12 w-12 text-muted-foreground" />}
       />
 
-      {/* Edit Modal */}
-      {editingUser && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
-          onClick={() => {
-            setEditingUser(null);
-            form.reset();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-4xl mx-4 max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => {
-                setEditingUser(null);
-                form.reset();
-              }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="text-lg font-semibold mb-6 pr-8">
-              Editar Usuario - {editingUser.name}
-            </h3>
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Left Column - User Information */}
-              <div className="space-y-4">
-                <h4 className="text-md font-medium text-gray-900 border-b pb-2">
-                  Información Personal
-                </h4>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Email</FormLabel>
-                          <FormControl>
-                            <Input {...field} type="email" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Nombre Completo</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Contraseña{" "}
-                            {editingUser &&
-                              "(dejar vacío para mantener la actual)"}
-                          </FormLabel>
-                          <FormControl>
-                            <Input {...field} type="password" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <div className="flex justify-start space-x-2 pt-4">
-                      <Button type="submit" disabled={updateUser.isPending}>
-                        Actualizar Información
-                      </Button>
-                    </div>
-                  </form>
-                </Form>
-              </div>
-
-              {/* Right Column - Roles Management */}
-              {canManageUsers && (
-                <div className="space-y-4">
-                  <h4 className="text-md font-medium text-gray-900 border-b pb-2">
-                    Gestión de Roles
-                  </h4>
-                  <UserRolesManager userId={editingUser.id || ""} />
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-2 pt-6 border-t">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  setEditingUser(null);
-                  form.reset();
-                }}
-              >
-                Cerrar
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Unified User Dialog */}
+      <UserDialog
+        user={dialogUser}
+        isOpen={isDialogOpen}
+        onClose={handleDialogClose}
+        onSubmit={handleDialogSubmit}
+        isLoading={updateUser.isPending || createUser.isPending}
+      />
     </div>
   );
 }

@@ -3,16 +3,17 @@
 import {
   Cable,
   Calculator,
+  CreditCard,
   Grid3X3,
   LogOut,
-  Settings,
-  TrendingUp,
+  Package,
   User,
   Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthContext } from "@/AuthContext";
+import { trpc } from "@/utils/trpc";
 
 interface NavItem {
   title: string;
@@ -22,7 +23,30 @@ interface NavItem {
   badge?: string;
 }
 
-const navItems: NavItem[] = [
+// Navigation items for users without subscription
+const noSubscriptionNavItems: NavItem[] = [
+  {
+    title: "Planes",
+    href: "/trader/plans",
+    icon: Package,
+    description: "Planes de suscripción disponibles",
+  },
+  {
+    title: "Checkout",
+    href: "/trader/checkout",
+    icon: CreditCard,
+    description: "Procesar pago de suscripción",
+  },
+  {
+    title: "Perfil",
+    href: "/trader/profile",
+    icon: User,
+    description: "Gestiona tu cuenta y configuración",
+  },
+];
+
+// Navigation items for users with subscription
+const subscriptionNavItems: NavItem[] = [
   {
     title: "Panel Principal",
     href: "/trader",
@@ -48,6 +72,18 @@ const navItems: NavItem[] = [
     description: "Calculadora de capital y lotaje",
   },
   {
+    title: "Planes",
+    href: "/trader/plans",
+    icon: Package,
+    description: "Planes de suscripción disponibles",
+  },
+  {
+    title: "Checkout",
+    href: "/trader/checkout",
+    icon: CreditCard,
+    description: "Procesar pago de suscripción",
+  },
+  {
     title: "Perfil",
     href: "/trader/profile",
     icon: User,
@@ -59,8 +95,23 @@ export function TraderSidebar() {
   const pathname = usePathname();
   const { signOut } = useAuthContext();
 
+  // Get user subscription status
+  const { data: userSubscription } =
+    trpc.subscription.getCurrentUserSubscription.useQuery();
+
+  // Check if user has an active subscription
+  const hasActiveSubscription =
+    userSubscription?.status === "ACTIVE" &&
+    userSubscription.currentPlanEnd &&
+    new Date(userSubscription.currentPlanEnd) > new Date();
+
+  // Use appropriate navigation items based on subscription status
+  const navItems = hasActiveSubscription
+    ? subscriptionNavItems
+    : noSubscriptionNavItems;
+
   return (
-    <div className="w-64 bg-card  border border-border   shadow-md">
+    <div className="w-64 bg-card border border-border shadow-md sticky top-0">
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-3">
         {navItems.map((item) => {
@@ -73,8 +124,8 @@ export function TraderSidebar() {
               key={item.href}
               href={item.href}
               className={`
-                group flex items-center px-5 py-4 rounded-xl text-sm font-medium transition-all duration-200 text-card-foreground hover:bg-accent hover:text-accent-foreground
-                ${isActive ? "bg-primary/20" : ""}
+                group flex items-center px-5 py-4 rounded-xl text-sm font-medium transition-all duration-200 text-card-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-primary/20 focus:ring-offset-2 focus:ring-offset-background
+                ${isActive ? "bg-background border border-border" : ""}
               `}
             >
               <item.icon className="mr-3 h-5 w-5 transition-colors duration-200 text-muted-foreground group-hover:text-accent-foreground" />

@@ -1,12 +1,29 @@
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../../lib/db";
 import {
   calculateOffset,
   createPaginatedResponse,
-  createSearchFilter,
   createSortOrder,
   paginationInputSchema,
 } from "../../lib/pagination";
+import { RBACService } from "../../services/rbacService";
+import {
+  ENTRY_METHOD,
+  type EntryMethod,
+  TRADE_STATUS,
+  type TradeDirection,
+  type TradeStatus,
+} from "../../types/enums";
+import { PermissionAction, PermissionResource } from "../../types/rbac";
+import {
+  entryMethodSchema,
+  tradeCreateSchema,
+  tradeDirectionSchema,
+  tradePairCreateSchema,
+  tradeStatusSchema,
+  tradeUpdateSchema,
+} from "../../types/validation";
 import { protectedProcedure, router } from "../trpc";
 
 export const tradeRouter = router({
@@ -34,6 +51,45 @@ export const tradeRouter = router({
     return trades;
   }),
 
+  // Get trades by user ID (for admin view)
+  getByUserId: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // Check if user has permission to view other users' data
+      const canManageUsers = await RBACService.hasPermission(
+        ctx.user.id,
+        PermissionAction.READ,
+        PermissionResource.USER,
+      );
+
+      if (input.userId !== ctx.user.id && !canManageUsers) {
+        throw new Error(
+          "No tienes permisos para ver los trades de este usuario",
+        );
+      }
+
+      const trades = await prisma.trade.findMany({
+        where: {
+          account: {
+            userId: input.userId,
+          },
+        },
+        include: {
+          account: {
+            include: {
+              propfirm: true,
+              broker: true,
+            },
+          },
+          symbol: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: 100, // Limit for performance
+      });
+
+      return trades;
+    }),
+
   // Get all trades with pagination and filters
   getAll: protectedProcedure
     .input(
@@ -41,11 +97,9 @@ export const tradeRouter = router({
         .extend({
           accountId: z.string().optional(),
           symbolId: z.string().optional(),
-          status: z
-            .enum(["OPEN", "CLOSED", "CANCELLED", "PARTIALLY_CLOSED"])
-            .optional(),
-          entryMethod: z.enum(["MANUAL", "API", "COPY_TRADING"]).optional(),
-          direction: z.enum(["buy", "sell"]).optional(),
+          status: tradeStatusSchema.optional(),
+          entryMethod: entryMethodSchema.optional(),
+          direction: tradeDirectionSchema.optional(),
           dateFrom: z.date().optional(),
           dateTo: z.date().optional(),
         })
@@ -70,17 +124,7 @@ export const tradeRouter = router({
       const offset = calculateOffset(page, limit);
 
       // Build where clause
-      const whereClause: {
-        account: { userId: string };
-        accountId?: string;
-        symbol?: string | { contains: string; mode: string };
-        direction?: string;
-        status?: string;
-        createdAt?: {
-          gte?: Date;
-          lte?: Date;
-        };
-      } = {
+      const whereClause: Prisma.TradeWhereInput = {
         account: {
           userId: ctx.user.id,
         },
@@ -88,9 +132,9 @@ export const tradeRouter = router({
 
       if (accountId) whereClause.accountId = accountId;
       if (symbolId) whereClause.symbolId = symbolId;
-      if (status) whereClause.status = status;
-      if (entryMethod) whereClause.entryMethod = entryMethod;
-      if (direction) whereClause.direction = direction;
+      if (status) whereClause.status = status as TradeStatus;
+      if (entryMethod) whereClause.entryMethod = entryMethod as EntryMethod;
+      if (direction) whereClause.direction = direction as TradeDirection;
 
       if (dateFrom || dateTo) {
         whereClause.createdAt = {};
@@ -167,32 +211,7 @@ export const tradeRouter = router({
 
   // Create new trade
   create: protectedProcedure
-    .input(
-      z.object({
-        externalTradeId: z.string().optional(),
-        accountId: z.string(),
-        symbolId: z.string(),
-        direction: z.enum(["buy", "sell"]),
-        entryPrice: z.number().positive(),
-        exitPrice: z.number().positive().optional(),
-        lotSize: z.number().positive(),
-        stopLoss: z.number().positive().optional(),
-        takeProfit: z.number().positive().optional(),
-        openTime: z.date(),
-        closeTime: z.date().optional(),
-        profitLoss: z.number().default(0),
-        commission: z.number().default(0),
-        swap: z.number().default(0),
-        netProfit: z.number().default(0),
-        status: z
-          .enum(["OPEN", "CLOSED", "CANCELLED", "PARTIALLY_CLOSED"])
-          .default("OPEN"),
-        entryMethod: z
-          .enum(["MANUAL", "API", "COPY_TRADING"])
-          .default("MANUAL"),
-        notes: z.string().optional(),
-      }),
-    )
+    .input(tradeCreateSchema)
     .mutation(async ({ input, ctx }) => {
       // Verify account ownership
       const account = await prisma.tradingAccount.findFirst({
@@ -230,21 +249,7 @@ export const tradeRouter = router({
 
   // Update trade
   update: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        exitPrice: z.number().positive().optional(),
-        closeTime: z.date().optional(),
-        profitLoss: z.number().optional(),
-        commission: z.number().optional(),
-        swap: z.number().optional(),
-        netProfit: z.number().optional(),
-        status: z
-          .enum(["OPEN", "CLOSED", "CANCELLED", "PARTIALLY_CLOSED"])
-          .optional(),
-        notes: z.string().optional(),
-      }),
-    )
+    .input(tradeUpdateSchema)
     .mutation(async ({ input, ctx }) => {
       const { id, ...updateData } = input;
 
@@ -316,14 +321,7 @@ export const tradeRouter = router({
         .optional(),
     )
     .query(async ({ input, ctx }) => {
-      const whereClause: {
-        account: { userId: string };
-        accountId?: string;
-        createdAt?: {
-          gte?: Date;
-          lte?: Date;
-        };
-      } = {
+      const whereClause: Prisma.TradeWhereInput = {
         account: {
           userId: ctx.user.id,
         },
@@ -343,10 +341,10 @@ export const tradeRouter = router({
             where: whereClause,
           }),
           prisma.trade.count({
-            where: { ...whereClause, status: "OPEN" },
+            where: { ...whereClause, status: TRADE_STATUS.OPEN },
           }),
           prisma.trade.findMany({
-            where: { ...whereClause, status: "CLOSED" },
+            where: { ...whereClause, status: TRADE_STATUS.CLOSED },
             select: { netProfit: true, direction: true, lotSize: true },
           }),
           prisma.trade.aggregate({
@@ -449,7 +447,7 @@ export const tradeRouter = router({
         account: {
           userId: ctx.user.id,
         },
-        status: "OPEN",
+        status: TRADE_STATUS.OPEN,
       },
     });
 
@@ -458,21 +456,7 @@ export const tradeRouter = router({
 
   // Create trade pair (for propfirm and broker accounts)
   createPair: protectedProcedure
-    .input(
-      z.object({
-        symbolId: z.string(),
-        direction: z.enum(["buy", "sell"]),
-        lotSize: z.number().positive(),
-        openPrice: z.number().positive(),
-        closePrice: z.number().positive().optional(),
-        netProfit: z.number().default(0),
-        status: z.enum(["OPEN", "CLOSED"]).default("OPEN"),
-        openTime: z.date(),
-        closeTime: z.date().optional(),
-        propfirmAccountId: z.string(),
-        brokerAccountId: z.string(),
-      }),
-    )
+    .input(tradePairCreateSchema)
     .mutation(async ({ input, ctx }) => {
       // Verify both accounts belong to the user
       const [propfirmAccount, brokerAccount] = await Promise.all([
@@ -494,23 +478,19 @@ export const tradeRouter = router({
 
       // Create both trades in a transaction
       const result = await prisma.$transaction(async (tx) => {
-        const commonTradeData = {
-          symbolId: input.symbolId,
-          direction: input.direction,
-          entryPrice: input.openPrice,
-          exitPrice: input.closePrice,
-          lotSize: input.lotSize,
-          openTime: input.openTime,
-          closeTime: input.closeTime,
-          netProfit: input.netProfit,
-          status: input.status,
-          entryMethod: "MANUAL" as const,
-        };
-
         // Create propfirm trade
         const propfirmTrade = await tx.trade.create({
           data: {
-            ...commonTradeData,
+            symbolId: input.symbolId,
+            direction: input.propfirmDirection,
+            entryPrice: input.propfirmOpenPrice,
+            exitPrice: input.propfirmClosePrice,
+            lotSize: input.propfirmLotSize,
+            openTime: input.openTime,
+            closeTime: input.closeTime,
+            netProfit: input.propfirmNetProfit,
+            status: input.status,
+            entryMethod: ENTRY_METHOD.MANUAL,
             accountId: input.propfirmAccountId,
           },
           include: {
@@ -522,7 +502,16 @@ export const tradeRouter = router({
         // Create broker trade
         const brokerTrade = await tx.trade.create({
           data: {
-            ...commonTradeData,
+            symbolId: input.symbolId,
+            direction: input.brokerDirection,
+            entryPrice: input.brokerOpenPrice,
+            exitPrice: input.brokerClosePrice,
+            lotSize: input.brokerLotSize,
+            openTime: input.openTime,
+            closeTime: input.closeTime,
+            netProfit: input.brokerNetProfit,
+            status: input.status,
+            entryMethod: ENTRY_METHOD.MANUAL,
             accountId: input.brokerAccountId,
           },
           include: {

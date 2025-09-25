@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { error } = await authClient.signIn.email({
         email,
         password,
-        callbackURL: "/dashboard",
+        callbackURL: "/",
         rememberMe: true,
       });
 
@@ -100,9 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authClient.signIn.social({
         provider: "google",
-        callbackURL: "/dashboard",
+        callbackURL: "/",
         errorCallbackURL: "/signin",
-        newUserCallbackURL: "/dashboard",
+        newUserCallbackURL: "/",
       });
 
       // Refresh session after successful login

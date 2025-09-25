@@ -15,7 +15,6 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useAuthContext } from "@/AuthContext";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -118,7 +117,7 @@ export default function GlobalNavbar() {
 
   return (
     <>
-      <nav className="px-4 sm:px-6 lg:px-8 border-b bg-[#131B2F] border-gray-700 shadow-lg">
+      <nav className="px-4 sm:px-6 lg:px-8 border-b bg-[#131B2F] border-gray-700 shadow-lg z-50">
         <div className="max-w-[1500px] mx-auto ">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
@@ -188,14 +187,6 @@ export default function GlobalNavbar() {
                           <span>Dashboard</span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem asChild>
-                          <div className="flex items-center">
-                            <Settings className="mr-2 h-4 w-4" />
-                            <span className="mr-auto">Tema</span>
-                            <ThemeToggle />
-                          </div>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={handleSignOut}
                           className="text-red-600 focus:text-red-600"
@@ -208,7 +199,6 @@ export default function GlobalNavbar() {
                   </div>
                 ) : (
                   <div className="flex items-center space-x-3">
-                    <ThemeToggle />
                     <button
                       onClick={handleSignIn}
                       className="text-muted-foreground hover:text-card-foreground px-3 py-2 rounded-md text-sm font-medium transition-colors"
@@ -348,17 +338,6 @@ export default function GlobalNavbar() {
                         )}
 
                         {/* Theme Toggle */}
-                        <div className="px-3 py-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Settings className="h-4 w-4 text-gray-300" />
-                              <span className="text-sm font-medium text-gray-300">
-                                Tema
-                              </span>
-                            </div>
-                            <ThemeToggle />
-                          </div>
-                        </div>
 
                         {/* Trader Footer Actions */}
                         {isTraderSection && (
@@ -396,17 +375,6 @@ export default function GlobalNavbar() {
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="px-3 py-2">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <Settings className="h-4 w-4 text-gray-300" />
-                              <span className="text-sm font-medium text-gray-300">
-                                Tema
-                              </span>
-                            </div>
-                            <ThemeToggle />
-                          </div>
-                        </div>
                         <button
                           onClick={handleSignIn}
                           className="w-full text-left text-gray-300 hover:text-white block px-3 py-2 rounded-md text-base font-medium transition-colors"

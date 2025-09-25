@@ -1,10 +1,20 @@
 "use client";
 
-import { ChevronDown, ChevronUp, Search } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode } from "react";
 import type { PaginationInfo } from "../../lib/pagination";
-import { Input } from "./input";
+import { Alert, AlertDescription } from "./alert";
+import { Badge } from "./badge";
+import { Checkbox } from "./checkbox";
 import { PaginationComponent } from "./pagination";
+import { Skeleton } from "./skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "./table";
 import type { TableActionItem } from "./table-actions-dropdown";
 import { TableActionsDropdown } from "./table-actions-dropdown";
 
@@ -12,10 +22,19 @@ export interface TableColumn<T = Record<string, unknown>> {
   key: string;
   title: string;
   width?: string;
-  sortable?: boolean;
   render?: (value: unknown, record: T, index: number) => ReactNode;
   className?: string;
   headerClassName?: string;
+  // Badge support
+  badge?:
+    | boolean
+    | ((
+        value: unknown,
+        record: T,
+      ) => {
+        variant?: "default" | "secondary" | "destructive" | "outline";
+        label: string;
+      });
 }
 
 export interface TableAction<T = Record<string, unknown>> {
@@ -41,17 +60,6 @@ export interface ScrollableTableProps<T = Record<string, unknown>> {
   onPageSizeChange?: (pageSize: number) => void;
   showPagination?: boolean;
   pageSizeOptions?: number[];
-
-  // Search
-  searchable?: boolean;
-  searchValue?: string;
-  onSearchChange?: (value: string) => void;
-  searchPlaceholder?: string;
-
-  // Sorting
-  sortBy?: string;
-  sortOrder?: "asc" | "desc";
-  onSortChange?: (sortBy: string, sortOrder: "asc" | "desc") => void;
 
   // Actions
   actions?: TableAction<T>[];
@@ -96,17 +104,6 @@ export function ScrollableTable<T = Record<string, unknown>>({
   showPagination = true,
   pageSizeOptions = [5, 10, 20, 50, 100],
 
-  // Search
-  searchable = true,
-  searchValue = "",
-  onSearchChange,
-  searchPlaceholder = "Buscar...",
-
-  // Sorting
-  sortBy,
-  sortOrder,
-  onSortChange,
-
   // Actions
   actions = [],
   showActions = true,
@@ -136,8 +133,6 @@ export function ScrollableTable<T = Record<string, unknown>>({
   // Header actions
   headerActions,
 }: ScrollableTableProps<T>) {
-  const [localSearch, setLocalSearch] = useState(searchValue);
-
   const getRowKey = (record: T): string => {
     if (typeof rowKey === "function") {
       return rowKey(record);
@@ -146,25 +141,15 @@ export function ScrollableTable<T = Record<string, unknown>>({
   };
 
   const getRowClassName = (record: T, index: number): string => {
-    const baseClasses = "hover:bg-gray-50 transition-colors";
+    const baseClasses = "hover:bg-muted transition-colors";
     const clickableClasses = onRowClick ? "cursor-pointer" : "";
     const selectedClasses =
-      selectable && selectedRows.includes(getRowKey(record))
-        ? "bg-blue-50"
-        : "";
+      selectable && selectedRows.includes(getRowKey(record)) ? "bg-muted" : "";
 
     if (typeof rowClassName === "function") {
       return `${baseClasses} ${clickableClasses} ${selectedClasses} ${rowClassName(record, index)}`.trim();
     }
     return `${baseClasses} ${clickableClasses} ${selectedClasses} ${rowClassName}`.trim();
-  };
-
-  const handleSort = (columnKey: string) => {
-    if (!onSortChange) return;
-
-    const newSortOrder =
-      sortBy === columnKey && sortOrder === "asc" ? "desc" : "asc";
-    onSortChange(columnKey, newSortOrder);
   };
 
   const handleSelectAll = (checked: boolean) => {
@@ -188,11 +173,6 @@ export function ScrollableTable<T = Record<string, unknown>>({
     }
   };
 
-  const handleSearchChange = (value: string) => {
-    setLocalSearch(value);
-    onSearchChange?.(value);
-  };
-
   const filteredData = data;
   const hasActions = showActions && actions.length > 0;
   const allSelected =
@@ -202,209 +182,223 @@ export function ScrollableTable<T = Record<string, unknown>>({
   const someSelected = selectable && selectedRows.length > 0 && !allSelected;
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Header Section */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        {/* Search */}
-        {searchable && (
-          <div className="relative flex-1 max-w-sm">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder={searchPlaceholder}
-              value={localSearch}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-10 border-gray-200 focus:border-blue-500 focus:ring-blue-500"
-            />
-          </div>
-        )}
-
-        {/* Header Actions */}
-        {headerActions && (
-          <div className="flex items-center gap-2">{headerActions}</div>
-        )}
-      </div>
+    <div className={`space-y-4 ${className} `}>
+      {/* Header Actions */}
+      {headerActions && (
+        <div className="flex items-center gap-2 mb-4">{headerActions}</div>
+      )}
 
       {/* Table Container */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         {/* Loading State */}
         {loading && (
-          <div className="flex items-center justify-center py-12">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-gray-500">Cargando datos...</p>
+          <div className="space-y-0">
+            {/* Header skeleton */}
+            <div className="px-6 py-2.5 border-b border-border bg-muted/30">
+              <div className="flex space-x-6">
+                {selectable && <Skeleton className="h-4 w-4 rounded" />}
+                {columns.map((_, index) => (
+                  <Skeleton
+                    key={`header-${index}`}
+                    className="h-4 flex-1 max-w-[120px]"
+                  />
+                ))}
+                {hasActions && <Skeleton className="h-4 w-16" />}
+              </div>
             </div>
+
+            {/* Rows skeleton */}
+            {Array.from({ length: 5 }).map((_, rowIndex) => (
+              <div
+                key={`row-${rowIndex}`}
+                className="px-6 py-3 border-b border-border last:border-b-0"
+              >
+                <div className="flex space-x-6 items-center">
+                  {selectable && <Skeleton className="h-4 w-4 rounded" />}
+                  {columns.map((column, colIndex) => (
+                    <Skeleton
+                      key={`cell-${rowIndex}-${colIndex}`}
+                      className="h-4 flex-1"
+                      style={{
+                        maxWidth: column.width || "120px",
+                        minWidth: "80px",
+                      }}
+                    />
+                  ))}
+                  {hasActions && <Skeleton className="h-8 w-8 rounded" />}
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 border-l-4 border-red-400 p-4">
-            <div className="flex">
-              <div className="ml-3">
-                <p className="text-sm text-red-700">{error}</p>
-              </div>
-            </div>
+          <div className="p-4">
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
           </div>
         )}
 
         {/* Table */}
         {!loading && !error && (
-          <div className="overflow-x-auto">
-            <table
-              className={`min-w-full divide-y divide-gray-200 ${tableClassName}`}
+          <Table className={tableClassName}>
+            {/* Table Header */}
+            <TableHeader
+              className={`bg-muted/30 [&_tr]:border-b [&_tr]:border-border ${headerClassName}`}
             >
-              {/* Table Header */}
-              <thead
-                className={`bg-gradient-to-r from-gray-50 to-gray-100 ${headerClassName}`}
-              >
-                <tr>
-                  {/* Selection Column */}
-                  {selectable && (
-                    <th className="px-6 py-3 text-left">
-                      <input
-                        type="checkbox"
-                        checked={allSelected}
-                        ref={(el) => {
-                          if (el) el.indeterminate = someSelected;
-                        }}
-                        onChange={(e) => handleSelectAll(e.target.checked)}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                    </th>
-                  )}
-
-                  {/* Data Columns */}
-                  {columns.map((column) => (
-                    <th
-                      key={column.key}
-                      className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${column.headerClassName || ""}`}
-                      style={{ width: column.width }}
-                    >
-                      {column.sortable ? (
-                        <button
-                          onClick={() => handleSort(column.key)}
-                          className="flex items-center space-x-1 hover:text-gray-700 transition-colors font-semibold"
-                        >
-                          <span>{column.title}</span>
-                          {sortBy === column.key &&
-                            (sortOrder === "asc" ? (
-                              <ChevronUp className="h-4 w-4" />
-                            ) : (
-                              <ChevronDown className="h-4 w-4" />
-                            ))}
-                        </button>
-                      ) : (
-                        <span className="font-semibold">{column.title}</span>
-                      )}
-                    </th>
-                  ))}
-
-                  {/* Actions Column */}
-                  {hasActions && (
-                    <th
-                      className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider"
-                      style={{ width: actionsWidth }}
-                    >
-                      {actionsLabel}
-                    </th>
-                  )}
-                </tr>
-              </thead>
-
-              {/* Table Body */}
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredData.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={
-                        columns.length +
-                        (selectable ? 1 : 0) +
-                        (hasActions ? 1 : 0)
-                      }
-                      className="px-6 py-12 text-center text-gray-500"
-                    >
-                      <div className="flex flex-col items-center">
-                        {emptyIcon && <div className="mb-4">{emptyIcon}</div>}
-                        <p>{emptyMessage}</p>
-                      </div>
-                    </td>
-                  </tr>
-                ) : (
-                  filteredData.map((record, index) => {
-                    const recordKey = getRowKey(record);
-
-                    return (
-                      <tr
-                        key={recordKey}
-                        className={`${getRowClassName(record, index)} border-b border-gray-100 last:border-b-0`}
-                        onClick={() => onRowClick?.(record, index)}
-                        onDoubleClick={() => onRowDoubleClick?.(record, index)}
-                      >
-                        {/* Selection Cell */}
-                        {selectable && (
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <input
-                              type="checkbox"
-                              checked={selectedRows.includes(recordKey)}
-                              onChange={(e) =>
-                                handleRowSelect(recordKey, e.target.checked)
-                              }
-                              onClick={(e) => e.stopPropagation()}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                          </td>
-                        )}
-
-                        {/* Data Cells */}
-                        {columns.map((column) => {
-                          const value = (record as Record<string, unknown>)[
-                            column.key
-                          ];
-
-                          return (
-                            <td
-                              key={column.key}
-                              className={`px-6 py-4 whitespace-nowrap text-sm text-gray-900 ${column.className || ""}`}
-                            >
-                              {column.render
-                                ? column.render(value, record, index)
-                                : String(value ?? "")}
-                            </td>
-                          );
-                        })}
-
-                        {/* Actions Cell */}
-                        {hasActions && (
-                          <td className="px-6 py-4 whitespace-nowrap text-center">
-                            <TableActionsDropdown
-                              items={actions.map(
-                                (action): TableActionItem => ({
-                                  label:
-                                    typeof action.label === "function"
-                                      ? action.label(record)
-                                      : action.label,
-                                  icon:
-                                    typeof action.icon === "function"
-                                      ? action.icon(record)
-                                      : action.icon,
-                                  onClick: () => action.onClick(record),
-                                  variant: action.variant,
-                                  disabled: action.disabled?.(record),
-                                  hidden: action.hidden?.(record),
-                                  separator: action.separator,
-                                }),
-                              )}
-                              align="right"
-                            />
-                          </td>
-                        )}
-                      </tr>
-                    );
-                  })
+              <TableRow>
+                {/* Selection Column */}
+                {selectable && (
+                  <TableHead className="px-6 py-2.5 text-left">
+                    <Checkbox
+                      checked={allSelected || someSelected}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </TableHead>
                 )}
-              </tbody>
-            </table>
-          </div>
+
+                {/* Data Columns */}
+                {columns.map((column) => (
+                  <TableHead
+                    key={column.key}
+                    className={`px-6 py-2.5 text-left text-xs font-normal text-muted-foreground/70 uppercase tracking-wide ${column.headerClassName || ""}`}
+                    style={{ width: column.width }}
+                  >
+                    <span className="font-medium">{column.title}</span>
+                  </TableHead>
+                ))}
+
+                {/* Actions Column */}
+                {hasActions && (
+                  <TableHead
+                    className="px-6 py-2.5 text-center text-xs font-normal text-muted-foreground/70 uppercase tracking-wide"
+                    style={{ width: actionsWidth }}
+                  >
+                    {actionsLabel}
+                  </TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+
+            {/* Table Body */}
+            <TableBody className="bg-card divide-y divide-border">
+              {filteredData.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={
+                      columns.length +
+                      (selectable ? 1 : 0) +
+                      (hasActions ? 1 : 0)
+                    }
+                    className="px-6 py-8 text-center text-muted-foreground"
+                  >
+                    <div className="flex flex-col items-center">
+                      {emptyIcon && <div className="mb-4">{emptyIcon}</div>}
+                      <p>{emptyMessage}</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredData.map((record, index) => {
+                  const recordKey = getRowKey(record);
+
+                  return (
+                    <TableRow
+                      key={recordKey}
+                      className={`${getRowClassName(record, index)} border-b border-border last:border-b-0`}
+                      onClick={() => onRowClick?.(record, index)}
+                      onDoubleClick={() => onRowDoubleClick?.(record, index)}
+                    >
+                      {/* Selection Cell */}
+                      {selectable && (
+                        <TableCell className="px-6 py-3 whitespace-nowrap">
+                          <Checkbox
+                            checked={selectedRows.includes(recordKey)}
+                            onCheckedChange={(checked) =>
+                              handleRowSelect(recordKey, checked as boolean)
+                            }
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </TableCell>
+                      )}
+
+                      {/* Data Cells */}
+                      {columns.map((column) => {
+                        const value = (record as Record<string, unknown>)[
+                          column.key
+                        ];
+
+                        const renderContent = () => {
+                          if (column.render) {
+                            return column.render(value, record, index);
+                          }
+
+                          // Badge support
+                          if (column.badge) {
+                            if (typeof column.badge === "function") {
+                              const badgeConfig = column.badge(value, record);
+                              return (
+                                <Badge
+                                  variant={badgeConfig.variant || "default"}
+                                >
+                                  {badgeConfig.label}
+                                </Badge>
+                              );
+                            } else {
+                              return (
+                                <Badge variant="default">
+                                  {String(value ?? "")}
+                                </Badge>
+                              );
+                            }
+                          }
+
+                          return String(value ?? "");
+                        };
+
+                        return (
+                          <TableCell
+                            key={column.key}
+                            className={`px-6 py-3 whitespace-nowrap text-base text-muted-foreground ${column.className || ""}`}
+                          >
+                            {renderContent()}
+                          </TableCell>
+                        );
+                      })}
+
+                      {/* Actions Cell */}
+                      {hasActions && (
+                        <TableCell className="px-6 py-3 whitespace-nowrap text-center">
+                          <TableActionsDropdown
+                            items={actions.map(
+                              (action): TableActionItem => ({
+                                label:
+                                  typeof action.label === "function"
+                                    ? action.label(record)
+                                    : action.label,
+                                icon:
+                                  typeof action.icon === "function"
+                                    ? action.icon(record)
+                                    : action.icon,
+                                onClick: () => action.onClick(record),
+                                variant: action.variant,
+                                disabled: action.disabled?.(record),
+                                hidden: action.hidden?.(record),
+                                separator: action.separator,
+                              }),
+                            )}
+                            align="right"
+                          />
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
         )}
 
         {/* Pagination */}
@@ -413,7 +407,7 @@ export function ScrollableTable<T = Record<string, unknown>>({
           !loading &&
           !error &&
           filteredData.length > 0 && (
-            <div className="px-6 py-4 border-t border-gray-200">
+            <div className="px-4 py-1.5 border-t border-border bg-muted/20">
               <PaginationComponent
                 pagination={pagination}
                 onPageChange={

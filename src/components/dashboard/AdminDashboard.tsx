@@ -72,59 +72,54 @@ export default function AdminDashboard({ user }: AdminDashboardProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">
-                Panel de Administración
-              </h1>
-              <p className="text-sm text-gray-500">
-                Bienvenido, {user?.name || "Administrador"}
-              </p>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Shield className="h-5 w-5 text-purple-600" />
-              <span className="text-sm font-medium text-gray-700">
-                Super Admin
-              </span>
-            </div>
-          </div>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">
+            Panel de Administración
+          </h1>
+          <p className="text-sm text-muted-foreground mt-0.5 mr-8">
+            Bienvenido, {user?.name || "Administrador"} - Gestiona el sistema
+            completo
+          </p>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Shield className="h-5 w-5 text-purple-600" />
+          <span className="text-sm font-medium text-foreground">
+            Super Admin
+          </span>
         </div>
       </div>
 
       {/* Main Content - Grid Layout */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {adminSections.map((section, index) => (
-            <Link
-              key={index}
-              href={section.href}
-              className="group relative overflow-hidden rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:border-gray-300"
-            >
-              <div className="flex items-start space-x-4">
-                <div
-                  className={`flex-shrink-0 rounded-lg p-3 ${section.bgColor}`}
-                >
-                  <div className={section.color}>{section.icon}</div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <h3 className="text-lg font-medium text-gray-900 group-hover:text-gray-700">
-                    {section.title}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    {section.description}
-                  </p>
-                </div>
-                <ExternalLink className="h-4 w-4 text-gray-400 group-hover:text-gray-600" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {adminSections.map((section, index) => (
+          <Link
+            key={index}
+            href={section.href}
+            className="group relative overflow-hidden rounded-lg border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:border-border/80"
+          >
+            <div className="flex items-start space-x-4">
+              <div
+                className={`flex-shrink-0 rounded-lg p-3 ${section.bgColor}`}
+              >
+                <div className={section.color}>{section.icon}</div>
               </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-lg font-medium text-foreground group-hover:text-foreground/80">
+                  {section.title}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {section.description}
+                </p>
+              </div>
+              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-foreground" />
+            </div>
 
-              <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-gray-200 to-transparent group-hover:via-blue-500 transition-all duration-300" />
-            </Link>
-          ))}
-        </div>
+            <div className="absolute inset-x-0 bottom-0 h-0.5 bg-gradient-to-r from-transparent via-border to-transparent group-hover:via-primary transition-all duration-300" />
+          </Link>
+        ))}
       </div>
     </div>
   );

@@ -1,19 +1,24 @@
 "use client";
 
-import {
-  AlertCircle,
-  Building2,
-  Check,
-  DollarSign,
-  Sparkles,
-  TrendingUp,
-  Wallet,
-} from "lucide-react";
+import { Building2, Check, DollarSign, Wallet } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { trpc } from "@/utils/trpc";
 
 interface CreateTradingAccountForm {
@@ -153,30 +158,30 @@ export function CreateTradingAccountDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden p-0 bg-transparent border-0">
-        {/* Simplified gradient background */}
-        <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl overflow-hidden border border-slate-700/50">
+      <DialogContent className="!max-w-[95vw] !w-[600px] max-h-[85vh] overflow-hidden p-0 bg-transparent border-0">
+        {/* Gradient background */}
+        <div className="relative bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl overflow-hidden border border-slate-700/50">
           {/* Subtle pattern */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-purple-500/5" />
 
           {/* Content */}
           <div className="relative p-6 text-white">
-            {/* Minimal Header */}
-            <div className="flex items-center mb-6">
-              {formData.accountType === "PROPFIRM" ? (
-                <Building2 className="h-6 w-6 text-blue-400 mr-3" />
-              ) : (
-                <Wallet className="h-6 w-6 text-emerald-400 mr-3" />
-              )}
-              <h2 className="text-xl font-semibold">
+            <DialogHeader className="mb-6">
+              <DialogTitle className="flex items-center text-xl font-semibold">
+                {formData.accountType === "PROPFIRM" ? (
+                  <Building2 className="h-5 w-5 text-blue-400 mr-2" />
+                ) : (
+                  <Wallet className="h-5 w-5 text-emerald-400 mr-2" />
+                )}
                 Nueva Cuenta{" "}
                 {formData.accountType === "PROPFIRM" ? "Propfirm" : "Broker"}
-              </h2>
-            </div>
+              </DialogTitle>
+            </DialogHeader>
 
-            {/* Simplified Type Selection */}
-            <div className="grid grid-cols-2 gap-3 mb-6">
+            {/* Type Selection */}
+            <div className="flex space-x-1 mb-6 bg-slate-800/30 rounded-lg p-1">
               <button
+                type="button"
                 onClick={() =>
                   setFormData((prev) => ({
                     ...prev,
@@ -185,19 +190,19 @@ export function CreateTradingAccountDialog({
                     brokerId: "",
                   }))
                 }
-                className={`p-4 rounded-lg border transition-all ${
+                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   formData.accountType === "PROPFIRM"
-                    ? "border-blue-400 bg-blue-400/10 text-blue-400"
-                    : "border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500"
+                    ? "bg-slate-700 text-white shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
                 }`}
               >
                 <div className="flex items-center justify-center">
-                  <Building2 className="h-5 w-5 mr-2" />
-                  <span className="font-medium">Propfirm</span>
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Propfirm
                 </div>
               </button>
-
               <button
+                type="button"
                 onClick={() =>
                   setFormData((prev) => ({
                     ...prev,
@@ -206,307 +211,293 @@ export function CreateTradingAccountDialog({
                     brokerId: "",
                   }))
                 }
-                className={`p-4 rounded-lg border transition-all ${
+                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                   formData.accountType === "BROKER"
-                    ? "border-emerald-400 bg-emerald-400/10 text-emerald-400"
-                    : "border-slate-600 bg-slate-700/50 text-slate-300 hover:border-slate-500"
+                    ? "bg-slate-700 text-white shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-slate-700/50"
                 }`}
               >
                 <div className="flex items-center justify-center">
-                  <Wallet className="h-5 w-5 mr-2" />
-                  <span className="font-medium">Broker</span>
+                  <Wallet className="h-4 w-4 mr-2" />
+                  Broker
                 </div>
               </button>
             </div>
 
-            {/* Simplified form content */}
-            <div className="max-h-[450px] overflow-y-auto space-y-4">
-              {/* Basic Info */}
-              <div className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="accountName"
-                    className="text-slate-200 text-sm"
-                  >
-                    Nombre *
-                  </Label>
-                  <Input
-                    id="accountName"
-                    value={formData.accountName}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        accountName: e.target.value,
-                      }))
-                    }
-                    placeholder="Mi Cuenta FTMO"
-                    className="mt-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
+            {/* Form Content */}
+            <div className="space-y-6 max-h-[50vh] overflow-y-auto pr-2">
+              {/* Basic Information */}
+              <Card className="bg-slate-800/30 border-slate-700/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-slate-200">
+                    Información Básica
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <Label
-                      htmlFor="accountNumber"
-                      className="text-slate-200 text-sm"
-                    >
-                      Número de Cuenta
+                    <Label htmlFor="accountName" className="text-slate-300">
+                      Nombre de la Cuenta
                     </Label>
                     <Input
-                      id="accountNumber"
-                      value={formData.accountNumber}
+                      id="accountName"
+                      value={formData.accountName}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          accountNumber: e.target.value,
+                          accountName: e.target.value,
                         }))
                       }
-                      placeholder="51234567"
-                      className="mt-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
+                      placeholder="Ej: Mi Cuenta Propfirm"
+                      className="!bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 h-9 text-sm"
                     />
                   </div>
 
-                  <div>
-                    <Label htmlFor="server" className="text-slate-200 text-sm">
-                      Servidor
-                    </Label>
-                    <Input
-                      id="server"
-                      value={formData.server}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          server: e.target.value,
-                        }))
-                      }
-                      placeholder="FTMO-Server1"
-                      className="mt-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Provider Selection */}
-              <div className="space-y-4">
-                {formData.accountType === "PROPFIRM" ? (
-                  <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <Label
-                        htmlFor="propfirm"
-                        className="text-slate-200 text-sm"
-                      >
-                        Propfirm *
+                      <Label htmlFor="accountNumber" className="text-slate-300">
+                        Número de Cuenta
                       </Label>
-                      <select
-                        id="propfirm"
-                        value={formData.propfirmId}
+                      <Input
+                        id="accountNumber"
+                        value={formData.accountNumber}
                         onChange={(e) =>
                           setFormData((prev) => ({
                             ...prev,
-                            propfirmId: e.target.value,
-                            accountTypeId: "",
-                            currentPhaseId: "",
+                            accountNumber: e.target.value,
                           }))
                         }
-                        className="mt-1 w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:border-slate-500 focus:outline-none"
-                      >
-                        <option value="" className="bg-slate-800">
-                          Selecciona una propfirm
-                        </option>
-                        {availablePropfirms.map((propfirm) => (
-                          <option
-                            key={propfirm.id}
-                            value={propfirm.id}
-                            className="bg-slate-800"
-                          >
-                            {propfirm.displayName}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="Opcional"
+                        className="!bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 h-9 text-sm"
+                      />
                     </div>
+                    <div>
+                      <Label htmlFor="server" className="text-slate-300">
+                        Servidor
+                      </Label>
+                      <Input
+                        id="server"
+                        value={formData.server}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            server: e.target.value,
+                          }))
+                        }
+                        placeholder="Opcional"
+                        className="!bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-                    {formData.propfirmId && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <Label
-                            htmlFor="accountType"
-                            className="text-slate-200 text-sm"
+              {/* Provider Selection */}
+              <Card className="bg-slate-800/30 border-slate-700/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-slate-200">
+                    {formData.accountType === "PROPFIRM"
+                      ? "Propfirm"
+                      : "Broker"}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label className="text-slate-300">
+                      Selecciona{" "}
+                      {formData.accountType === "PROPFIRM"
+                        ? "Propfirm"
+                        : "Broker"}
+                    </Label>
+                    <Select
+                      value={
+                        formData.accountType === "PROPFIRM"
+                          ? formData.propfirmId
+                          : formData.brokerId
+                      }
+                      onValueChange={(value) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          propfirmId:
+                            formData.accountType === "PROPFIRM" ? value : "",
+                          brokerId:
+                            formData.accountType === "BROKER" ? value : "",
+                        }))
+                      }
+                    >
+                      <SelectTrigger className="!bg-slate-700/50 border-slate-600 text-white h-9">
+                        <SelectValue
+                          placeholder={`Selecciona ${formData.accountType === "PROPFIRM" ? "propfirm" : "broker"}`}
+                        />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-700 border-slate-600">
+                        {(formData.accountType === "PROPFIRM"
+                          ? availablePropfirms
+                          : availableBrokers
+                        ).map((item) => (
+                          <SelectItem
+                            key={item.id}
+                            value={item.id}
+                            className="text-white hover:bg-slate-600"
                           >
-                            Tipo de Cuenta
-                          </Label>
-                          <select
-                            id="accountType"
-                            value={formData.accountTypeId}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                accountTypeId: e.target.value,
-                              }))
-                            }
-                            className="mt-1 w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:border-slate-500 focus:outline-none"
-                          >
-                            <option value="" className="bg-slate-800">
-                              Selecciona el tipo
-                            </option>
+                            {item.displayName || item.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Account Type Selection (only for Propfirm) */}
+                  {formData.accountType === "PROPFIRM" &&
+                    availableAccountTypes.length > 0 && (
+                      <div>
+                        <Label className="text-slate-300">Tipo de Cuenta</Label>
+                        <Select
+                          value={formData.accountTypeId}
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              accountTypeId: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="!bg-slate-700/50 border-slate-600 text-white h-9">
+                            <SelectValue placeholder="Selecciona tipo de cuenta" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-700 border-slate-600">
                             {availableAccountTypes.map((type) => (
-                              <option
+                              <SelectItem
                                 key={type.id}
                                 value={type.id}
-                                className="bg-slate-800"
+                                className="text-white hover:bg-slate-600"
                               >
-                                {type.displayName} - $
-                                {Number(type.initialBalance).toLocaleString()}
-                              </option>
+                                {type.displayName || type.typeName}
+                              </SelectItem>
                             ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <Label
-                            htmlFor="phase"
-                            className="text-slate-200 text-sm"
-                          >
-                            Fase Actual
-                          </Label>
-                          <select
-                            id="phase"
-                            value={formData.currentPhaseId}
-                            onChange={(e) =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                currentPhaseId: e.target.value,
-                              }))
-                            }
-                            className="mt-1 w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:border-slate-500 focus:outline-none"
-                          >
-                            <option value="" className="bg-slate-800">
-                              Selecciona la fase
-                            </option>
-                            {availablePhases.map((phase) => (
-                              <option
-                                key={phase.id}
-                                value={phase.id}
-                                className="bg-slate-800"
-                              >
-                                {phase.displayName}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+                          </SelectContent>
+                        </Select>
                       </div>
                     )}
-                  </div>
-                ) : (
+
+                  {/* Phase Selection (only for Propfirm) */}
+                  {formData.accountType === "PROPFIRM" &&
+                    availablePhases.length > 0 && (
+                      <div>
+                        <Label className="text-slate-300">Fase Actual</Label>
+                        <Select
+                          value={formData.currentPhaseId}
+                          onValueChange={(value) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              currentPhaseId: value,
+                            }))
+                          }
+                        >
+                          <SelectTrigger className="!bg-slate-700/50 border-slate-600 text-white h-9">
+                            <SelectValue placeholder="Selecciona fase" />
+                          </SelectTrigger>
+                          <SelectContent className="bg-slate-700 border-slate-600">
+                            {availablePhases.map((phase) => (
+                              <SelectItem
+                                key={phase.id}
+                                value={phase.id}
+                                className="text-white hover:bg-slate-600"
+                              >
+                                {phase.displayName || phase.phaseName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+                </CardContent>
+              </Card>
+
+              {/* Financial Information */}
+              <Card className="bg-slate-800/30 border-slate-700/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-slate-200 flex items-center">
+                    <DollarSign className="h-4 w-4 mr-2" />
+                    Información Financiera
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
                   <div>
-                    <Label htmlFor="broker" className="text-slate-200 text-sm">
-                      Broker *
+                    <Label htmlFor="initialBalance" className="text-slate-300">
+                      Balance Inicial
                     </Label>
-                    <select
-                      id="broker"
-                      value={formData.brokerId}
+                    <Input
+                      id="initialBalance"
+                      type="number"
+                      value={formData.initialBalance}
                       onChange={(e) =>
                         setFormData((prev) => ({
                           ...prev,
-                          brokerId: e.target.value,
+                          initialBalance: parseFloat(e.target.value) || 0,
+                          currentBalance: parseFloat(e.target.value) || 0,
+                          equity: parseFloat(e.target.value) || 0,
                         }))
                       }
-                      className="mt-1 w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:border-slate-500 focus:outline-none"
-                    >
-                      <option value="" className="bg-slate-800">
-                        Selecciona un broker
-                      </option>
-                      {availableBrokers.map((broker) => (
-                        <option
-                          key={broker.id}
-                          value={broker.id}
-                          className="bg-slate-800"
-                        >
-                          {broker.displayName}
-                        </option>
-                      ))}
-                    </select>
+                      className="!bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 h-9 text-sm"
+                    />
                   </div>
-                )}
-              </div>
 
-              {/* Balance Configuration */}
-              <div className="space-y-4">
-                <div>
-                  <Label
-                    htmlFor="initialBalance"
-                    className="text-slate-200 text-sm"
-                  >
-                    Balance Inicial * (USD)
-                  </Label>
-                  <Input
-                    id="initialBalance"
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value={formData.initialBalance}
-                    onChange={(e) => {
-                      const value = parseFloat(e.target.value) || 0;
-                      setFormData((prev) => ({
-                        ...prev,
-                        initialBalance: value,
-                        currentBalance: value,
-                        equity: value,
-                      }));
-                    }}
-                    className="mt-1 bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="status" className="text-slate-200 text-sm">
-                    Estado
-                  </Label>
-                  <select
-                    id="status"
-                    value={formData.status}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        status: e.target.value,
-                      }))
-                    }
-                    className="mt-1 w-full px-3 py-2 bg-slate-700/50 border border-slate-600 text-white rounded-lg focus:border-slate-500 focus:outline-none"
-                  >
-                    <option value="active" className="bg-slate-800">
-                      Activa
-                    </option>
-                    <option value="inactive" className="bg-slate-800">
-                      Inactiva
-                    </option>
-                    <option value="warning" className="bg-slate-800">
-                      Advertencia
-                    </option>
-                  </select>
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label
+                        htmlFor="currentBalance"
+                        className="text-slate-300"
+                      >
+                        Balance Actual
+                      </Label>
+                      <Input
+                        id="currentBalance"
+                        type="number"
+                        value={formData.currentBalance}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            currentBalance: parseFloat(e.target.value) || 0,
+                          }))
+                        }
+                        className="!bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 h-9 text-sm"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="equity" className="text-slate-300">
+                        Equity
+                      </Label>
+                      <Input
+                        id="equity"
+                        type="number"
+                        value={formData.equity}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            equity: parseFloat(e.target.value) || 0,
+                          }))
+                        }
+                        className="!bg-slate-700/50 border-slate-600 text-white placeholder:text-slate-400 h-9 text-sm"
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Simplified Actions */}
-            <div className="flex justify-end gap-3 pt-6 border-t border-slate-700">
+            {/* Actions */}
+            <div className="flex justify-end space-x-3 mt-6 pt-4 border-t border-slate-700/50">
               <Button
+                type="button"
                 variant="outline"
                 onClick={handleClose}
-                className="bg-slate-700 border-slate-600 text-slate-300 hover:bg-slate-600"
+                className="border-slate-600 text-slate-300 hover:bg-slate-700/50"
               >
                 Cancelar
               </Button>
-
               <Button
                 onClick={handleSubmit}
-                disabled={
-                  createAccount.isPending ||
-                  !formData.accountName ||
-                  (formData.accountType === "PROPFIRM" &&
-                    !formData.propfirmId) ||
-                  (formData.accountType === "BROKER" && !formData.brokerId) ||
-                  formData.initialBalance <= 0
-                }
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={createAccount.isPending}
+                className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white border-0"
               >
                 {createAccount.isPending ? (
                   <>
@@ -514,7 +505,10 @@ export function CreateTradingAccountDialog({
                     Creando...
                   </>
                 ) : (
-                  "Crear Cuenta"
+                  <>
+                    <Check className="h-4 w-4 mr-2" />
+                    Crear Cuenta
+                  </>
                 )}
               </Button>
             </div>

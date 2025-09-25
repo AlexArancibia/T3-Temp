@@ -29,49 +29,55 @@ export function RoleBasedRedirect({ children }: RoleBasedRedirectProps) {
       pathname.startsWith("/reset-password") ||
       pathname.startsWith("/confirm-email");
 
-    const isOnLandingPage = pathname === "/"; // Allow authenticated users to visit landing page
+    const isOnLandingPage = pathname === "/"; // Landing page - redirect traders automatically
     const isOnApiRoutes = pathname.startsWith("/api");
     const isOnPublicRoutes = pathname.startsWith("/(public)"); // Allow access to public routes
 
-    // Don't redirect if user is on allowed routes
-    if (
-      isOnSignInRoutes ||
-      isOnLandingPage ||
-      isOnApiRoutes ||
-      isOnPublicRoutes
-    ) {
+    // Don't redirect if user is on allowed routes (except landing page for traders)
+    if (isOnSignInRoutes || isOnApiRoutes || isOnPublicRoutes) {
       return;
     }
 
-    // Redirect based on user role
+    // If user is on landing page, redirect based on role
+    if (isOnLandingPage) {
+      switch (primaryRole) {
+        case "trader":
+          router.replace("/trader");
+          return;
+        case "admin":
+        case "super_admin":
+        case "viewer":
+          router.replace("/dashboard");
+          return;
+        default:
+          router.replace("/trader");
+          return;
+      }
+    }
+
+    // If user is already on a dashboard route, don't redirect
+    if (pathname.startsWith("/dashboard") || pathname.startsWith("/trader")) {
+      return;
+    }
+
+    // Redirect based on user role (only if not already on appropriate route)
     switch (primaryRole) {
       case "trader":
-        // Redirect traders to /trader unless they're already there
-        if (!pathname.startsWith("/trader")) {
-          router.replace("/trader");
-        }
+        router.replace("/trader");
         break;
 
       case "admin":
       case "super_admin":
-        // Redirect admins to /dashboard unless they're already there
-        if (!pathname.startsWith("/dashboard")) {
-          router.replace("/dashboard");
-        }
+        router.replace("/dashboard");
         break;
 
       case "viewer":
-        // Redirect viewers to a read-only dashboard or specific viewer route
-        if (!pathname.startsWith("/dashboard")) {
-          router.replace("/dashboard");
-        }
+        router.replace("/dashboard");
         break;
 
       default:
         // For unknown roles, redirect to trader by default (most common use case)
-        if (!pathname.startsWith("/trader")) {
-          router.replace("/trader");
-        }
+        router.replace("/trader");
         break;
     }
   }, [

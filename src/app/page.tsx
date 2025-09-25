@@ -1,24 +1,24 @@
 "use client";
 
 import {
-  Activity,
   ArrowRight,
   BarChart3,
-  Building2,
   Cable,
   Calculator,
   CheckCircle,
   Clock,
+  Crown,
   Eye,
   Globe,
   Mail,
   MapPin,
   Phone,
   Shield,
+  Sparkles,
   Star,
   TrendingUp,
   Users,
-  Wallet,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -52,78 +52,101 @@ export default function HomePage() {
   // Permitir que usuarios autenticados vean la landing page
   // La redirección se maneja en RoleBasedRedirect para otras rutas
 
-  const features = [
+  const pricingPlans = [
     {
-      icon: <Cable className="h-6 w-6" />,
-      title: "Conexiones Propfirm-Broker",
-      description:
-        "Sincroniza automáticamente tus cuentas de propfirm con brokers para copiar operaciones en tiempo real.",
+      name: "Starter",
+      price: "$99",
+      period: "/mes",
+      description: "Perfecto para traders individuales",
+      icon: <Zap className="h-6 w-6" />,
+      color: "from-blue-500 to-cyan-500",
+      bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      features: [
+        "Hasta 3 cuentas de trading",
+        "2 Propfirms conectadas",
+        "Copy trading básico",
+        "Dashboard estándar",
+        "Soporte por email",
+        "Latencia < 100ms",
+      ],
+      popular: false,
     },
     {
-      icon: <Calculator className="h-6 w-6" />,
-      title: "Calculadora Avanzada",
-      description:
-        "Calcula el tamaño de posición óptimo, gestión de riesgo y análisis de rendimiento integrado.",
+      name: "Professional",
+      price: "$299",
+      period: "/mes",
+      description: "Para traders serios y equipos pequeños",
+      icon: <Crown className="h-6 w-6" />,
+      color: "from-purple-500 to-violet-500",
+      bgColor: "bg-purple-50 dark:bg-purple-900/20",
+      features: [
+        "Hasta 10 cuentas de trading",
+        "5 Propfirms conectadas",
+        "Copy trading avanzado",
+        "Analytics profesionales",
+        "Soporte prioritario",
+        "Latencia < 50ms",
+        "Sistema RBAC básico",
+        "Calculadora profesional",
+      ],
+      popular: true,
     },
     {
-      icon: <BarChart3 className="h-6 w-6" />,
-      title: "Analytics en Tiempo Real",
-      description:
-        "Métricas detalladas de rendimiento, drawdown, tasa de éxito y análisis de trading profesional.",
-    },
-    {
-      icon: <Shield className="h-6 w-6" />,
-      title: "Seguridad Empresarial",
-      description:
-        "Protección de datos de nivel bancario con autenticación multifactor y encriptación end-to-end.",
-    },
-    {
-      icon: <Activity className="h-6 w-6" />,
-      title: "Monitoreo 24/7",
-      description:
-        "Supervisión continua de tus conexiones y operaciones con alertas instantáneas en caso de problemas.",
-    },
-    {
-      icon: <Users className="h-6 w-6" />,
-      title: "Gestión Multi-Usuario",
-      description:
-        "Sistema de roles y permisos para equipos de trading con control granular de acceso.",
+      name: "Enterprise",
+      price: "$799",
+      period: "/mes",
+      description: "Para operaciones a gran escala",
+      icon: <Sparkles className="h-6 w-6" />,
+      color: "from-emerald-500 to-teal-500",
+      bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
+      features: [
+        "Cuentas ilimitadas",
+        "Propfirms ilimitadas",
+        "Copy trading empresarial",
+        "Analytics avanzados",
+        "Soporte 24/7",
+        "Latencia < 25ms",
+        "RBAC completo",
+        "API personalizada",
+        "White-label disponible",
+        "SLA garantizado",
+      ],
+      popular: false,
     },
   ];
 
-  const tradingFeatures = [
+  const keyFeatures = [
     {
-      icon: <TrendingUp className="h-8 w-8 text-emerald-500" />,
-      title: "Copia de Trading Automática",
+      icon: <Cable className="h-8 w-8" />,
+      title: "Copy Trading Automático",
       description:
-        "Replica automáticamente las operaciones de tu cuenta propfirm en tu broker personal",
-      details: [
-        "Latencia ultra-baja < 50ms",
-        "Sincronización bidireccional",
-        "Filtros personalizables",
-      ],
+        "Conecta múltiples propfirms con brokers para trading instantáneo con latencia ultra-baja",
+      color: "text-emerald-600",
+      bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
     },
     {
-      icon: <Wallet className="h-8 w-8 text-blue-500" />,
-      title: "Gestión de Cuentas",
+      icon: <BarChart3 className="h-8 w-8" />,
+      title: "Analytics Profesionales",
       description:
-        "Administra múltiples cuentas de propfirms y brokers desde una sola plataforma",
-      details: [
-        "Soporte 50+ Propfirms",
-        "20+ Brokers integrados",
-        "Dashboard unificado",
-      ],
+        "Dashboard con métricas en tiempo real, análisis de trades y reportes detallados",
+      color: "text-blue-600",
+      bgColor: "bg-blue-50 dark:bg-blue-900/20",
     },
     {
-      icon: <Calculator className="h-8 w-8 text-purple-500" />,
-      title: "Herramientas de Análisis",
+      icon: <Shield className="h-8 w-8" />,
+      title: "Sistema RBAC Seguro",
       description:
-        "Suite completa de calculadoras y métricas de rendimiento profesionales",
-      details: [
-        "Calculadora de posición",
-        "Análisis de drawdown",
-        "Métricas de Sharpe",
-      ],
+        "Control de acceso basado en roles con permisos granulares para equipos",
+      color: "text-orange-600",
+      bgColor: "bg-orange-50 dark:bg-orange-900/20",
+    },
+    {
+      icon: <Calculator className="h-8 w-8" />,
+      title: "Calculadora Avanzada",
+      description:
+        "Herramientas profesionales para gestión de riesgo y cálculo de lotaje",
+      color: "text-purple-600",
+      bgColor: "bg-purple-50 dark:bg-purple-900/20",
     },
   ];
 
@@ -161,220 +184,106 @@ export default function HomePage() {
 
   // Landing page para usuarios no autenticados
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-br from-blue-900 via-slate-800 to-blue-950 dark:from-gray-950 dark:via-black dark:to-gray-900 py-20 overflow-hidden">
+      <section className="relative bg-gradient-to-br from-slate-50/50 via-blue-50/50 to-indigo-50/50 dark:from-slate-900 dark:via-blue-900/10 dark:to-indigo-900/10 py-20 overflow-hidden border-b border-border">
         {/* Background elements */}
-        <div className="absolute inset-0 bg-grid-pattern opacity-10 dark:opacity-20"></div>
-        <div className="absolute top-20 left-10 w-72 h-72 bg-amber-400/20 dark:bg-cyan-400/30 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
-        <div className="absolute top-40 right-10 w-72 h-72 bg-yellow-400/20 dark:bg-purple-400/30 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-20 left-20 w-72 h-72 bg-orange-400/20 dark:bg-cyan-500/30 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
+        <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10"></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob"></div>
+        <div className="absolute top-40 right-10 w-72 h-72 bg-primary/30 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-20 w-72 h-72 bg-primary/25 rounded-full mix-blend-multiply filter blur-xl opacity-30 animate-blob animation-delay-4000"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="mb-6 flex justify-center">
-              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-amber-400/20 dark:bg-cyan-400/30 text-amber-100 dark:text-cyan-100 border border-amber-400/30 dark:border-cyan-400/40 backdrop-blur-sm">
+              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm">
                 <TrendingUp className="w-4 h-4 mr-2" />
-                La herramienta más avanzada para copy trading
+                Plataforma profesional de copy trading
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-7xl font-bold text-white mb-6 leading-tight">
-              Multiplica tu
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-yellow-400 to-orange-400 dark:from-cyan-400 dark:via-purple-400 dark:to-violet-400">
+            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+              Plataforma de
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary/80">
                 {" "}
-                Capital{" "}
+                Copy Trading{" "}
               </span>
-              con Trading Automático
+              para Profesionales
             </h1>
 
-            <p className="text-xl text-blue-100 dark:text-gray-200 mb-8 max-w-4xl mx-auto leading-relaxed">
-              Conecta tus cuentas de{" "}
-              <strong className="text-amber-300 dark:text-cyan-300">
-                Propfirm
-              </strong>{" "}
-              con tu{" "}
-              <strong className="text-yellow-300 dark:text-purple-300">
-                Broker personal
-              </strong>{" "}
-              y copia automáticamente todas las operaciones. Incluye
-              calculadoras avanzadas, métricas profesionales y análisis en
-              tiempo real.
+            <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+              Conecta propfirms con brokers para trading automático con latencia
+              ultra-baja. Sistema completo con analytics, RBAC y herramientas
+              profesionales.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
               <Link
                 href="/signup"
-                className="bg-gradient-to-r from-amber-500 to-orange-500 dark:from-cyan-500 dark:to-purple-500 text-white dark:text-white px-10 py-4 rounded-xl font-bold hover:from-amber-400 hover:to-orange-400 dark:hover:from-cyan-400 dark:hover:to-purple-400 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="bg-primary text-primary-foreground px-10 py-4 rounded-xl font-bold hover:bg-primary/90 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 Comenzar Prueba Gratuita
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
               <Link
-                href="#demo"
-                className="border-2 border-amber-400/50 dark:border-cyan-400/60 text-amber-200 dark:text-cyan-200 px-10 py-4 rounded-xl font-semibold hover:bg-amber-400/10 dark:hover:bg-cyan-400/20 hover:border-amber-400 dark:hover:border-cyan-400 transition-all duration-300 flex items-center justify-center backdrop-blur-sm"
+                href="#pricing"
+                className="border-2 border-border text-foreground px-10 py-4 rounded-xl font-semibold hover:bg-accent hover:text-accent-foreground transition-all duration-300 flex items-center justify-center"
               >
                 <Eye className="mr-2 h-5 w-5" />
-                Ver Demo
+                Ver Precios
               </Link>
             </div>
 
             {/* Trust indicators */}
-            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-blue-200 dark:text-gray-300">
+            <div className="flex flex-wrap justify-center items-center gap-8 text-sm text-muted-foreground">
               <div className="flex items-center">
-                <Shield className="w-4 h-4 mr-2 text-amber-300 dark:text-cyan-300" />
-                Datos Encriptados
+                <Shield className="w-4 h-4 mr-2 text-primary" />
+                Sistema RBAC Seguro
               </div>
               <div className="flex items-center">
-                <Clock className="w-4 h-4 mr-2 text-yellow-300 dark:text-purple-300" />
+                <Clock className="w-4 h-4 mr-2 text-primary" />
                 Latencia {"<"} 50ms
               </div>
               <div className="flex items-center">
-                <Globe className="w-4 h-4 mr-2 text-orange-300 dark:text-violet-300" />
-                50+ Propfirms Soportadas
+                <Globe className="w-4 h-4 mr-2 text-primary" />
+                Multi-PropFirm Support
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Trading Features Section */}
-      <section
-        className="py-20 bg-gradient-to-b from-orange-50 to-amber-50 dark:bg-gradient-to-b dark:from-gray-900 dark:to-gray-800"
-        id="demo"
-      >
+      {/* Key Features Section */}
+      <section className="py-20 bg-muted/30" id="features">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-5xl font-bold text-blue-900 dark:text-gray-100 mb-4">
-              ¿Cómo funciona el
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600 dark:from-cyan-400 dark:to-purple-400">
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Funcionalidades
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">
                 {" "}
-                Copy Trading{" "}
+                Principales{" "}
               </span>
-              Automático?
             </h2>
-            <p className="text-xl text-blue-700 dark:text-gray-300 max-w-3xl mx-auto">
-              Nuestra plataforma conecta tus cuentas de propfirm con brokers
-              personales para replicar automáticamente todas las operaciones.
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Todo lo que necesitas para operar como un profesional del trading.
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-3 gap-8 mb-16">
-            {tradingFeatures.map((feature, index) => (
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {keyFeatures.map((feature, index) => (
               <div
                 key={index}
-                className="relative bg-gradient-to-br from-white to-amber-50/50 dark:from-gray-800 dark:to-gray-750 p-8 rounded-2xl border border-amber-200/30 dark:border-cyan-500/20 hover:shadow-2xl transition-all duration-300 group hover:border-amber-300 dark:hover:border-cyan-400"
+                className="bg-card p-6 rounded-xl border border-border hover:shadow-lg transition-all duration-300 group hover:border-primary/50 text-center"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-orange-500/5 dark:from-cyan-500/10 dark:to-purple-500/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="relative">
-                  <div className="mb-6">{feature.icon}</div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
-                    {feature.description}
-                  </p>
-                  <ul className="space-y-2">
-                    {feature.details.map((detail, detailIndex) => (
-                      <li
-                        key={detailIndex}
-                        className="flex items-center text-sm text-gray-700"
-                      >
-                        <CheckCircle className="h-4 w-4 text-emerald-500 mr-2 flex-shrink-0" />
-                        {detail}
-                      </li>
-                    ))}
-                  </ul>
+                <div
+                  className={`inline-flex items-center justify-center w-16 h-16 ${feature.bgColor} rounded-xl mb-4 group-hover:scale-110 transition-transform duration-300`}
+                >
+                  <div className={feature.color}>{feature.icon}</div>
                 </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Flow diagram */}
-          <div className="bg-gradient-to-r from-blue-900 via-slate-800 to-blue-950 dark:from-gray-900 dark:via-black dark:to-gray-900 rounded-2xl p-8 md:p-12 border border-amber-400/20 dark:border-cyan-400/30 shadow-2xl">
-            <h3 className="text-2xl md:text-3xl font-bold text-white text-center mb-8">
-              Flujo de Trabajo Automático
-            </h3>
-            <div className="grid md:grid-cols-4 gap-6 text-center">
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 dark:from-cyan-400 dark:to-cyan-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <Building2 className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="text-amber-200 dark:text-cyan-200 font-semibold mb-2">
-                  1. Conectar Propfirm
-                </h4>
-                <p className="text-blue-200 dark:text-gray-300 text-sm">
-                  Vincula tu cuenta de propfirm (FTMO, TopStep, etc.)
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-amber-500 dark:from-purple-400 dark:to-purple-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <Wallet className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="text-yellow-200 dark:text-purple-200 font-semibold mb-2">
-                  2. Conectar Broker
-                </h4>
-                <p className="text-blue-200 dark:text-gray-300 text-sm">
-                  Agrega tu broker personal (IC Markets, XM, etc.)
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-orange-500 to-red-500 dark:from-violet-400 dark:to-violet-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <Cable className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="text-orange-200 dark:text-violet-200 font-semibold mb-2">
-                  3. Sincronización
-                </h4>
-                <p className="text-blue-200 dark:text-gray-300 text-sm">
-                  Configura la conexión automática entre ambas cuentas
-                </p>
-              </div>
-
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-pink-500 dark:from-pink-400 dark:to-pink-500 rounded-full flex items-center justify-center mb-4 shadow-lg">
-                  <TrendingUp className="h-8 w-8 text-white" />
-                </div>
-                <h4 className="text-red-200 dark:text-pink-200 font-semibold mb-2">
-                  4. Trading Automático
-                </h4>
-                <p className="text-blue-200 dark:text-gray-300 text-sm">
-                  Las operaciones se copian instantáneamente
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-orange-50/30 dark:bg-gradient-to-b dark:from-gray-950 dark:to-gray-900">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-900 dark:text-gray-100 mb-4">
-              Funcionalidades Completas para Traders Profesionales
-            </h2>
-            <p className="text-xl text-blue-700 dark:text-gray-300 max-w-3xl mx-auto">
-              Todo lo que necesitas para gestionar tu trading de manera
-              profesional, desde conexiones automáticas hasta análisis
-              avanzados.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <div
-                key={index}
-                className="bg-white dark:bg-gray-800 p-8 rounded-xl border border-amber-200/50 dark:border-cyan-500/30 hover:shadow-xl hover:border-amber-400 dark:hover:border-cyan-400 transition-all duration-300 group hover:bg-gradient-to-br hover:from-amber-50/50 hover:to-orange-50/50 dark:hover:from-cyan-900/20 dark:hover:to-purple-900/20"
-              >
-                <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-amber-500 to-orange-500 dark:from-cyan-500 dark:to-purple-500 text-white rounded-xl mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                  {feature.icon}
-                </div>
-                <h3 className="text-xl font-bold text-blue-900 dark:text-gray-100 mb-4">
+                <h3 className="text-lg font-semibold text-foreground mb-3">
                   {feature.title}
                 </h3>
-                <p className="text-blue-700 dark:text-gray-300 leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed text-sm">
                   {feature.description}
                 </p>
               </div>
@@ -383,61 +292,140 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-b from-amber-50 to-orange-100 dark:bg-gradient-to-b dark:from-gray-800 dark:to-gray-900">
+      {/* Pricing Section */}
+      <section className="py-20 bg-background" id="pricing">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-900 dark:text-gray-100 mb-4">
-              Números que Hablan por Sí Solos
+            <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
+              Planes de
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">
+                {" "}
+                Suscripción{" "}
+              </span>
             </h2>
-            <p className="text-xl text-blue-700 dark:text-gray-300">
-              Confían en nosotros traders de todo el mundo
+            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+              Elige el plan que mejor se adapte a tu operación de trading
+              profesional.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="text-center bg-gradient-to-br from-white to-amber-50 dark:from-gray-800 dark:to-cyan-900/20 p-8 rounded-2xl border border-amber-300/50 dark:border-cyan-400/30 shadow-lg">
-              <div className="text-5xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 dark:from-cyan-400 dark:to-cyan-300 bg-clip-text text-transparent mb-2">
-                5,000+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {pricingPlans.map((plan, index) => (
+              <div
+                key={index}
+                className={`relative bg-card p-8 rounded-2xl border transition-all duration-300 hover:shadow-xl ${
+                  plan.popular
+                    ? "border-primary shadow-lg scale-105"
+                    : "border-border hover:border-primary/50"
+                }`}
+              >
+                {plan.popular && (
+                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                    <span className="bg-primary text-primary-foreground px-4 py-2 rounded-full text-sm font-semibold">
+                      Más Popular
+                    </span>
+                  </div>
+                )}
+
+                <div className="text-center mb-8">
+                  <div
+                    className={`inline-flex items-center justify-center w-16 h-16 ${plan.bgColor} rounded-xl mb-4`}
+                  >
+                    <div className={plan.color}>{plan.icon}</div>
+                  </div>
+                  <h3 className="text-2xl font-bold text-foreground mb-2">
+                    {plan.name}
+                  </h3>
+                  <p className="text-muted-foreground mb-6">
+                    {plan.description}
+                  </p>
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl font-bold text-foreground">
+                      {plan.price}
+                    </span>
+                    <span className="text-muted-foreground ml-2">
+                      {plan.period}
+                    </span>
+                  </div>
+                </div>
+
+                <ul className="space-y-4 mb-8">
+                  {plan.features.map((feature, featureIndex) => (
+                    <li key={featureIndex} className="flex items-center">
+                      <CheckCircle className="h-5 w-5 text-primary mr-3 flex-shrink-0" />
+                      <span className="text-foreground">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+
+                <Link
+                  href="/signup"
+                  className={`w-full py-3 px-6 rounded-xl font-semibold text-center transition-all duration-300 flex items-center justify-center ${
+                    plan.popular
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl transform hover:scale-105"
+                      : "border-2 border-border text-foreground hover:bg-accent hover:text-accent-foreground"
+                  }`}
+                >
+                  Comenzar Prueba
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Link>
               </div>
-              <div className="text-blue-800 dark:text-gray-200 font-medium">
-                Traders Activos
+            ))}
+          </div>
+
+          <div className="text-center mt-12">
+            <p className="text-muted-foreground mb-4">
+              Todos los planes incluyen 14 días de prueba gratuita
+            </p>
+            <div className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
+              <div className="flex items-center">
+                <Shield className="w-4 h-4 mr-2 text-primary" />
+                Sin tarjeta de crédito
               </div>
-              <div className="text-sm text-blue-600 dark:text-gray-400 mt-1">
-                y creciendo cada día
+              <div className="flex items-center">
+                <CheckCircle className="w-4 h-4 mr-2 text-primary" />
+                Cancelar en cualquier momento
+              </div>
+              <div className="flex items-center">
+                <Users className="w-4 h-4 mr-2 text-primary" />
+                Soporte técnico incluido
               </div>
             </div>
-            <div className="text-center bg-gradient-to-br from-white to-yellow-50 dark:from-gray-800 dark:to-purple-900/20 p-8 rounded-2xl border border-yellow-300/50 dark:border-purple-400/30 shadow-lg">
-              <div className="text-5xl font-bold bg-gradient-to-r from-yellow-600 to-amber-600 dark:from-purple-400 dark:to-purple-300 bg-clip-text text-transparent mb-2">
-                99.8%
-              </div>
-              <div className="text-blue-800 dark:text-gray-200 font-medium">
-                Uptime
-              </div>
-              <div className="text-sm text-blue-600 dark:text-gray-400 mt-1">
-                disponibilidad garantizada
-              </div>
-            </div>
-            <div className="text-center bg-gradient-to-br from-white to-orange-50 dark:from-gray-800 dark:to-violet-900/20 p-8 rounded-2xl border border-orange-300/50 dark:border-violet-400/30 shadow-lg">
-              <div className="text-5xl font-bold bg-gradient-to-r from-orange-600 to-red-600 dark:from-violet-400 dark:to-violet-300 bg-clip-text text-transparent mb-2">
-                $50M+
-              </div>
-              <div className="text-blue-800 dark:text-gray-200 font-medium">
-                Capital Gestionado
-              </div>
-              <div className="text-sm text-blue-600 dark:text-gray-400 mt-1">
-                a través de la plataforma
-              </div>
-            </div>
-            <div className="text-center bg-gradient-to-br from-white to-red-50 dark:from-gray-800 dark:to-pink-900/20 p-8 rounded-2xl border border-red-300/50 dark:border-pink-400/30 shadow-lg">
-              <div className="text-5xl font-bold bg-gradient-to-r from-red-600 to-pink-600 dark:from-pink-400 dark:to-pink-300 bg-clip-text text-transparent mb-2">
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-muted/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid md:grid-cols-3 gap-8 text-center">
+            <div className="bg-card p-8 rounded-xl border border-border shadow-sm">
+              <div className="text-4xl font-bold text-primary mb-2">
                 {"<"}50ms
               </div>
-              <div className="text-blue-800 dark:text-gray-200 font-medium">
-                Latencia
+              <div className="text-foreground font-medium mb-2">
+                Latencia Ultra-Baja
               </div>
-              <div className="text-sm text-blue-600 dark:text-gray-400 mt-1">
-                ejecución ultra-rápida
+              <div className="text-sm text-muted-foreground">
+                Ejecución instantánea de trades
+              </div>
+            </div>
+            <div className="bg-card p-8 rounded-xl border border-border shadow-sm">
+              <div className="text-4xl font-bold text-primary mb-2">24/7</div>
+              <div className="text-foreground font-medium mb-2">
+                Monitoreo Continuo
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Sistema siempre disponible
+              </div>
+            </div>
+            <div className="bg-card p-8 rounded-xl border border-border shadow-sm">
+              <div className="text-4xl font-bold text-primary mb-2">50+</div>
+              <div className="text-foreground font-medium mb-2">
+                PropFirms Soportadas
+              </div>
+              <div className="text-sm text-muted-foreground">
+                Integración completa
               </div>
             </div>
           </div>
@@ -445,47 +433,47 @@ export default function HomePage() {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-20 bg-gradient-to-b from-white to-amber-50/50 dark:bg-gradient-to-b dark:from-gray-950 dark:to-gray-800">
+      <section className="py-20 bg-background">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-blue-900 dark:text-gray-100 mb-4">
-              Lo que dicen nuestros
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600 dark:from-cyan-400 dark:to-purple-400">
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              Casos de Éxito de
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">
                 {" "}
-                Traders{" "}
+                Traders Profesionales{" "}
               </span>
             </h2>
-            <p className="text-xl text-blue-700 dark:text-gray-300">
-              Testimonios reales de traders que han transformado su estrategia
+            <p className="text-xl text-muted-foreground">
+              Historias reales de traders que han escalado su operación
             </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-3 gap-6">
             {testimonials.map((testimonial, index) => (
               <div
                 key={index}
-                className="bg-gradient-to-br from-white to-amber-50/70 dark:from-gray-800 dark:to-gray-750 p-8 rounded-2xl border border-amber-200/50 dark:border-cyan-400/30 hover:shadow-xl transition-all duration-300 hover:border-amber-400 dark:hover:border-cyan-400 shadow-lg"
+                className="bg-card p-6 rounded-xl border border-border hover:shadow-lg transition-all duration-300 hover:border-primary/50"
               >
-                <div className="flex mb-6">
+                <div className="flex mb-4">
                   {[...Array(testimonial.rating)].map((_, i) => (
                     <Star
                       key={i}
-                      className="h-5 w-5 text-amber-500 dark:text-cyan-400 fill-current"
+                      className="h-4 w-4 text-primary fill-current"
                     />
                   ))}
                 </div>
-                <blockquote className="text-blue-800 dark:text-gray-300 mb-6 text-lg italic leading-relaxed">
+                <blockquote className="text-foreground mb-4 text-sm italic leading-relaxed">
                   "{testimonial.content}"
                 </blockquote>
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 dark:from-cyan-500 dark:to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg mr-4 shadow-lg">
+                  <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-bold text-sm mr-3">
                     {testimonial.name.charAt(0)}
                   </div>
                   <div>
-                    <div className="font-bold text-blue-900 dark:text-gray-100">
+                    <div className="font-semibold text-foreground text-sm">
                       {testimonial.name}
                     </div>
-                    <div className="text-blue-600 dark:text-gray-400 text-sm">
+                    <div className="text-muted-foreground text-xs">
                       {testimonial.role}
                     </div>
                   </div>
@@ -497,64 +485,62 @@ export default function HomePage() {
       </section>
 
       {/* Contact Section */}
-      <section
-        className="py-20 bg-gradient-to-b from-orange-50 to-amber-100 dark:bg-gradient-to-b dark:from-gray-900 dark:to-gray-800"
-        id="contact"
-      >
+      <section className="py-20 bg-muted/30" id="contact">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-2 gap-16 items-center">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-5xl font-bold text-blue-900 dark:text-gray-100 mb-6">
+              <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-6">
                 ¿Listo para
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600 dark:from-cyan-400 dark:to-purple-400">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-primary/80">
                   {" "}
                   Comenzar{" "}
                 </span>
-                tu Journey?
+                tu Operación Profesional?
               </h2>
-              <p className="text-xl text-blue-700 dark:text-gray-300 mb-8 leading-relaxed">
-                Únete a miles de traders que ya están multiplicando su capital
-                con nuestra plataforma de copy trading automático.
+              <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
+                Únete a traders profesionales que ya están escalando su
+                operación con nuestra plataforma integral de copy trading
+                automático.
               </p>
 
-              <div className="space-y-6">
+              <div className="space-y-4">
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-amber-100 dark:bg-cyan-900/30 rounded-lg flex items-center justify-center mr-4">
-                    <Phone className="h-6 w-6 text-amber-700 dark:text-cyan-400" />
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                    <Phone className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="font-semibold text-blue-900 dark:text-gray-100">
-                      Soporte 24/7
+                    <div className="font-semibold text-foreground">
+                      Soporte Técnico 24/7
                     </div>
-                    <div className="text-blue-700 dark:text-gray-400">
+                    <div className="text-muted-foreground text-sm">
                       +1 (555) 123-4567
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-yellow-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center mr-4">
-                    <Mail className="h-6 w-6 text-yellow-700 dark:text-purple-400" />
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                    <Mail className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="font-semibold text-blue-900 dark:text-gray-100">
-                      Email
+                    <div className="font-semibold text-foreground">
+                      Email de Contacto
                     </div>
-                    <div className="text-blue-700 dark:text-gray-400">
+                    <div className="text-muted-foreground text-sm">
                       support@tradingplatform.com
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center">
-                  <div className="w-12 h-12 bg-orange-100 dark:bg-violet-900/30 rounded-lg flex items-center justify-center mr-4">
-                    <MapPin className="h-6 w-6 text-orange-700 dark:text-violet-400" />
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                    <MapPin className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <div className="font-semibold text-blue-900 dark:text-gray-100">
-                      Oficina
+                    <div className="font-semibold text-foreground">
+                      Oficina Principal
                     </div>
-                    <div className="text-blue-700 dark:text-gray-400">
+                    <div className="text-muted-foreground text-sm">
                       Miami, FL - USA
                     </div>
                   </div>
@@ -562,17 +548,17 @@ export default function HomePage() {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl border border-amber-200/50 dark:border-cyan-400/30 shadow-lg">
-              <h3 className="text-2xl font-bold text-blue-900 dark:text-gray-100 mb-6">
+            <div className="bg-card p-8 rounded-xl border border-border shadow-lg">
+              <h3 className="text-2xl font-bold text-foreground mb-6">
                 Contacta con Nuestro Equipo
               </h3>
 
               <form onSubmit={handleContactSubmit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <Label
                       htmlFor="name"
-                      className="text-blue-800 dark:text-gray-300 font-medium"
+                      className="text-foreground font-medium"
                     >
                       Nombre Completo *
                     </Label>
@@ -588,14 +574,14 @@ export default function HomePage() {
                       }
                       placeholder="Tu nombre"
                       required
-                      className="mt-2 border-amber-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-amber-500 focus:ring-amber-500 dark:focus:border-cyan-400 dark:focus:ring-cyan-400"
+                      className="mt-2"
                     />
                   </div>
 
                   <div>
                     <Label
                       htmlFor="email"
-                      className="text-blue-800 dark:text-gray-300 font-medium"
+                      className="text-foreground font-medium"
                     >
                       Email *
                     </Label>
@@ -611,7 +597,7 @@ export default function HomePage() {
                       }
                       placeholder="tu@email.com"
                       required
-                      className="mt-2 border-amber-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-amber-500 focus:ring-amber-500 dark:focus:border-cyan-400 dark:focus:ring-cyan-400"
+                      className="mt-2"
                     />
                   </div>
                 </div>
@@ -619,7 +605,7 @@ export default function HomePage() {
                 <div>
                   <Label
                     htmlFor="company"
-                    className="text-blue-800 dark:text-gray-300 font-medium"
+                    className="text-foreground font-medium"
                   >
                     Empresa/Propfirm
                   </Label>
@@ -634,14 +620,14 @@ export default function HomePage() {
                       }))
                     }
                     placeholder="Nombre de tu empresa (opcional)"
-                    className="mt-2 border-amber-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 focus:border-amber-500 focus:ring-amber-500 dark:focus:border-cyan-400 dark:focus:ring-cyan-400"
+                    className="mt-2"
                   />
                 </div>
 
                 <div>
                   <Label
                     htmlFor="message"
-                    className="text-blue-800 dark:text-gray-300 font-medium"
+                    className="text-foreground font-medium"
                   >
                     Mensaje *
                   </Label>
@@ -657,14 +643,11 @@ export default function HomePage() {
                     }
                     placeholder="Cuéntanos sobre tu estrategia de trading y cómo podemos ayudarte..."
                     required
-                    className="mt-2 w-full px-3 py-2 border border-amber-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded-md focus:outline-none focus:ring-amber-500 focus:border-amber-500 dark:focus:ring-cyan-400 dark:focus:border-cyan-400"
+                    className="mt-2 w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary bg-background text-foreground"
                   />
                 </div>
 
-                <Button
-                  type="submit"
-                  className="w-full bg-gradient-to-r from-amber-500 to-orange-500 dark:from-cyan-500 dark:to-purple-500 text-white py-3 rounded-xl font-bold hover:from-amber-400 hover:to-orange-400 dark:hover:from-cyan-400 dark:hover:to-purple-400 transition-all duration-300 shadow-lg hover:shadow-xl"
-                >
+                <Button type="submit" className="w-full">
                   Enviar Mensaje
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -675,61 +658,60 @@ export default function HomePage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-900 via-slate-800 to-blue-950 dark:from-black dark:via-gray-950 dark:to-gray-900 relative overflow-hidden">
+      <section className="py-20 bg-card border-t border-border relative overflow-hidden">
         {/* Background effects */}
-        <div className="absolute inset-0 bg-black/30 dark:bg-black/60"></div>
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-amber-500/10 dark:bg-cyan-400/15 rounded-full filter blur-3xl"></div>
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-orange-500/10 dark:bg-purple-400/15 rounded-full filter blur-3xl"></div>
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-primary/5 rounded-full filter blur-3xl"></div>
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-primary/10 rounded-full filter blur-3xl"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="mb-6">
-            <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-amber-400/20 dark:bg-cyan-400/30 text-amber-100 dark:text-cyan-100 border border-amber-400/30 dark:border-cyan-400/40 backdrop-blur-sm">
+            <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-primary/10 text-primary border border-primary/20 backdrop-blur-sm">
               <TrendingUp className="w-4 h-4 mr-2" />
-              Únete a la revolución del copy trading
+              Plataforma profesional lista para usar
             </span>
           </div>
 
-          <h2 className="text-3xl md:text-6xl font-bold text-white mb-6 leading-tight">
-            Comienza a Multiplicar tu
-            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-orange-400 to-red-400 dark:from-cyan-300 dark:via-purple-300 dark:to-violet-300">
-              Capital Hoy Mismo
+          <h2 className="text-3xl md:text-6xl font-bold text-foreground mb-6 leading-tight">
+            Comienza tu Operación
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-primary via-primary to-primary/80">
+              Profesional Hoy Mismo
             </span>
           </h2>
 
-          <p className="text-xl text-blue-100 dark:text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed">
             Sin riesgo. Sin compromisos. 14 días de prueba gratuita para que
-            experimentes el poder del copy trading automático con todas las
-            funcionalidades desbloqueadas.
+            experimentes todas las funcionalidades del sistema profesional de
+            copy trading.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link
               href="/signup"
-              className="bg-gradient-to-r from-amber-500 to-orange-500 dark:from-cyan-500 dark:to-purple-500 text-white px-12 py-4 rounded-2xl font-bold text-lg hover:from-amber-400 hover:to-orange-400 dark:hover:from-cyan-400 dark:hover:to-purple-400 transition-all duration-300 flex items-center justify-center shadow-2xl hover:shadow-3xl transform hover:scale-105"
+              className="bg-primary text-primary-foreground px-12 py-4 rounded-2xl font-bold text-lg hover:bg-primary/90 transition-all duration-300 flex items-center justify-center shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               <TrendingUp className="mr-3 h-6 w-6" />
               Comenzar Prueba Gratuita
               <ArrowRight className="ml-3 h-6 w-6" />
             </Link>
 
-            <div className="flex items-center space-x-6 text-blue-200 dark:text-gray-200">
+            <div className="flex items-center space-x-6 text-muted-foreground">
               <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-amber-300 dark:text-cyan-300 mr-2" />
+                <CheckCircle className="w-5 h-5 text-primary mr-2" />
                 Sin tarjeta de crédito
               </div>
               <div className="flex items-center">
-                <Shield className="w-5 h-5 text-orange-300 dark:text-purple-300 mr-2" />
+                <Shield className="w-5 h-5 text-primary mr-2" />
                 100% Seguro
               </div>
             </div>
           </div>
 
           <div className="mt-12 text-center">
-            <p className="text-blue-300 dark:text-gray-300 text-sm">
+            <p className="text-muted-foreground text-sm">
               ¿Ya tienes cuenta?{" "}
               <Link
                 href="/signin"
-                className="text-amber-300 dark:text-cyan-300 hover:text-amber-200 dark:hover:text-cyan-200 font-semibold"
+                className="text-primary hover:text-primary/80 font-semibold"
               >
                 Iniciar Sesión
               </Link>

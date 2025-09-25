@@ -1,3 +1,5 @@
+"use client";
+
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useAuthContext } from "@/AuthContext";
@@ -16,7 +18,7 @@ export default function ProtectedRoute({
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
-      router.push("/signin");
+      router.push("/");
     }
   }, [loading, isAuthenticated, router]);
 

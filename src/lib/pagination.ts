@@ -72,12 +72,17 @@ export function createSearchFilter(
 export function createSortOrder(
   sortBy?: string,
   sortOrder: "asc" | "desc" = "desc",
+  fieldMapping?: Record<string, string>,
 ): { [key: string]: "asc" | "desc" } {
   if (!sortBy) {
     return { createdAt: sortOrder };
   }
 
-  return { [sortBy]: sortOrder };
+  // Apply field mapping if provided
+  const mappedSortBy =
+    fieldMapping && fieldMapping[sortBy] ? fieldMapping[sortBy] : sortBy;
+
+  return { [mappedSortBy]: sortOrder };
 }
 
 // Hook personalizado para manejo de paginación en el frontend

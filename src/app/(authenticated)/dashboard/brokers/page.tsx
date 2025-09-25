@@ -1,11 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building2, Edit, Plus, Trash2, X } from "lucide-react";
+import { Building2, Edit, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,11 +23,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type {
-  TableAction,
-  TableColumn,
+import {
+  ScrollableTable,
+  type TableAction,
+  type TableColumn,
 } from "@/components/ui/scrollable-table";
-import { ScrollableTable } from "@/components/ui/scrollable-table";
+import { Textarea } from "@/components/ui/textarea";
 import { usePagination } from "@/hooks/usePagination";
 import { trpc } from "@/utils/trpc";
 
@@ -31,6 +40,7 @@ const brokerSchema = z.object({
   description: z.string().optional(),
   website: z.string().url("URL inválida").optional().or(z.literal("")),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  isActive: z.boolean(),
 });
 
 type BrokerFormData = z.infer<typeof brokerSchema>;
@@ -54,14 +64,11 @@ export default function BrokersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const pagination = usePagination({ defaultLimit: 10 });
-  const { search, setSearch, sortBy, sortOrder, setSortBy, setSortOrder } =
-    pagination;
   const queryParams = pagination.getQueryParams();
 
   const {
     data: response,
     refetch,
-    error,
     isLoading,
   } = trpc.broker.getAll.useQuery(queryParams);
 
@@ -95,18 +102,11 @@ export default function BrokersPage() {
       description: "",
       website: "",
       logoUrl: "",
+      isActive: true,
     },
   });
 
   const brokers = response?.data || [];
-  const paginationInfo = response?.pagination || {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false,
-  };
 
   const handleEdit = (broker: Partial<Broker>) => {
     setEditingBroker(broker);
@@ -142,17 +142,11 @@ export default function BrokersPage() {
     }
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    setSortBy(sortByField);
-    setSortOrder(sortOrderField);
-  };
-
   // Definir columnas de la tabla
   const columns: TableColumn<Broker>[] = [
     {
       key: "displayName",
       title: "Broker",
-      sortable: true,
       render: (_, record) => (
         <div className="flex items-center">
           {record.logoUrl ? (
@@ -167,10 +161,10 @@ export default function BrokersPage() {
             </div>
           )}
           <div>
-            <div className="text-sm font-medium text-gray-900">
+            <div className="text-sm font-medium text-foreground">
               {record.displayName}
             </div>
-            <div className="text-sm text-gray-500">{record.name}</div>
+            <div className="text-sm text-muted-foreground">{record.name}</div>
           </div>
         </div>
       ),
@@ -181,37 +175,41 @@ export default function BrokersPage() {
       render: (value) =>
         value ? (
           <a
-            href={value}
+            href={value as string}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-800 text-sm"
           >
-            {value}
+            {value as string}
           </a>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-muted-foreground">-</span>
         ),
     },
     {
-      key: "isActive",
+      key: "status",
       title: "Estado",
-      sortable: true,
-      render: (value) => (
-        <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+      render: (_, record) => (
+        <Badge
+          variant="outline"
+          className={`text-xs font-medium ${
+            record.isActive
+              ? "bg-green-100 text-green-600 border-green-200 hover:bg-green-200"
+              : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
           }`}
         >
-          {value ? "Activo" : "Inactivo"}
-        </span>
+          {record.isActive ? "Activo" : "Inactivo"}
+        </Badge>
       ),
     },
     {
       key: "createdAt",
       title: "Creado",
-      sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
-      className: "text-sm text-gray-500",
+      render: (_, record) => (
+        <div className="text-xs text-muted-foreground">
+          {new Date(record.createdAt).toLocaleDateString("es-ES")}
+        </div>
+      ),
     },
   ];
 
@@ -233,84 +231,68 @@ export default function BrokersPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Building2 className="h-6 w-6 text-blue-600" />
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">
             Gestión de Brokers
           </h1>
+          <p className="text-sm text-muted-foreground mt-0.5 mr-8">
+            Administra los brokers del sistema y configura sus reglas
+          </p>
         </div>
+        <Button
+          size="sm"
+          className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white border-0"
+          onClick={handleCreate}
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
+          <span>Nuevo Broker</span>
+        </Button>
       </div>
 
       {/* Tabla con ScrollableTable */}
       <ScrollableTable<Broker>
         data={brokers}
         columns={columns}
-        loading={isLoading}
-        error={error?.message || null}
-        pagination={paginationInfo}
-        onPageChange={pagination.setPage}
-        onPageSizeChange={pagination.setLimit}
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar brokers..."
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSortChange={handleSort}
         actions={actions}
-        headerActions={
-          <Button
-            onClick={handleCreate}
-            className="flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Nuevo Broker</span>
-          </Button>
-        }
         emptyMessage="No se encontraron brokers"
-        emptyIcon={<Building2 className="h-12 w-12 text-gray-400" />}
+        emptyIcon={<Building2 className="h-12 w-12 text-muted-foreground" />}
+        loading={isLoading}
       />
 
-      {/* Create/Edit Modal */}
-      {(isCreateModalOpen || editingBroker) && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
-          onClick={() => {
+      {/* Create/Edit Dialog */}
+      <Dialog
+        open={isCreateModalOpen || !!editingBroker}
+        onOpenChange={(open) => {
+          if (!open) {
             setIsCreateModalOpen(false);
             setEditingBroker(null);
             form.reset();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => {
-                setIsCreateModalOpen(false);
-                setEditingBroker(null);
-                form.reset();
-              }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="text-lg font-semibold mb-4 pr-8">
-              {editingBroker ? "Editar Broker" : "Nuevo Broker"}
-            </h3>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl border-border">
+          <DialogHeader>
+            <DialogTitle>
+              {editingBroker ? "Editar Broker" : "Crear Nuevo Broker"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingBroker
+                ? "Modifica la información del broker seleccionado."
+                : "Completa la información para crear un nuevo broker en el sistema."}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre del Broker</FormLabel>
+                      <FormLabel>Nombre del Broker *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="broker_name" />
                       </FormControl>
@@ -323,7 +305,7 @@ export default function BrokersPage() {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre de Visualización</FormLabel>
+                      <FormLabel>Nombre de Visualización *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Nombre del Broker" />
                       </FormControl>
@@ -331,22 +313,24 @@ export default function BrokersPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descripción</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Descripción del broker"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              </div>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Descripción del broker..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="website"
@@ -381,30 +365,36 @@ export default function BrokersPage() {
                     </FormItem>
                   )}
                 />
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsCreateModalOpen(false);
-                      setEditingBroker(null);
-                      form.reset();
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={createBroker.isPending || updateBroker.isPending}
-                  >
-                    {editingBroker ? "Actualizar" : "Crear"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </div>
-        </div>
-      )}
+              </div>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setEditingBroker(null);
+                    form.reset();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createBroker.isPending || updateBroker.isPending}
+                >
+                  {createBroker.isPending || updateBroker.isPending
+                    ? editingBroker
+                      ? "Actualizando..."
+                      : "Creando..."
+                    : editingBroker
+                      ? "Actualizar"
+                      : "Crear"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

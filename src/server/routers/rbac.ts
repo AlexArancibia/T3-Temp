@@ -60,6 +60,13 @@ export const rbacRouter = router({
       );
     }),
 
+  // Get permissions for a specific role
+  getRolePermissions: publicProcedure
+    .input(z.object({ roleId: z.string() }))
+    .query(async ({ input }) => {
+      return await RBACService.getRolePermissions(input.roleId);
+    }),
+
   // Get user roles
   getUserRoles: publicProcedure
     .input(z.object({ userId: z.string() }))

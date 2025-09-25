@@ -3,10 +3,13 @@
 import {
   AlertTriangle,
   Calculator,
+  Crown,
   DollarSign,
+  Lock,
   Target,
   TrendingUp,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -123,7 +126,7 @@ export function TradingCalculator() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Input Section */}
-        <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <TrendingUp className="h-5 w-5 text-blue-600" />
@@ -300,7 +303,7 @@ export function TradingCalculator() {
         </Card>
 
         {/* Results Section */}
-        <Card className="bg-gradient-to-br from-emerald-50 to-green-50 border-emerald-200">
+        <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Target className="h-5 w-5 text-emerald-600" />
@@ -408,7 +411,7 @@ export function TradingCalculator() {
       </div>
 
       {/* Formula Explanation */}
-      <Card className="bg-gradient-to-br from-gray-50 to-gray-100 border-gray-200">
+      <Card>
         <CardHeader>
           <CardTitle className="text-lg">Fórmulas Utilizadas</CardTitle>
         </CardHeader>

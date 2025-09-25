@@ -1,11 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Edit, Plus, Trash2, TrendingUp, X } from "lucide-react";
+import { Edit, Plus, Trash2, TrendingUp } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -15,11 +23,18 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type {
-  TableAction,
-  TableColumn,
+import {
+  ScrollableTable,
+  type TableAction,
+  type TableColumn,
 } from "@/components/ui/scrollable-table";
-import { ScrollableTable } from "@/components/ui/scrollable-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { usePagination } from "@/hooks/usePagination";
 import { trpc } from "@/utils/trpc";
 
@@ -55,8 +70,6 @@ export default function SymbolsPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const pagination = usePagination({ defaultLimit: 10 });
-  const { search, setSearch, sortBy, sortOrder, setSortBy, setSortOrder } =
-    pagination;
   const queryParams = pagination.getQueryParams();
 
   const {
@@ -149,25 +162,20 @@ export default function SymbolsPage() {
     }
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    setSortBy(sortByField);
-    setSortOrder(sortOrderField);
-  };
-
   const getCategoryColor = (category: string) => {
     switch (category) {
       case "FOREX":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-50 text-blue-600 border-blue-200";
       case "CRYPTO":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-50 text-orange-600 border-orange-200";
       case "STOCKS":
-        return "bg-green-100 text-green-800";
+        return "bg-green-50 text-green-600 border-green-200";
       case "COMMODITIES":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-50 text-yellow-600 border-yellow-200";
       case "INDICES":
-        return "bg-purple-100 text-purple-800";
+        return "bg-purple-50 text-purple-600 border-purple-200";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-foreground";
     }
   };
 
@@ -176,17 +184,13 @@ export default function SymbolsPage() {
     {
       key: "symbol",
       title: "Símbolo",
-      sortable: true,
       render: (_, record) => (
-        <div className="flex items-center">
-          <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center mr-3">
-            <TrendingUp className="h-5 w-5 text-emerald-600" />
+        <div>
+          <div className="text-sm font-medium text-foreground">
+            {record.symbol}
           </div>
-          <div>
-            <div className="text-sm font-medium text-gray-900">
-              {record.symbol}
-            </div>
-            <div className="text-sm text-gray-500">{record.displayName}</div>
+          <div className="text-sm text-muted-foreground">
+            {record.displayName}
           </div>
         </div>
       ),
@@ -194,27 +198,30 @@ export default function SymbolsPage() {
     {
       key: "category",
       title: "Categoría",
-      sortable: true,
       render: (value) => (
-        <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getCategoryColor(value)}`}
+        <Badge
+          variant="outline"
+          className={`text-xs font-medium ${getCategoryColor(value as string)}`}
         >
-          {value}
-        </span>
+          {value as string}
+        </Badge>
       ),
     },
     {
       key: "pipDecimalPosition",
       title: "Decimales Pip",
-      sortable: true,
-      render: (value) => <span className="text-sm text-gray-900">{value}</span>,
+      render: (value) => (
+        <span className="text-sm text-foreground">{value as number}</span>
+      ),
     },
     {
       key: "createdAt",
       title: "Creado",
-      sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
-      className: "text-sm text-gray-500",
+      render: (_, record) => (
+        <div className="text-xs text-muted-foreground">
+          {new Date(record.createdAt).toLocaleDateString("es-ES")}
+        </div>
+      ),
     },
   ];
 
@@ -236,15 +243,25 @@ export default function SymbolsPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <TrendingUp className="h-6 w-6 text-emerald-600" />
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">
             Gestión de Símbolos
           </h1>
+          <p className="text-sm text-muted-foreground mt-0.5 mr-8">
+            Administra los símbolos de trading disponibles en el sistema
+          </p>
         </div>
+        <Button
+          size="sm"
+          className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white border-0"
+          onClick={handleCreate}
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
+          <span>Nuevo Símbolo</span>
+        </Button>
       </div>
 
       {/* Tabla con ScrollableTable */}
@@ -256,64 +273,42 @@ export default function SymbolsPage() {
         pagination={paginationInfo}
         onPageChange={pagination.setPage}
         onPageSizeChange={pagination.setLimit}
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar símbolos..."
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSortChange={handleSort}
         actions={actions}
-        headerActions={
-          <Button
-            onClick={handleCreate}
-            className="flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Nuevo Símbolo</span>
-          </Button>
-        }
         emptyMessage="No se encontraron símbolos"
-        emptyIcon={<TrendingUp className="h-12 w-12 text-gray-400" />}
+        emptyIcon={<TrendingUp className="h-12 w-12 text-muted-foreground" />}
       />
 
-      {/* Create/Edit Modal */}
-      {(isCreateModalOpen || editingSymbol) && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
-          onClick={() => {
+      {/* Create/Edit Dialog */}
+      <Dialog
+        open={isCreateModalOpen || !!editingSymbol}
+        onOpenChange={(open) => {
+          if (!open) {
             setIsCreateModalOpen(false);
             setEditingSymbol(null);
             form.reset();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => {
-                setIsCreateModalOpen(false);
-                setEditingSymbol(null);
-                form.reset();
-              }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="text-lg font-semibold mb-4 pr-8">
-              {editingSymbol ? "Editar Símbolo" : "Nuevo Símbolo"}
-            </h3>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl border-border">
+          <DialogHeader>
+            <DialogTitle>
+              {editingSymbol ? "Editar Símbolo" : "Crear Nuevo Símbolo"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingSymbol
+                ? "Modifica la información del símbolo seleccionado."
+                : "Completa la información para crear un nuevo símbolo en el sistema."}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="symbol"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Símbolo</FormLabel>
+                      <FormLabel>Símbolo *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="EURUSD" />
                       </FormControl>
@@ -326,7 +321,7 @@ export default function SymbolsPage() {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre de Visualización</FormLabel>
+                      <FormLabel>Nombre de Visualización *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Euro vs US Dollar" />
                       </FormControl>
@@ -334,34 +329,41 @@ export default function SymbolsPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="category"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Categoría</FormLabel>
+              </div>
+              <FormField
+                control={form.control}
+                name="category"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Categoría *</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                    >
                       <FormControl>
-                        <select
-                          {...field}
-                          className="w-full p-2 border border-gray-300 rounded-md"
-                        >
-                          <option value="FOREX">FOREX</option>
-                          <option value="CRYPTO">CRYPTO</option>
-                          <option value="STOCKS">STOCKS</option>
-                          <option value="COMMODITIES">COMMODITIES</option>
-                          <option value="INDICES">INDICES</option>
-                        </select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecciona una categoría" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                      <SelectContent>
+                        <SelectItem value="FOREX">FOREX</SelectItem>
+                        <SelectItem value="CRYPTO">CRYPTO</SelectItem>
+                        <SelectItem value="STOCKS">STOCKS</SelectItem>
+                        <SelectItem value="COMMODITIES">COMMODITIES</SelectItem>
+                        <SelectItem value="INDICES">INDICES</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="baseCurrency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Moneda Base</FormLabel>
+                      <FormLabel>Moneda Base *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="EUR" />
                       </FormControl>
@@ -374,7 +376,7 @@ export default function SymbolsPage() {
                   name="quoteCurrency"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Moneda de Cotización</FormLabel>
+                      <FormLabel>Moneda de Cotización *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="USD" />
                       </FormControl>
@@ -382,50 +384,56 @@ export default function SymbolsPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="pipDecimalPosition"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Posición Decimal del Pip</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="number"
-                          min="0"
-                          onChange={(e) =>
-                            field.onChange(parseInt(e.target.value, 10) || 4)
-                          }
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsCreateModalOpen(false);
-                      setEditingSymbol(null);
-                      form.reset();
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={createSymbol.isPending || updateSymbol.isPending}
-                  >
-                    {editingSymbol ? "Actualizar" : "Crear"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </div>
-        </div>
-      )}
+              </div>
+              <FormField
+                control={form.control}
+                name="pipDecimalPosition"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Posición Decimal del Pip</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        type="number"
+                        min="0"
+                        onChange={(e) =>
+                          field.onChange(parseInt(e.target.value, 10) || 4)
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setEditingSymbol(null);
+                    form.reset();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createSymbol.isPending || updateSymbol.isPending}
+                >
+                  {createSymbol.isPending || updateSymbol.isPending
+                    ? editingSymbol
+                      ? "Actualizando..."
+                      : "Creando..."
+                    : editingSymbol
+                      ? "Actualizar"
+                      : "Crear"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import type { Prisma } from "@prisma/client";
 import { z } from "zod";
 import { prisma } from "../../lib/db";
 import {
@@ -88,6 +89,10 @@ export const userRouter = router({
         defaultRiskPercentage: true,
         createdAt: true,
         updatedAt: true,
+        userSubscriptions: {
+          orderBy: { createdAt: "desc" },
+          take: 1,
+        },
       },
     });
     if (!user) throw new Error("Usuario no encontrado");
@@ -139,13 +144,7 @@ export const userRouter = router({
       }
 
       // Prepare update data (exclude password - it's handled separately in Account table)
-      const updateData: Partial<{
-        name: string;
-        email: string;
-        phone?: string | null;
-        language?: string | null;
-        defaultRiskPercentage?: number | null;
-      }> = {};
+      const updateData: Prisma.UserUpdateInput = {};
       if (input.name !== undefined) updateData.name = input.name;
       if (input.email !== undefined) updateData.email = input.email;
       if (input.phone !== undefined) updateData.phone = input.phone;
@@ -210,6 +209,85 @@ export const userRouter = router({
 
       await prisma.user.delete({ where: { id: input.id } });
       return true;
+    }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        email: z.string().email("Email inválido"),
+        name: z.string().min(2, "Nombre debe tener al menos 2 caracteres"),
+        password: z
+          .string()
+          .min(6, "Contraseña debe tener al menos 6 caracteres"),
+        phone: z.string().optional(),
+        language: z.enum(["ES", "EN", "PT"]).optional(),
+        defaultRiskPercentage: z.number().min(0.01).max(100).optional(),
+      }),
+    )
+    .mutation(async ({ input, ctx }) => {
+      // Check permissions: only admins can create users
+      const canManageUsers = await RBACService.hasPermission(
+        ctx.user.id,
+        PermissionAction.MANAGE,
+        PermissionResource.USER,
+      );
+
+      if (!canManageUsers) {
+        throw new Error("No tienes permisos para crear usuarios");
+      }
+
+      // Validate email format
+      if (!validateEmail(input.email)) {
+        throw new Error("Email inválido");
+      }
+
+      // Check if email already exists
+      const existingUser = await prisma.user.findUnique({
+        where: { email: input.email },
+      });
+      if (existingUser) {
+        throw new Error("Email ya registrado");
+      }
+
+      // Hash password
+      const bcrypt = await import("bcryptjs");
+      const hashedPassword = await bcrypt.hash(input.password, 10);
+
+      // Create user
+      const newUser = await prisma.user.create({
+        data: {
+          email: input.email,
+          name: input.name,
+          phone: input.phone,
+          language: input.language || "ES",
+          defaultRiskPercentage: input.defaultRiskPercentage || 1.0,
+          emailVerified: false, // Admin-created users need to verify email
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          emailVerified: true,
+          image: true,
+          phone: true,
+          language: true,
+          defaultRiskPercentage: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      // Create account record for Better Auth compatibility
+      await prisma.account.create({
+        data: {
+          userId: newUser.id,
+          accountId: newUser.email,
+          providerId: "credential",
+          password: hashedPassword,
+        },
+      });
+
+      return newUser;
     }),
 
   // Assign role to user

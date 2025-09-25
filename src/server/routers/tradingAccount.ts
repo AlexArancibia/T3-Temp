@@ -7,6 +7,8 @@ import {
   createSortOrder,
   paginationInputSchema,
 } from "../../lib/pagination";
+import { RBACService } from "../../services/rbacService";
+import { PermissionAction, PermissionResource } from "../../types/rbac";
 import { protectedProcedure, router } from "../trpc";
 
 export const tradingAccountRouter = router({
@@ -38,6 +40,49 @@ export const tradingAccountRouter = router({
     return tradingAccounts;
   }),
 
+  // Get trading accounts by user ID (for admin view)
+  getByUserId: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ input, ctx }) => {
+      // Check if user has permission to view other users' data
+      const canManageUsers = await RBACService.hasPermission(
+        ctx.user.id,
+        PermissionAction.READ,
+        PermissionResource.USER,
+      );
+
+      if (input.userId !== ctx.user.id && !canManageUsers) {
+        throw new Error(
+          "No tienes permisos para ver las cuentas de este usuario",
+        );
+      }
+
+      const tradingAccounts = await prisma.tradingAccount.findMany({
+        where: { userId: input.userId },
+        include: {
+          propfirm: true,
+          broker: true,
+          accountTypeRef: true,
+          currentPhase: true,
+          trades: {
+            take: 5,
+            orderBy: { createdAt: "desc" },
+            include: {
+              symbol: true,
+            },
+          },
+          _count: {
+            select: {
+              trades: true,
+            },
+          },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return tradingAccounts;
+    }),
+
   // Get all trading accounts with pagination
   getAll: protectedProcedure
     .input(paginationInputSchema.optional())
@@ -55,7 +100,13 @@ export const tradingAccountRouter = router({
         "accountName",
         "accountNumber",
       ]);
-      const orderBy = createSortOrder(sortBy, sortOrder);
+
+      // Map frontend field names to database field names
+      const fieldMapping: Record<string, string> = {
+        lastActivity: "updatedAt",
+      };
+
+      const orderBy = createSortOrder(sortBy, sortOrder, fieldMapping);
 
       const [tradingAccounts, total] = await Promise.all([
         prisma.tradingAccount.findMany({

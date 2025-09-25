@@ -1,0 +1,33 @@
+-- CreateTable
+CREATE TABLE "public"."company_info" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL DEFAULT 'Feniz',
+    "displayName" TEXT NOT NULL DEFAULT 'Feniz Trading Platform',
+    "description" TEXT,
+    "email" TEXT,
+    "phone" TEXT,
+    "address" TEXT,
+    "city" TEXT,
+    "country" TEXT,
+    "website" TEXT,
+    "facebookUrl" TEXT,
+    "twitterUrl" TEXT,
+    "instagramUrl" TEXT,
+    "linkedinUrl" TEXT,
+    "youtubeUrl" TEXT,
+    "foundedYear" INTEGER,
+    "logoUrl" TEXT,
+    "faviconUrl" TEXT,
+    "metaTitle" TEXT,
+    "metaDescription" TEXT,
+    "metaKeywords" TEXT,
+    "termsUrl" TEXT,
+    "privacyUrl" TEXT,
+    "cookiesUrl" TEXT,
+    "complaintsUrl" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "company_info_pkey" PRIMARY KEY ("id")
+);

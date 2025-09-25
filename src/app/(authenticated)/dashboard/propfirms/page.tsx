@@ -1,12 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Building, Edit, Eye, Plus, Trash2, X } from "lucide-react";
+import { Building, Edit, Eye, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -16,11 +24,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import type {
-  TableAction,
-  TableColumn,
+import {
+  ScrollableTable,
+  type TableAction,
+  type TableColumn,
 } from "@/components/ui/scrollable-table";
-import { ScrollableTable } from "@/components/ui/scrollable-table";
+import { Textarea } from "@/components/ui/textarea";
 import { usePagination } from "@/hooks/usePagination";
 import { trpc } from "@/utils/trpc";
 
@@ -32,6 +41,7 @@ const propfirmSchema = z.object({
   description: z.string().optional(),
   website: z.string().url("URL inválida").optional().or(z.literal("")),
   logoUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+  isActive: z.boolean(),
 });
 
 type PropfirmFormData = z.infer<typeof propfirmSchema>;
@@ -55,14 +65,11 @@ export default function PropfirmsPage() {
   const router = useRouter();
 
   const pagination = usePagination({ defaultLimit: 10 });
-  const { search, setSearch, sortBy, sortOrder, setSortBy, setSortOrder } =
-    pagination;
   const queryParams = pagination.getQueryParams();
 
   const {
     data: response,
     refetch,
-    error,
     isLoading,
   } = trpc.propfirm.getAll.useQuery(queryParams);
 
@@ -96,18 +103,11 @@ export default function PropfirmsPage() {
       description: "",
       website: "",
       logoUrl: "",
+      isActive: true,
     },
   });
 
   const propfirms = response?.data || [];
-  const paginationInfo = response?.pagination || {
-    page: 1,
-    limit: 10,
-    total: 0,
-    totalPages: 0,
-    hasNext: false,
-    hasPrev: false,
-  };
 
   const handleEdit = (propfirm: Propfirm) => {
     setEditingPropfirm(propfirm);
@@ -147,17 +147,11 @@ export default function PropfirmsPage() {
     router.push(`/dashboard/propfirms/${propfirm.id}`);
   };
 
-  const handleSort = (sortByField: string, sortOrderField: "asc" | "desc") => {
-    setSortBy(sortByField);
-    setSortOrder(sortOrderField);
-  };
-
   // Definir columnas de la tabla
   const columns: TableColumn<Propfirm>[] = [
     {
       key: "displayName",
       title: "Propfirm",
-      sortable: true,
       render: (_, record) => (
         <div className="flex items-center">
           {record.logoUrl ? (
@@ -178,7 +172,7 @@ export default function PropfirmsPage() {
             >
               {record.displayName}
             </button>
-            <div className="text-sm text-gray-500">{record.name}</div>
+            <div className="text-sm text-muted-foreground">{record.name}</div>
           </div>
         </div>
       ),
@@ -186,40 +180,44 @@ export default function PropfirmsPage() {
     {
       key: "website",
       title: "Sitio Web",
-      render: (value) =>
-        value ? (
+      render: (_, record) =>
+        record.website ? (
           <a
-            href={value}
+            href={record.website}
             target="_blank"
             rel="noopener noreferrer"
             className="text-blue-600 hover:text-blue-800 text-sm"
           >
-            {value}
+            {record.website}
           </a>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-muted-foreground">-</span>
         ),
     },
     {
-      key: "isActive",
+      key: "status",
       title: "Estado",
-      sortable: true,
-      render: (value) => (
-        <span
-          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-            value ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"
+      render: (_, record) => (
+        <Badge
+          variant="outline"
+          className={`text-xs font-medium ${
+            record.isActive
+              ? "bg-green-100 text-green-600 border-green-200 hover:bg-green-200"
+              : "bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200"
           }`}
         >
-          {value ? "Activo" : "Inactivo"}
-        </span>
+          {record.isActive ? "Activo" : "Inactivo"}
+        </Badge>
       ),
     },
     {
       key: "createdAt",
       title: "Creado",
-      sortable: true,
-      render: (value) => new Date(value).toLocaleDateString(),
-      className: "text-sm text-gray-500",
+      render: (_, record) => (
+        <div className="text-xs text-muted-foreground">
+          {new Date(record.createdAt).toLocaleDateString("es-ES")}
+        </div>
+      ),
     },
   ];
 
@@ -247,84 +245,68 @@ export default function PropfirmsPage() {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Building className="h-6 w-6 text-purple-600" />
-          <h1 className="text-3xl font-bold text-gray-900">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">
             Gestión de Propfirms
           </h1>
+          <p className="text-sm text-muted-foreground mt-0.5 mr-8">
+            Administra las propfirms del sistema y configura sus reglas
+          </p>
         </div>
+        <Button
+          size="sm"
+          className="bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-500/90 text-white border-0"
+          onClick={handleCreate}
+        >
+          <Plus className="h-4 w-4 mr-1.5" />
+          <span>Nueva Propfirm</span>
+        </Button>
       </div>
 
       {/* Tabla con ScrollableTable */}
       <ScrollableTable<Propfirm>
         data={propfirms}
         columns={columns}
-        loading={isLoading}
-        error={error?.message || null}
-        pagination={paginationInfo}
-        onPageChange={pagination.setPage}
-        onPageSizeChange={pagination.setLimit}
-        searchValue={search}
-        onSearchChange={setSearch}
-        searchPlaceholder="Buscar propfirms..."
-        sortBy={sortBy}
-        sortOrder={sortOrder}
-        onSortChange={handleSort}
         actions={actions}
-        headerActions={
-          <Button
-            onClick={handleCreate}
-            className="flex items-center space-x-2"
-          >
-            <Plus className="h-4 w-4" />
-            <span>Nueva Propfirm</span>
-          </Button>
-        }
         emptyMessage="No se encontraron propfirms"
-        emptyIcon={<Building className="h-12 w-12 text-gray-400" />}
+        emptyIcon={<Building className="h-12 w-12 text-muted-foreground" />}
+        loading={isLoading}
       />
 
-      {/* Create/Edit Modal */}
-      {(isCreateModalOpen || editingPropfirm) && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
-          onClick={() => {
+      {/* Create/Edit Dialog */}
+      <Dialog
+        open={isCreateModalOpen || !!editingPropfirm}
+        onOpenChange={(open) => {
+          if (!open) {
             setIsCreateModalOpen(false);
             setEditingPropfirm(null);
             form.reset();
-          }}
-        >
-          <div
-            className="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <button
-              onClick={() => {
-                setIsCreateModalOpen(false);
-                setEditingPropfirm(null);
-                form.reset();
-              }}
-              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
-            >
-              <X className="h-5 w-5" />
-            </button>
-            <h3 className="text-lg font-semibold mb-4 pr-8">
-              {editingPropfirm ? "Editar Propfirm" : "Nueva Propfirm"}
-            </h3>
-            <Form {...form}>
-              <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-4"
-              >
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-2xl border-border">
+          <DialogHeader>
+            <DialogTitle>
+              {editingPropfirm ? "Editar Propfirm" : "Crear Nueva Propfirm"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingPropfirm
+                ? "Modifica la información de la propfirm seleccionada."
+                : "Completa la información para crear una nueva propfirm en el sistema."}
+            </DialogDescription>
+          </DialogHeader>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre de la Propfirm</FormLabel>
+                      <FormLabel>Nombre de la Propfirm *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="propfirm_name" />
                       </FormControl>
@@ -337,7 +319,7 @@ export default function PropfirmsPage() {
                   name="displayName"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Nombre de Visualización</FormLabel>
+                      <FormLabel>Nombre de Visualización *</FormLabel>
                       <FormControl>
                         <Input {...field} placeholder="Nombre de la Propfirm" />
                       </FormControl>
@@ -345,22 +327,24 @@ export default function PropfirmsPage() {
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Descripción</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          placeholder="Descripción de la propfirm"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              </div>
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Descripción</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="Descripción de la propfirm..."
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="website"
@@ -395,32 +379,38 @@ export default function PropfirmsPage() {
                     </FormItem>
                   )}
                 />
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => {
-                      setIsCreateModalOpen(false);
-                      setEditingPropfirm(null);
-                      form.reset();
-                    }}
-                  >
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={
-                      createPropfirm.isPending || updatePropfirm.isPending
-                    }
-                  >
-                    {editingPropfirm ? "Actualizar" : "Crear"}
-                  </Button>
-                </div>
-              </form>
-            </Form>
-          </div>
-        </div>
-      )}
+              </div>
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCreateModalOpen(false);
+                    setEditingPropfirm(null);
+                    form.reset();
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    createPropfirm.isPending || updatePropfirm.isPending
+                  }
+                >
+                  {createPropfirm.isPending || updatePropfirm.isPending
+                    ? editingPropfirm
+                      ? "Actualizando..."
+                      : "Creando..."
+                    : editingPropfirm
+                      ? "Actualizar"
+                      : "Crear"}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

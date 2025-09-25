@@ -43,7 +43,7 @@ export interface Permission {
   updatedAt: Date;
 }
 
-export interface UserRole {
+export interface UserRoleAssignment {
   id: string;
   userId: string;
   roleId: string;
@@ -73,7 +73,7 @@ export interface UserWithRoles {
   isAdmin: boolean;
   createdAt: Date;
   updatedAt: Date;
-  userRoles: UserRole[];
+  userRoles: UserRoleAssignment[];
 }
 
 // Permission checking types
@@ -282,7 +282,23 @@ export const DEFAULT_PERMISSIONS = {
   },
 
   // Admin access
-  ADMIN_ACCESS: {
+  ADMIN_CREATE: {
+    action: PermissionAction.CREATE,
+    resource: PermissionResource.ADMIN,
+  },
+  ADMIN_READ: {
+    action: PermissionAction.READ,
+    resource: PermissionResource.ADMIN,
+  },
+  ADMIN_UPDATE: {
+    action: PermissionAction.UPDATE,
+    resource: PermissionResource.ADMIN,
+  },
+  ADMIN_DELETE: {
+    action: PermissionAction.DELETE,
+    resource: PermissionResource.ADMIN,
+  },
+  ADMIN_MANAGE: {
     action: PermissionAction.MANAGE,
     resource: PermissionResource.ADMIN,
   },
