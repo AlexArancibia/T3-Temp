@@ -10,11 +10,15 @@ WORKDIR /app
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:$PATH"
 
-# Copy package files
+# Copy package files and Prisma schema
 COPY package.json bun.lock* ./
+COPY prisma ./prisma/
 
 # Install dependencies
 RUN bun install --frozen-lockfile
+
+# Generate Prisma client
+RUN bunx prisma generate
 
 # Rebuild the source code only when needed
 FROM base AS builder
@@ -27,8 +31,17 @@ COPY . .
 RUN curl -fsSL https://bun.sh/install | bash
 ENV PATH="/root/.bun/bin:$PATH"
 
-# Build the application
-RUN bun run build
+# Set environment variables for build
+ENV NODE_ENV=production
+ENV DATABASE_URL="file:./dev.db"
+ENV NEXTAUTH_SECRET="docker-build-secret"
+ENV NEXTAUTH_URL="http://localhost:3000"
+
+# Ensure Prisma client is generated in builder stage
+RUN bunx prisma generate
+
+# Build the application (using Docker-specific build script)
+RUN bun run build:docker
 
 # Production image, copy all the files and run next
 FROM base AS runner

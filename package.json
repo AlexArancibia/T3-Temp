@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "bun run validate:types && next build",
+    "build:docker": "bun run type-check && next build",
     "start": "next start",
     "verify": "bun run type-check && bun run lint && bun run format",
     "pre-commit": "bun run type-check",
