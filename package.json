@@ -91,6 +91,9 @@
     "tailwindcss": "^4.1.13",
     "typescript": "^5.9.2"
   },
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
