@@ -13,7 +13,10 @@ RUN bun run build   # compila Next.js
 # ======================
 # 2) Runtime (con Node.js)
 # ======================
-FROM dockette/nodejs:20 AS runner
+FROM node:20-alpine AS runner
+
+# Install curl for healthcheck
+RUN apk add --no-cache curl
 
 WORKDIR /app
 ENV NODE_ENV=production
@@ -32,4 +35,4 @@ RUN useradd --system --create-home --shell /bin/bash appuser
 RUN chown -R appuser:appuser /app
 USER appuser
 
-CMD ["node", "server.js"] # o "next start" si no tienes server.js
+CMD ["npx", "next", "start"]
