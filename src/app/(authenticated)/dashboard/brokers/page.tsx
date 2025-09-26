@@ -72,7 +72,7 @@ export default function BrokersPage() {
     isLoading,
   } = trpc.broker.getAll.useQuery(queryParams);
 
-  const brokers: Broker[] = response?.data || [];
+  const brokers: Broker[] = (response?.data as Broker[]) || [];
 
   const createBroker = trpc.broker.create.useMutation({
     onSuccess: () => {
