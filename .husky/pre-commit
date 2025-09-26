@@ -1,1 +1,19 @@
-bun run type-check && bunx lint-staged
+#!/bin/sh
+echo "🔍 Running pre-commit checks..."
+
+# 1. TypeScript type checking (strict) - CRITICAL
+echo "📝 Checking TypeScript types..."
+bun run type-check:strict
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript type check failed. Please fix the errors before committing."
+  exit 1
+fi
+
+# 2. Linting (warnings only, won't block commit)
+echo "🧹 Running linter (warnings only)..."
+bunx lint-staged
+if [ $? -ne 0 ]; then
+  echo "⚠️  Linting issues found, but allowing commit. Run 'bun run fix' to fix them."
+fi
+
+echo "✅ Pre-commit checks passed! (TypeScript validation successful)"

@@ -68,7 +68,7 @@ export const positiveNumberSchema = z.number().positive();
 export const nonNegativeNumberSchema = z.number().min(0);
 export const emailSchema = z.string().email();
 export const passwordSchema = z.string().min(8);
-export const phoneSchema = z.string().regex(/^\+?[\d\s\-\(\)]+$/);
+export const phoneSchema = z.string().regex(/^\+?[\d\s\-()]+$/);
 
 // Trade-specific validation schemas
 export const lotSizeSchema = z.number().positive().max(1000);

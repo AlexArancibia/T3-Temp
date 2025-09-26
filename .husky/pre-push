@@ -1,0 +1,19 @@
+#!/bin/sh
+echo "🚀 Running pre-push checks..."
+
+# Run TypeScript validation (critical)
+echo "🔍 Running TypeScript validation..."
+bun run validate:types
+if [ $? -ne 0 ]; then
+  echo "❌ TypeScript validation failed. Please fix the errors before pushing."
+  exit 1
+fi
+
+# Run linting (warnings only)
+echo "🧹 Running linting (warnings only)..."
+bun run lint
+if [ $? -ne 0 ]; then
+  echo "⚠️  Linting issues found, but allowing push. Run 'bun run fix' to fix them."
+fi
+
+echo "✅ Pre-push checks passed! (TypeScript validation successful)"

@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { RBACService } from "@/services/rbacService";
-import {
+import type {
   PermissionAction,
-  type PermissionCheck,
+  PermissionCheck,
   PermissionResource,
 } from "@/types/rbac";
 

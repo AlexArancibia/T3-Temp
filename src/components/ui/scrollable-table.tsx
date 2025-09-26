@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import type { ReactNode } from "react";
 import type { PaginationInfo } from "../../lib/pagination";
 import { Alert, AlertDescription } from "./alert";
 import { Badge } from "./badge";

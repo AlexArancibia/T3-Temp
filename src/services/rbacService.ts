@@ -98,7 +98,7 @@ export class RBACService {
    * Get all roles for a user
    */
   static async getUserRoles(userId: string): Promise<Role[]> {
-    const { roles } = await this.getUserRBACData(userId);
+    const { roles } = await RBACService.getUserRBACData(userId);
     return roles;
   }
 
@@ -106,7 +106,7 @@ export class RBACService {
    * Get all permissions for a user (from their roles)
    */
   static async getUserPermissions(userId: string): Promise<Permission[]> {
-    const { permissions } = await this.getUserRBACData(userId);
+    const { permissions } = await RBACService.getUserRBACData(userId);
     return permissions;
   }
 
@@ -118,7 +118,7 @@ export class RBACService {
     action: PermissionAction,
     resource: PermissionResource,
   ): Promise<boolean> {
-    const permissions = await this.getUserPermissions(userId);
+    const permissions = await RBACService.getUserPermissions(userId);
 
     return permissions.some(
       (permission) =>
@@ -135,7 +135,7 @@ export class RBACService {
     userId: string,
     permissionChecks: PermissionCheck[],
   ): Promise<boolean> {
-    const permissions = await this.getUserPermissions(userId);
+    const permissions = await RBACService.getUserPermissions(userId);
 
     return permissionChecks.some((check) =>
       permissions.some(
@@ -154,7 +154,7 @@ export class RBACService {
     userId: string,
     permissionChecks: PermissionCheck[],
   ): Promise<boolean> {
-    const permissions = await this.getUserPermissions(userId);
+    const permissions = await RBACService.getUserPermissions(userId);
 
     return permissionChecks.every((check) =>
       permissions.some(
@@ -170,7 +170,7 @@ export class RBACService {
    * Check if user has a specific role
    */
   static async hasRole(userId: string, roleName: string): Promise<boolean> {
-    const userRoles = await this.getUserRoles(userId);
+    const userRoles = await RBACService.getUserRoles(userId);
     return userRoles.some((role) => role.name === roleName && role.isActive);
   }
 
@@ -181,7 +181,7 @@ export class RBACService {
     userId: string,
     roleNames: string[],
   ): Promise<boolean> {
-    const userRoles = await this.getUserRoles(userId);
+    const userRoles = await RBACService.getUserRoles(userId);
     return userRoles.some(
       (role) => roleNames.includes(role.name) && role.isActive,
     );
@@ -191,7 +191,7 @@ export class RBACService {
    * Get RBAC context for a user (optimized)
    */
   static async getRBACContext(userId: string): Promise<RBACContext> {
-    const { roles, permissions } = await this.getUserRBACData(userId);
+    const { roles, permissions } = await RBACService.getUserRBACData(userId);
 
     // Convert string enums to proper types
     const convertedPermissions = permissions.map((permission) => ({
@@ -408,14 +408,14 @@ export class RBACService {
    * Check if user is super admin
    */
   static async isSuperAdmin(userId: string): Promise<boolean> {
-    return await this.hasRole(userId, DEFAULT_ROLES.SUPER_ADMIN);
+    return await RBACService.hasRole(userId, DEFAULT_ROLES.SUPER_ADMIN);
   }
 
   /**
    * Check if user is admin
    */
   static async isAdmin(userId: string): Promise<boolean> {
-    return await this.hasAnyRole(userId, [
+    return await RBACService.hasAnyRole(userId, [
       DEFAULT_ROLES.SUPER_ADMIN,
       DEFAULT_ROLES.ADMIN,
     ]);
@@ -425,7 +425,7 @@ export class RBACService {
    * Check if user can manage users
    */
   static async canManageUsers(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.MANAGE,
       PermissionResource.USER,
@@ -436,7 +436,7 @@ export class RBACService {
    * Check if user can manage roles
    */
   static async canManageRoles(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.MANAGE,
       PermissionResource.ROLE,
@@ -447,7 +447,7 @@ export class RBACService {
    * Check if user can access admin panel
    */
   static async canAccessAdmin(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.MANAGE,
       PermissionResource.ADMIN,
@@ -458,7 +458,7 @@ export class RBACService {
    * Check if user can manage trading accounts
    */
   static async canManageTradingAccounts(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.MANAGE,
       PermissionResource.TRADING_ACCOUNT,
@@ -469,7 +469,7 @@ export class RBACService {
    * Check if user can manage trades
    */
   static async canManageTrades(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.MANAGE,
       PermissionResource.TRADE,
@@ -480,7 +480,7 @@ export class RBACService {
    * Check if user can view dashboard
    */
   static async canViewDashboard(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.READ,
       PermissionResource.DASHBOARD,
@@ -491,7 +491,7 @@ export class RBACService {
    * Check if user can manage propfirms
    */
   static async canManagePropfirms(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.MANAGE,
       PermissionResource.PROPFIRM,
@@ -502,7 +502,7 @@ export class RBACService {
    * Check if user can create propfirms
    */
   static async canCreatePropfirms(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.CREATE,
       PermissionResource.PROPFIRM,
@@ -513,7 +513,7 @@ export class RBACService {
    * Check if user can update propfirms
    */
   static async canUpdatePropfirms(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.UPDATE,
       PermissionResource.PROPFIRM,
@@ -524,7 +524,7 @@ export class RBACService {
    * Check if user can delete propfirms
    */
   static async canDeletePropfirms(userId: string): Promise<boolean> {
-    return await this.hasPermission(
+    return await RBACService.hasPermission(
       userId,
       PermissionAction.DELETE,
       PermissionResource.PROPFIRM,

@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "bun run validate:types && next build",
     "start": "next start",
     "verify": "bun run type-check && bun run lint && bun run format",
     "pre-commit": "bun run type-check",
     "type-check": "tsc --project tsconfig.typecheck.json",
+    "type-check:strict": "tsc --project tsconfig.typecheck.json --noEmit --strict",
+    "validate": "bun run type-check:strict && bun run lint && echo '✅ All validations passed!'",
+    "validate:types": "bun run type-check:strict && echo '✅ TypeScript validation passed!'",
+    "validate:full": "./scripts/validate.sh",
     "fix": "bun run lint:fix && bun run format:fix",
     "lint": "biome check .",
     "lint:fix": "biome check --write .",
@@ -25,10 +29,13 @@
     "commit": "cz"
   },
   "lint-staged": {
-    "src/**/*.{js,ts,tsx}": [
+    "src/**/*.{ts,tsx}": [
       "biome check --write"
     ],
-    "*.{json,css}": "biome check --write"
+    "src/**/*.{js,jsx}": [
+      "biome check --write"
+    ],
+    "*.{json,css,md}": "biome check --write"
   },
   "dependencies": {
     "@commitlint/cli": "^19.8.1",

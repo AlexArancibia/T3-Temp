@@ -10,6 +10,7 @@ import {
   Trash2,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -664,9 +665,11 @@ export default function PropfirmDetailPage() {
           </Button>
           <div className="flex items-center space-x-3">
             {propfirm.logoUrl ? (
-              <img
+              <Image
                 src={propfirm.logoUrl}
                 alt={propfirm.displayName}
+                width={48}
+                height={48}
                 className="h-12 w-12 rounded-full object-cover"
               />
             ) : (
@@ -732,6 +735,7 @@ export default function PropfirmDetailPage() {
       <div className="border-b border-gray-200">
         <nav className="-mb-px flex space-x-8">
           <button
+            type="button"
             onClick={() => setActiveTab("phases")}
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "phases"
@@ -742,6 +746,7 @@ export default function PropfirmDetailPage() {
             Fases ({phases.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("account-types")}
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "account-types"
@@ -752,6 +757,7 @@ export default function PropfirmDetailPage() {
             Tipos de Cuenta ({typedAccountTypes.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab("rules")}
             className={`whitespace-nowrap py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
               activeTab === "rules"
@@ -905,18 +911,30 @@ export default function PropfirmDetailPage() {
       {/* Create/Edit Account Type Modal */}
       {(isCreateAccountTypeModalOpen || editingAccountType) && (
         <div
+          role="dialog"
+          aria-modal="true"
           className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
           onClick={() => {
             setIsCreateAccountTypeModalOpen(false);
             setEditingAccountType(null);
             accountTypeForm.reset();
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setIsCreateAccountTypeModalOpen(false);
+              setEditingAccountType(null);
+              accountTypeForm.reset();
+            }
+          }}
         >
           <div
+            role="document"
             className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
               onClick={() => {
                 setIsCreateAccountTypeModalOpen(false);
                 setEditingAccountType(null);
@@ -1013,18 +1031,30 @@ export default function PropfirmDetailPage() {
       {/* Create/Edit Phase Modal */}
       {(isCreatePhaseModalOpen || editingPhase) && (
         <div
+          role="dialog"
+          aria-modal="true"
           className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
           onClick={() => {
             setIsCreatePhaseModalOpen(false);
             setEditingPhase(null);
             form.reset();
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setIsCreatePhaseModalOpen(false);
+              setEditingPhase(null);
+              form.reset();
+            }
+          }}
         >
           <div
+            role="document"
             className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
               onClick={() => {
                 setIsCreatePhaseModalOpen(false);
                 setEditingPhase(null);
@@ -1140,18 +1170,30 @@ export default function PropfirmDetailPage() {
       {/* Create/Edit Rules Config Modal */}
       {(isCreateRulesConfigModalOpen || editingRulesConfig) && (
         <div
+          role="dialog"
+          aria-modal="true"
           className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-[9999]"
           onClick={() => {
             setIsCreateRulesConfigModalOpen(false);
             setEditingRulesConfig(null);
             rulesConfigForm.reset();
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setIsCreateRulesConfigModalOpen(false);
+              setEditingRulesConfig(null);
+              rulesConfigForm.reset();
+            }
+          }}
         >
           <div
+            role="document"
             className="bg-card rounded-lg shadow-xl p-6 w-full max-w-md mx-4 max-h-[90vh] overflow-y-auto relative"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
           >
             <button
+              type="button"
               onClick={() => {
                 setIsCreateRulesConfigModalOpen(false);
                 setEditingRulesConfig(null);
@@ -1209,11 +1251,13 @@ export default function PropfirmDetailPage() {
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <option value="">Seleccionar fase</option>
-                          {phases.map((phase) => (
-                            <option key={phase.id} value={phase.id}>
-                              {phase.displayName}
-                            </option>
-                          ))}
+                          {phases.map(
+                            (phase: { id: string; displayName: string }) => (
+                              <option key={phase.id} value={phase.id}>
+                                {phase.displayName}
+                              </option>
+                            ),
+                          )}
                         </select>
                       </FormControl>
                       <FormMessage />

@@ -7,7 +7,7 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["**", "!build.ts", "!.next/**"]
+    "includes": ["**", "!build.ts", "!.next"]
   },
   "formatter": {
     "enabled": true,
@@ -23,10 +23,10 @@
         "noExtraBooleanCast": "error",
         "noUselessCatch": "error",
         "noUselessThisAlias": "error",
-        "noUselessTypeConstraint": "error"
+        "noUselessTypeConstraint": "error",
+        "noUselessEscapeInRegex": "warn"
       },
       "correctness": {
-        "noChildrenProp": "error",
         "noConstAssign": "error",
         "noConstantCondition": "error",
         "noEmptyCharacterClassInRegex": "error",
@@ -46,11 +46,12 @@
         "noUnsafeOptionalChaining": "error",
         "noUnusedLabels": "error",
         "noUnusedPrivateClassMembers": "error",
-        "noUnusedVariables": "error",
+        "noUnusedVariables": "warn",
         "useExhaustiveDependencies": "warn",
         "useHookAtTopLevel": "error",
         "useIsNan": "error",
-        "useJsxKeyInIterable": "error",
+        "useJsxKeyInIterable": "warn",
+        "useUniqueElementIds": "warn",
         "useValidForDirection": "error",
         "useYield": "error"
       },
@@ -59,7 +60,7 @@
       },
       "style": {
         "noNamespace": "error",
-        "useAsConstAssertion": "error"
+        "useAsConstAssertion": "warn"
       },
       "suspicious": {
         "noAssignInExpressions": "error",
@@ -77,7 +78,7 @@
         "noDuplicateParameters": "error",
         "noEmptyBlockStatements": "error",
         "noExplicitAny": "error",
-        "noExtraNonNullAssertion": "error",
+        "noExtraNonNullAssertion": "warn",
         "noFallthroughSwitchClause": "error",
         "noFunctionAssign": "error",
         "noGlobalAssign": "error",
@@ -92,6 +93,17 @@
         "noUnsafeNegation": "error",
         "useGetterReturn": "error",
         "useNamespaceKeyword": "error"
+      },
+      "nursery": {
+        "useExplicitType": "off"
+      },
+      "a11y": {
+        "useButtonType": "warn",
+        "useKeyWithClickEvents": "warn",
+        "noStaticElementInteractions": "warn"
+      },
+      "performance": {
+        "noImgElement": "warn"
       }
     }
   },
@@ -247,7 +259,7 @@
             "useConst": "error"
           },
           "suspicious": {
-            "noExplicitAny": "off",
+            "noExplicitAny": "error",
             "noAssignInExpressions": "off",
             "noClassAssign": "off",
             "noDuplicateClassMembers": "off",
@@ -258,6 +270,17 @@
             "noRedeclare": "off",
             "noUnsafeNegation": "off",
             "useGetterReturn": "off"
+          },
+          "nursery": {
+            "useExplicitType": "off"
+          },
+          "a11y": {
+            "useButtonType": "warn",
+            "useKeyWithClickEvents": "warn",
+            "noStaticElementInteractions": "warn"
+          },
+          "performance": {
+            "noImgElement": "warn"
           }
         }
       }

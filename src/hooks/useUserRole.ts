@@ -48,8 +48,7 @@ export function useUserRole() {
             highestRole = "trader";
           }
         } else if (mappedRole === "viewer" && highestRole === "trader") {
-          // Keep trader over viewer unless it's the only role
-          continue;
+          // Keep trader role as it has higher priority than viewer
         }
       }
     }
