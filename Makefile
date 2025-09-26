@@ -2,7 +2,7 @@
 # Variables
 # ================================
 DOCKER_COMPOSE = docker compose -f config/docker/docker-compose.yml
-PKG = bun
+PKG = npm
 
 # ================================
 # Docker
@@ -36,7 +36,7 @@ rebuild: clean
 	$(DOCKER_COMPOSE) up --build
 
 # ================================
-# App (Bun/Next.js)
+# App (npm/Next.js)
 # ================================
 start:
 	$(PKG) run start
