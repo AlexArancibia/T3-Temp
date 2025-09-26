@@ -5,8 +5,7 @@ FROM oven/bun:1 AS builder
 
 WORKDIR /app
 
-# Configure npm registry for better reliability
-RUN bun config set registry https://registry.npmjs.org/
+# Configure npm registry for better reliability (removed - bun config is not available)
 
 COPY package.json bun.lock ./
 
