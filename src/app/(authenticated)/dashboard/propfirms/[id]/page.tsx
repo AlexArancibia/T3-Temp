@@ -194,6 +194,9 @@ export default function PropfirmDetailPage() {
     error: accountTypesError,
   } = trpc.propfirmAccountType.getByPropfirmId.useQuery({ propfirmId });
 
+  const typedAccountTypes: PropfirmAccountType[] =
+    accountTypes as PropfirmAccountType[];
+
   const createAccountType = trpc.propfirmAccountType.create.useMutation({
     onSuccess: () => {
       refetchAccountTypes();
@@ -746,7 +749,7 @@ export default function PropfirmDetailPage() {
                 : "border-transparent text-muted-foreground hover:text-foreground hover:border-border"
             }`}
           >
-            Tipos de Cuenta ({accountTypes.length})
+            Tipos de Cuenta ({typedAccountTypes.length})
           </button>
           <button
             onClick={() => setActiveTab("rules")}
@@ -817,15 +820,15 @@ export default function PropfirmDetailPage() {
 
             {/* Account Types Table */}
             <ScrollableTable<PropfirmAccountType>
-              data={accountTypes}
+              data={typedAccountTypes}
               columns={accountTypeColumns}
               loading={accountTypesLoading}
               error={accountTypesError?.message || null}
               pagination={{
                 page: 1,
                 limit: 10,
-                total: accountTypes.length,
-                totalPages: Math.ceil(accountTypes.length / 10) || 1,
+                total: typedAccountTypes.length,
+                totalPages: Math.ceil(typedAccountTypes.length / 10) || 1,
                 hasNext: false,
                 hasPrev: false,
               }}
@@ -1178,11 +1181,16 @@ export default function PropfirmDetailPage() {
                           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                           <option value="">Seleccionar tipo de cuenta</option>
-                          {accountTypes.map((accountType) => (
-                            <option key={accountType.id} value={accountType.id}>
-                              {accountType.displayName}
-                            </option>
-                          ))}
+                          {typedAccountTypes.map(
+                            (accountType: PropfirmAccountType) => (
+                              <option
+                                key={accountType.id}
+                                value={accountType.id}
+                              >
+                                {accountType.displayName}
+                              </option>
+                            ),
+                          )}
                         </select>
                       </FormControl>
                       <FormMessage />
