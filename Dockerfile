@@ -1,67 +1,35 @@
-# Use Node.js 22 as base image
-FROM node:22-alpine AS base
+# ======================
+# 1) Build stage (con Bun)
+# ======================
+FROM oven/bun:1 AS builder
 
-# Install dependencies only when needed
-FROM base AS deps
-RUN apk add --no-cache libc6-compat curl bash
 WORKDIR /app
+COPY package.json bun.lock ./
+RUN bun install --production
 
-# Install Bun
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:$PATH"
-
-# Copy package files and Prisma schema
-COPY package.json bun.lock* ./
-COPY prisma ./prisma/
-
-# Install dependencies
-RUN bun install --frozen-lockfile
-
-# Generate Prisma client
-RUN bunx prisma generate
-
-# Rebuild the source code only when needed
-FROM base AS builder
-RUN apk add --no-cache curl bash
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+RUN bun run build   # compila Next.js
 
-# Install Bun in builder stage
-RUN curl -fsSL https://bun.sh/install | bash
-ENV PATH="/root/.bun/bin:$PATH"
+# ======================
+# 2) Runtime (con Node.js)
+# ======================
+FROM dockette/nodejs:20 AS runner
 
-# Set environment variables for build
-ENV NODE_ENV=production
-ENV DATABASE_URL="file:./dev.db"
-ENV NEXTAUTH_SECRET="docker-build-secret"
-ENV NEXTAUTH_URL="http://localhost:3000"
-
-# Ensure Prisma client is generated in builder stage
-RUN bunx prisma generate
-
-# Build the application (using less strict TypeScript checking for Docker)
-RUN bun run build:docker
-
-# Production image, copy all the files and run next
-FROM base AS runner
 WORKDIR /app
-
 ENV NODE_ENV=production
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
-
-# Copy built application
+# Copiar solo lo necesario
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-USER nextjs
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package*.json ./
 
 EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:3000/ || exit 1
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+RUN useradd --system --create-home --shell /bin/bash appuser
+RUN chown -R appuser:appuser /app
+USER appuser
 
-CMD ["node", "server.js"]
+CMD ["node", "server.js"] # o "next start" si no tienes server.js
