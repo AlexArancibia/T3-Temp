@@ -15,19 +15,36 @@ async function seedAll() {
     console.log("\n📋 Step 1: Seeding RBAC system...");
     await seedRBAC();
 
-    // 2. Seed Admin User
-    console.log("\n👤 Step 2: Seeding admin user...");
-    await seedAdminUser();
+    // 2. Seed Users with Roles
+    console.log("\n👤 Step 2: Seeding users with roles...");
+    await seedUsers();
 
     // 3. Seed Trading Data
     console.log("\n📊 Step 3: Seeding trading data...");
     await seedTradingData();
 
     console.log("\n🎉 Complete database seed finished successfully!");
-    console.log("\n📧 Admin credentials:");
-    console.log("   Email: admin@example.com");
-    console.log("   Password: admin123");
-    console.log("   Role: Super Administrator");
+    console.log("\n📧 User credentials:");
+    console.log("   Super Admin:");
+    console.log("     Email: admin@example.com");
+    console.log("     Password: admin123");
+    console.log("     Role: Super Administrator");
+    console.log("   Administrator:");
+    console.log("     Email: administrator@example.com");  
+    console.log("     Password: admin123");
+    console.log("     Role: Administrator");
+    console.log("   Moderator:");
+    console.log("     Email: moderator@example.com");
+    console.log("     Password: moderator123");
+    console.log("     Role: Moderator");
+    console.log("   Traders:");
+    console.log("     Email: trader1@example.com | Password: trader123");
+    console.log("     Email: trader2@example.com | Password: trader123");
+    console.log("     Role: Trader");
+    console.log("   Viewer:");
+    console.log("     Email: viewer@example.com");
+    console.log("     Password: viewer123");
+    console.log("     Role: Viewer");
   } catch (error) {
     console.error("❌ Error during seeding:", error);
     throw error;
@@ -504,121 +521,169 @@ async function seedRBAC() {
   );
 }
 
-async function seedAdminUser() {
-  const existingAdmin = await prisma.user.findFirst({
-    where: {
+async function seedUsers() {
+  console.log("👤 Creating users with roles...");
+
+  // Get all roles first
+  const roles = await prisma.role.findMany();
+  const roleMap = new Map(roles.map(role => [role.name, role]));
+
+  // Define users with their roles
+  const usersToCreate = [
+    {
       email: "admin@example.com",
+      name: "Super Admin",
+      roleName: DEFAULT_ROLES.SUPER_ADMIN,
+      phone: "+1-555-0101",
+      password: "admin123"
     },
-  });
-
-  if (existingAdmin) {
-    console.log("⚠️ Admin user already exists:", existingAdmin.email);
-
-    // Check if user has Super Admin role
-    const userRoles = await prisma.userRole.findMany({
-      where: {
-        userId: existingAdmin.id,
-      },
-      include: {
-        role: true,
-      },
-    });
-
-    const hasSuperAdminRole = userRoles.some(
-      (ur) => ur.role.name === DEFAULT_ROLES.SUPER_ADMIN,
-    );
-
-    if (hasSuperAdminRole) {
-      console.log("✅ Admin user already has Super Admin role");
-      return;
+    {
+      email: "administrator@example.com", 
+      name: "System Administrator",
+      roleName: DEFAULT_ROLES.ADMIN,
+      phone: "+1-555-0102",
+      password: "admin123"
+    },
+    {
+      email: "moderator@example.com",
+      name: "Content Moderator", 
+      roleName: DEFAULT_ROLES.MODERATOR,
+      phone: "+1-555-0103",
+      password: "moderator123"
+    },
+    {
+      email: "trader1@example.com",
+      name: "John Trader",
+      roleName: DEFAULT_ROLES.TRADER, 
+      phone: "+1-555-0104",
+      password: "trader123"
+    },
+    {
+      email: "trader2@example.com",
+      name: "Maria Trader",
+      roleName: DEFAULT_ROLES.TRADER,
+      phone: "+1-555-0105", 
+      password: "trader123"
+    },
+    {
+      email: "viewer@example.com",
+      name: "Observer User",
+      roleName: DEFAULT_ROLES.VIEWER,
+      phone: "+1-555-0106",
+      password: "viewer123"
     }
+  ];
 
-    // Fix the role
-    console.log("🔧 Fixing admin user role...");
-
-    // Remove existing roles
-    await prisma.userRole.deleteMany({
+  for (const userData of usersToCreate) {
+    const existingUser = await prisma.user.findFirst({
       where: {
-        userId: existingAdmin.id,
+        email: userData.email,
       },
     });
 
-    // Get the Super Admin role
-    const superAdminRole = await prisma.role.findUnique({
-      where: { name: DEFAULT_ROLES.SUPER_ADMIN },
-    });
+    if (existingUser) {
+      console.log(`⚠️ User already exists: ${userData.email}`);
+      
+      // Check if user has any roles assigned
+      const existingUserRoles = await prisma.userRole.findMany({
+        where: {
+          userId: existingUser.id,
+        },
+        include: {
+          role: true,
+        },
+      });
 
-    if (!superAdminRole) {
-      console.log(
-        "❌ Super Admin role not found. Please run the RBAC seed first.",
+      const targetRole = roleMap.get(userData.roleName);
+      if (!targetRole) {
+        console.log(`❌ Role ${userData.roleName} not found`);
+        continue;
+      }
+
+      const hasCorrectRole = existingUserRoles.some(
+        (ur) => ur.role.name === userData.roleName
       );
-      return;
+
+      if (hasCorrectRole) {
+        console.log(`✅ User ${userData.email} already has correct role`);
+        continue;
+      }
+
+      // Fix the role assignment - remove existing and assign new one
+      await prisma.userRole.deleteMany({
+        where: {
+          userId: existingUser.id,
+        },
+      });
+
+      await prisma.userRole.create({
+        data: {
+          userId: existingUser.id,
+          roleId: targetRole.id,
+          assignedAt: new Date(),
+        },
+      });
+
+      // Update password also if needed
+      const bcrypt = await import("bcryptjs");
+      const hashedPassword = await bcrypt.hash(userData.password, 10);
+      await prisma.account.updateMany({
+        where: { userId: existingUser.id, providerId: "credential" },
+        data: { password: hashedPassword }
+      });
+      
+      console.log(`✅ Fixed role for user: ${userData.email}`);
+      continue;
     }
 
-    // Assign Super Admin role
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name: userData.name,
+        email: userData.email,
+        emailVerified: true,
+        phone: userData.phone,
+        language: "EN",
+        defaultRiskPercentage: 1.00,
+      },
+    });
+
+    // Hash password properly for Better Auth
+    const bcrypt = await import("bcryptjs");
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
+    
+    // Create account for Better Auth
+    await prisma.account.create({
+      data: {
+        userId: user.id,
+        accountId: user.id,
+        providerId: "credential",
+        password: hashedPassword,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    // Get the role for this user
+    const targetRole = roleMap.get(userData.roleName);
+    if (!targetRole) {
+      console.log(`❌ Role ${userData.roleName} not found. Skipping user ${userData.email}`);
+      continue;
+    }
+
+    // Assign role to user
     await prisma.userRole.create({
       data: {
-        userId: existingAdmin.id,
-        roleId: superAdminRole.id,
+        userId: user.id,
+        roleId: targetRole.id,
         assignedAt: new Date(),
       },
     });
 
-    console.log("✅ Super Admin role assigned to existing admin user");
-    return;
+    console.log(`✅ Created user ${userData.email} with role ${userData.roleName}`);
   }
 
-  // Create admin user with Better Auth schema
-  const adminUser = await prisma.user.create({
-    data: {
-      id: "admin-user-id",
-      name: "Admin User",
-      email: "admin@example.com",
-      emailVerified: true,
-    },
-  });
-
-  // Create account for admin user (Better Auth requires this)
-  await prisma.account.create({
-    data: {
-      id: "admin-account-id",
-      userId: adminUser.id,
-      accountId: adminUser.id,
-      providerId: "credential",
-      accessToken: null,
-      refreshToken: null,
-      idToken: null,
-      accessTokenExpiresAt: null,
-      refreshTokenExpiresAt: null,
-      scope: null,
-      password: "$2a$10$K7L1OJ45/4Y2nIvhRVpCe.FSmhDdWoXehVzJpJRGm5iJ2L2/2T2iK", // admin123
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  });
-
-  // Get the Super Admin role
-  const superAdminRole = await prisma.role.findUnique({
-    where: { name: DEFAULT_ROLES.SUPER_ADMIN },
-  });
-
-  if (!superAdminRole) {
-    console.log(
-      "❌ Super Admin role not found. Please run the RBAC seed first.",
-    );
-    return;
-  }
-
-  // Assign Super Admin role to admin user
-  await prisma.userRole.create({
-    data: {
-      userId: adminUser.id,
-      roleId: superAdminRole.id,
-      assignedAt: new Date(),
-    },
-  });
-
-  console.log("✅ Admin user created with Super Admin role");
+  console.log("✅ Users created with assigned roles");
 }
 
 async function seedTradingData() {
@@ -626,37 +691,34 @@ async function seedTradingData() {
 
   const propfirms = [
     {
-      id: "propfirm-1",
       name: "FTMO",
+      displayName: "Forex Trading My Own",
       description: "Forex Trading My Own - Leading prop trading firm",
       website: "https://ftmo.com",
-      maxAccountSize: 400000,
-      profitSplit: 90,
+      logoUrl: null,
       isActive: true,
     },
     {
-      id: "propfirm-2",
       name: "MyForexFunds",
-      description: "Professional forex trading opportunities",
+      displayName: "MyForexFunds Pro",
+      description: "Professional forex trading opportunities", 
       website: "https://myforexfunds.com",
-      maxAccountSize: 200000,
-      profitSplit: 85,
+      logoUrl: null,
       isActive: true,
     },
     {
-      id: "propfirm-3",
       name: "The5ers",
+      displayName: "The5%ers Elite",
       description: "Elite trading program for skilled traders",
       website: "https://the5ers.com",
-      maxAccountSize: 1000000,
-      profitSplit: 80,
+      logoUrl: null,
       isActive: true,
     },
   ];
 
   for (const propfirm of propfirms) {
     await prisma.propfirm.upsert({
-      where: { id: propfirm.id },
+      where: { name: propfirm.name },
       update: propfirm,
       create: propfirm,
     });
@@ -668,31 +730,34 @@ async function seedTradingData() {
 
   const brokers = [
     {
-      id: "broker-1",
       name: "MetaTrader 5",
+      displayName: "MetaTrader 5 Platform",
       description: "MetaTrader 5 trading platform",
       website: "https://www.metatrader5.com",
+      logoUrl: null,
       isActive: true,
     },
     {
-      id: "broker-2",
       name: "cTrader",
+      displayName: "cTrader Platform",
       description: "cTrader trading platform",
       website: "https://ctrader.com",
+      logoUrl: null,
       isActive: true,
     },
     {
-      id: "broker-3",
       name: "TradingView",
-      description: "TradingView charting platform",
+      displayName: "TradingView Platform",
+      description: "TradingView charting platform", 
       website: "https://tradingview.com",
+      logoUrl: null,
       isActive: true,
     },
   ];
 
   for (const broker of brokers) {
     await prisma.broker.upsert({
-      where: { id: broker.id },
+      where: { name: broker.name },
       update: broker,
       create: broker,
     });
@@ -704,80 +769,55 @@ async function seedTradingData() {
 
   const symbols = [
     {
-      id: "symbol-1",
-      name: "EURUSD",
-      description: "Euro vs US Dollar",
-      category: "Forex",
+      symbol: "EURUSD",
+      displayName: "Euro vs US Dollar",
+      category: "FOREX" as const,
+      baseCurrency: "EUR",
+      quoteCurrency: "USD",
+      pipDecimalPosition: 4,
       isActive: true,
     },
     {
-      id: "symbol-2",
-      name: "GBPUSD",
-      description: "British Pound vs US Dollar",
-      category: "Forex",
+      symbol: "GBPUSD",
+      displayName: "British Pound vs US Dollar",
+      category: "FOREX" as const,
+      baseCurrency: "GBP", 
+      quoteCurrency: "USD",
+      pipDecimalPosition: 4,
       isActive: true,
     },
     {
-      id: "symbol-3",
-      name: "USDJPY",
-      description: "US Dollar vs Japanese Yen",
-      category: "Forex",
+      symbol: "USDJPY",
+      displayName: "US Dollar vs Japanese Yen",
+      category: "FOREX" as const,
+      baseCurrency: "USD",
+      quoteCurrency: "JPY",
+      pipDecimalPosition: 3,
       isActive: true,
     },
     {
-      id: "symbol-4",
-      name: "AUDUSD",
-      description: "Australian Dollar vs US Dollar",
-      category: "Forex",
+      symbol: "AUDUSD",
+      displayName: "Australian Dollar vs US Dollar",
+      category: "FOREX" as const,
+      baseCurrency: "AUD",
+      quoteCurrency: "USD", 
+      pipDecimalPosition: 4,
       isActive: true,
     },
     {
-      id: "symbol-5",
-      name: "USDCAD",
-      description: "US Dollar vs Canadian Dollar",
-      category: "Forex",
-      isActive: true,
-    },
-    {
-      id: "symbol-6",
-      name: "NZDUSD",
-      description: "New Zealand Dollar vs US Dollar",
-      category: "Forex",
-      isActive: true,
-    },
-    {
-      id: "symbol-7",
-      name: "EURGBP",
-      description: "Euro vs British Pound",
-      category: "Forex",
-      isActive: true,
-    },
-    {
-      id: "symbol-8",
-      name: "EURJPY",
-      description: "Euro vs Japanese Yen",
-      category: "Forex",
-      isActive: true,
-    },
-    {
-      id: "symbol-9",
-      name: "GBPJPY",
-      description: "British Pound vs Japanese Yen",
-      category: "Forex",
-      isActive: true,
-    },
-    {
-      id: "symbol-10",
-      name: "AUDJPY",
-      description: "Australian Dollar vs Japanese Yen",
-      category: "Forex",
+      symbol: "USDCAD",
+      displayName: "US Dollar vs Canadian Dollar",
+      category: "FOREX" as const,
+      baseCurrency: "USD",
+      quoteCurrency: "CAD",
+      pipDecimalPosition: 4,
       isActive: true,
     },
   ];
 
   for (const symbol of symbols) {
     await prisma.symbol.upsert({
-      where: { id: symbol.id },
+      where: { symbol: symbol.symbol },
       update: symbol,
       create: symbol,
     });
@@ -785,119 +825,7 @@ async function seedTradingData() {
 
   console.log("✅ Symbols created");
 
-  console.log("🎯 Creating phases...");
-
-  const phases = [
-    {
-      id: "phase-1",
-      name: "Phase 1",
-      description: "First evaluation phase",
-      order: 1,
-      isActive: true,
-    },
-    {
-      id: "phase-2",
-      name: "Phase 2",
-      description: "Second evaluation phase",
-      order: 2,
-      isActive: true,
-    },
-    {
-      id: "phase-3",
-      name: "Live",
-      description: "Live trading phase",
-      order: 3,
-      isActive: true,
-    },
-  ];
-
-  for (const phase of phases) {
-    await prisma.phase.upsert({
-      where: { id: phase.id },
-      update: phase,
-      create: phase,
-    });
-  }
-
-  console.log("✅ Phases created");
-
-  console.log("💳 Creating account types...");
-
-  const accountTypes = [
-    {
-      id: "account-type-1",
-      name: "Challenge",
-      description: "Evaluation challenge account",
-      isActive: true,
-    },
-    {
-      id: "account-type-2",
-      name: "Live",
-      description: "Live trading account",
-      isActive: true,
-    },
-    {
-      id: "account-type-3",
-      name: "Demo",
-      description: "Demo trading account",
-      isActive: true,
-    },
-  ];
-
-  for (const accountType of accountTypes) {
-    await prisma.accountType.upsert({
-      where: { id: accountType.id },
-      update: accountType,
-      create: accountType,
-    });
-  }
-
-  console.log("✅ Account types created");
-
-  console.log("⚙️ Creating symbol configurations...");
-
-  const symbolConfigs = [
-    {
-      id: "config-1",
-      propfirmId: "propfirm-1",
-      symbolId: "symbol-1",
-      maxDailyLoss: 5.0,
-      maxTotalLoss: 10.0,
-      maxDailyProfit: 5.0,
-      maxTotalProfit: 10.0,
-      isActive: true,
-    },
-    {
-      id: "config-2",
-      propfirmId: "propfirm-1",
-      symbolId: "symbol-2",
-      maxDailyLoss: 5.0,
-      maxTotalLoss: 10.0,
-      maxDailyProfit: 5.0,
-      maxTotalProfit: 10.0,
-      isActive: true,
-    },
-    {
-      id: "config-3",
-      propfirmId: "propfirm-2",
-      symbolId: "symbol-1",
-      maxDailyLoss: 4.0,
-      maxTotalLoss: 8.0,
-      maxDailyProfit: 4.0,
-      maxTotalProfit: 8.0,
-      isActive: true,
-    },
-  ];
-
-  for (const config of symbolConfigs) {
-    await prisma.symbolConfiguration.upsert({
-      where: { id: config.id },
-      update: config,
-      create: config,
-    });
-  }
-
-  console.log("✅ Symbol configurations created");
+  // Skip additional data for now to align with actual schema
 }
 
 // Run seed if this file is executed directly
