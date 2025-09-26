@@ -57,7 +57,7 @@ export function requireAnyRole(roleNames: string[]) {
     const { user } = authResult;
 
     try {
-      const hasRole = await RBACService.hasAnyRole(user.userId, roleNames);
+      const hasRole = await RBACService.hasAnyRole(user.id, roleNames);
 
       if (!hasRole) {
         return NextResponse.json(

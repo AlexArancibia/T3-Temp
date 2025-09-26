@@ -6,7 +6,6 @@ import {
   PermissionAction,
   PermissionResource,
 } from "../src/types/rbac";
-import type { Permission } from "@prisma/client";
 
 async function seedAll() {
   console.log("🌱 Starting complete database seed...");
@@ -31,7 +30,7 @@ async function seedAll() {
     console.log("     Password: admin123");
     console.log("     Role: Super Administrator");
     console.log("   Administrator:");
-    console.log("     Email: administrator@example.com");  
+    console.log("     Email: administrator@example.com");
     console.log("     Password: admin123");
     console.log("     Role: Administrator");
     console.log("   Moderator:");
@@ -389,7 +388,7 @@ async function seedRBAC() {
 
   // Admin gets all permissions except MANAGE_ROLE
   const adminPermissions = allPermissions.filter(
-    (p: Permission) =>
+    (p) =>
       !(
         p.action === PermissionAction.MANAGE &&
         p.resource === PermissionResource.ROLE
@@ -527,7 +526,7 @@ async function seedUsers() {
 
   // Get all roles first
   const roles = await prisma.role.findMany();
-  const roleMap = new Map(roles.map(role => [role.name, role]));
+  const roleMap = new Map(roles.map((role) => [role.name, role]));
 
   // Define users with their roles
   const usersToCreate = [
@@ -536,43 +535,43 @@ async function seedUsers() {
       name: "Super Admin",
       roleName: DEFAULT_ROLES.SUPER_ADMIN,
       phone: "+1-555-0101",
-      password: "admin123"
+      password: "admin123",
     },
     {
-      email: "administrator@example.com", 
+      email: "administrator@example.com",
       name: "System Administrator",
       roleName: DEFAULT_ROLES.ADMIN,
       phone: "+1-555-0102",
-      password: "admin123"
+      password: "admin123",
     },
     {
       email: "moderator@example.com",
-      name: "Content Moderator", 
+      name: "Content Moderator",
       roleName: DEFAULT_ROLES.MODERATOR,
       phone: "+1-555-0103",
-      password: "moderator123"
+      password: "moderator123",
     },
     {
       email: "trader1@example.com",
       name: "John Trader",
-      roleName: DEFAULT_ROLES.TRADER, 
+      roleName: DEFAULT_ROLES.TRADER,
       phone: "+1-555-0104",
-      password: "trader123"
+      password: "trader123",
     },
     {
       email: "trader2@example.com",
       name: "Maria Trader",
       roleName: DEFAULT_ROLES.TRADER,
-      phone: "+1-555-0105", 
-      password: "trader123"
+      phone: "+1-555-0105",
+      password: "trader123",
     },
     {
       email: "viewer@example.com",
       name: "Observer User",
       roleName: DEFAULT_ROLES.VIEWER,
       phone: "+1-555-0106",
-      password: "viewer123"
-    }
+      password: "viewer123",
+    },
   ];
 
   for (const userData of usersToCreate) {
@@ -584,7 +583,7 @@ async function seedUsers() {
 
     if (existingUser) {
       console.log(`⚠️ User already exists: ${userData.email}`);
-      
+
       // Check if user has any roles assigned
       const existingUserRoles = await prisma.userRole.findMany({
         where: {
@@ -602,7 +601,7 @@ async function seedUsers() {
       }
 
       const hasCorrectRole = existingUserRoles.some(
-        (ur) => ur.role.name === userData.roleName
+        (ur) => ur.role.name === userData.roleName,
       );
 
       if (hasCorrectRole) {
@@ -630,9 +629,9 @@ async function seedUsers() {
       const hashedPassword = await bcrypt.hash(userData.password, 10);
       await prisma.account.updateMany({
         where: { userId: existingUser.id, providerId: "credential" },
-        data: { password: hashedPassword }
+        data: { password: hashedPassword },
       });
-      
+
       console.log(`✅ Fixed role for user: ${userData.email}`);
       continue;
     }
@@ -645,14 +644,14 @@ async function seedUsers() {
         emailVerified: true,
         phone: userData.phone,
         language: "EN",
-        defaultRiskPercentage: 1.00,
+        defaultRiskPercentage: 1.0,
       },
     });
 
     // Hash password properly for Better Auth
     const bcrypt = await import("bcryptjs");
     const hashedPassword = await bcrypt.hash(userData.password, 10);
-    
+
     // Create account for Better Auth
     await prisma.account.create({
       data: {
@@ -668,7 +667,9 @@ async function seedUsers() {
     // Get the role for this user
     const targetRole = roleMap.get(userData.roleName);
     if (!targetRole) {
-      console.log(`❌ Role ${userData.roleName} not found. Skipping user ${userData.email}`);
+      console.log(
+        `❌ Role ${userData.roleName} not found. Skipping user ${userData.email}`,
+      );
       continue;
     }
 
@@ -681,7 +682,9 @@ async function seedUsers() {
       },
     });
 
-    console.log(`✅ Created user ${userData.email} with role ${userData.roleName}`);
+    console.log(
+      `✅ Created user ${userData.email} with role ${userData.roleName}`,
+    );
   }
 
   console.log("✅ Users created with assigned roles");
@@ -702,7 +705,7 @@ async function seedTradingData() {
     {
       name: "MyForexFunds",
       displayName: "MyForexFunds Pro",
-      description: "Professional forex trading opportunities", 
+      description: "Professional forex trading opportunities",
       website: "https://myforexfunds.com",
       logoUrl: null,
       isActive: true,
@@ -749,7 +752,7 @@ async function seedTradingData() {
     {
       name: "TradingView",
       displayName: "TradingView Platform",
-      description: "TradingView charting platform", 
+      description: "TradingView charting platform",
       website: "https://tradingview.com",
       logoUrl: null,
       isActive: true,
@@ -782,7 +785,7 @@ async function seedTradingData() {
       symbol: "GBPUSD",
       displayName: "British Pound vs US Dollar",
       category: "FOREX" as const,
-      baseCurrency: "GBP", 
+      baseCurrency: "GBP",
       quoteCurrency: "USD",
       pipDecimalPosition: 4,
       isActive: true,
@@ -801,7 +804,7 @@ async function seedTradingData() {
       displayName: "Australian Dollar vs US Dollar",
       category: "FOREX" as const,
       baseCurrency: "AUD",
-      quoteCurrency: "USD", 
+      quoteCurrency: "USD",
       pipDecimalPosition: 4,
       isActive: true,
     },

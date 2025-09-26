@@ -7,12 +7,9 @@ import {
 } from "@/types/rbac";
 
 export async function seedRBAC() {
-  // Check if permissions already exist
-  const _existingPermissions = await prisma.permission.count();
-
   // Create permissions
   const permissions = await Promise.all(
-    Object.entries(DEFAULT_PERMISSIONS).map(async ([key, permission]) => {
+    Object.entries(DEFAULT_PERMISSIONS).map(async ([_key, permission]) => {
       const result = await prisma.permission.upsert({
         where: {
           action_resource: {
@@ -30,9 +27,6 @@ export async function seedRBAC() {
       return result;
     }),
   );
-
-  // Check if roles already exist
-  const _existingRoles = await prisma.role.count();
 
   // Create roles
 
@@ -248,7 +242,7 @@ if (import.meta.main) {
     .then(() => {
       process.exit(0);
     })
-    .catch((error) => {
+    .catch((_error) => {
       process.exit(1);
     });
 }

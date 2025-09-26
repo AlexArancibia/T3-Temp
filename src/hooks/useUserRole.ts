@@ -31,7 +31,7 @@ export function useUserRole() {
     };
 
     // Find the highest priority role
-    let highestRole: UserRole = "trader"; // Default to trader if no specific role found
+    let highestRole: UserRole = "viewer"; // Start with lowest priority
 
     for (const userRole of userRoles) {
       if (userRole.isActive && roleHierarchy[userRole.name]) {
@@ -41,13 +41,12 @@ export function useUserRole() {
         if (mappedRole === "super_admin") {
           highestRole = "super_admin";
           break; // Super admin has highest priority
-        } else if (mappedRole === "admin" && highestRole !== "super_admin") {
+        } else if (mappedRole === "admin") {
           highestRole = "admin";
-        } else if (
-          mappedRole === "trader" &&
-          !["super_admin", "admin"].includes(highestRole)
-        ) {
-          highestRole = "trader";
+        } else if (mappedRole === "trader") {
+          if (highestRole === "viewer") {
+            highestRole = "trader";
+          }
         } else if (mappedRole === "viewer" && highestRole === "trader") {
           // Keep trader over viewer unless it's the only role
           continue;

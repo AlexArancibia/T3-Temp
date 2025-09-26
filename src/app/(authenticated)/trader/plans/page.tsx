@@ -1,16 +1,6 @@
 "use client";
 
-import {
-  BarChart3,
-  CheckCircle,
-  Crown,
-  Headphones,
-  Rocket,
-  Shield,
-  Star,
-  Users,
-  Zap,
-} from "lucide-react";
+import { CheckCircle, Crown, Headphones, Rocket, Star } from "lucide-react";
 import Link from "next/link";
 import {
   Accordion,
@@ -163,32 +153,6 @@ const plans = [
     ],
     popular: false,
     cta: "Contactar Ventas",
-  },
-];
-
-const _features = [
-  {
-    icon: Zap,
-    title: "Conexiones Automáticas",
-    description:
-      "Conecta tus cuentas de propfirm con brokers para copia automática de trades",
-  },
-  {
-    icon: BarChart3,
-    title: "Análisis Avanzado",
-    description:
-      "Herramientas profesionales para análisis de performance y optimización",
-  },
-  {
-    icon: Shield,
-    title: "Seguridad Total",
-    description:
-      "Encriptación de datos y conexiones seguras para proteger tu información",
-  },
-  {
-    icon: Users,
-    title: "Soporte Experto",
-    description: "Equipo de soporte especializado en trading y propfirms",
   },
 ];
 

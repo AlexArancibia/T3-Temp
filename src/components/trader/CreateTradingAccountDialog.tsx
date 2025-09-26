@@ -43,7 +43,7 @@ interface CreateTradingAccountDialogProps {
     id: string;
     accountName: string;
     accountType: string;
-    initialBalance: number;
+    initialBalance: string;
   }) => void;
   preselectedType?: "PROPFIRM" | "BROKER";
 }
