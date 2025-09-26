@@ -72,6 +72,8 @@ export default function BrokersPage() {
     isLoading,
   } = trpc.broker.getAll.useQuery(queryParams);
 
+  const brokers: Broker[] = response?.data || [];
+
   const createBroker = trpc.broker.create.useMutation({
     onSuccess: () => {
       refetch();
@@ -105,8 +107,6 @@ export default function BrokersPage() {
       isActive: true,
     },
   });
-
-  const brokers = response?.data || [];
 
   const handleEdit = (broker: Partial<Broker>) => {
     setEditingBroker(broker);
