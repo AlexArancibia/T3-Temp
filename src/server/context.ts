@@ -14,11 +14,6 @@ export const createContext = async (opts: {
   req: Request;
 }): Promise<Context> => {
   try {
-    // Skip auth during build time when DATABASE_URL is not available
-    if (!process.env.DATABASE_URL) {
-      return {};
-    }
-
     // Get session from Better Auth using cookies
     const session = await auth.api.getSession({
       headers: opts.req.headers,

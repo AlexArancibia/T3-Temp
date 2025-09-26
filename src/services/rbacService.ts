@@ -6,11 +6,6 @@ import {
   PermissionResource,
 } from "@/types/rbac";
 
-// Helper function to check if database is available
-const isDatabaseAvailable = () => {
-  return !!process.env.DATABASE_URL;
-};
-
 // Use Prisma types directly
 type Role = {
   id: string;
@@ -62,11 +57,6 @@ export class RBACService {
     roles: Role[];
     permissions: Permission[];
   }> {
-    // Return empty data during build time when DATABASE_URL is not available
-    if (!isDatabaseAvailable()) {
-      return { roles: [], permissions: [] };
-    }
-
     const userRoles = await prisma.userRole.findMany({
       where: {
         userId,
@@ -341,11 +331,6 @@ export class RBACService {
    * Get all roles
    */
   static async getAllRoles(): Promise<Role[]> {
-    // Return empty array during build time when DATABASE_URL is not available
-    if (!isDatabaseAvailable()) {
-      return [];
-    }
-
     return await prisma.role.findMany({
       where: { isActive: true },
       include: {
@@ -363,11 +348,6 @@ export class RBACService {
    * Get all permissions
    */
   static async getAllPermissions(): Promise<Permission[]> {
-    // Return empty array during build time when DATABASE_URL is not available
-    if (!isDatabaseAvailable()) {
-      return [];
-    }
-
     return await prisma.permission.findMany({
       where: { isActive: true },
       orderBy: [{ resource: "asc" }, { action: "asc" }],
