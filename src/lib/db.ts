@@ -6,13 +6,18 @@ type GlobalWithPrisma = typeof globalThis & {
 
 const globalForPrisma = global as GlobalWithPrisma;
 
+// Check if DATABASE_URL is available, if not provide a fallback for build time
+const databaseUrl =
+  process.env.DATABASE_URL ||
+  "postgresql://placeholder:placeholder@localhost:5432/placeholder";
+
 export const prisma =
   globalForPrisma.prisma ||
   new PrismaClient({
     log: ["error", "warn"],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL,
+        url: databaseUrl,
       },
     },
   });
