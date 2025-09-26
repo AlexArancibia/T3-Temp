@@ -6,6 +6,7 @@ import {
   PermissionAction,
   PermissionResource,
 } from "../src/types/rbac";
+import type { Permission } from "@prisma/client";
 
 async function seedAll() {
   console.log("🌱 Starting complete database seed...");
@@ -388,7 +389,7 @@ async function seedRBAC() {
 
   // Admin gets all permissions except MANAGE_ROLE
   const adminPermissions = allPermissions.filter(
-    (p) =>
+    (p: Permission) =>
       !(
         p.action === PermissionAction.MANAGE &&
         p.resource === PermissionResource.ROLE
