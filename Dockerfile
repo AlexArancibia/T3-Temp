@@ -40,7 +40,7 @@ ENV NEXTAUTH_URL="http://localhost:3000"
 # Ensure Prisma client is generated in builder stage
 RUN bunx prisma generate
 
-# Build the application (using Docker-specific build script)
+# Build the application (using less strict TypeScript checking for Docker)
 RUN bun run build:docker
 
 # Production image, copy all the files and run next
