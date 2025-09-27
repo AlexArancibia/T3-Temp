@@ -1,11 +1,14 @@
 # Docker Compose específico para Coolify
 # Usa este archivo cuando despliegues en Coolify
 
+version: "3"
+
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+      target: runner
       args:
         DATABASE_URL: ${DATABASE_URL}
         BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
@@ -18,11 +21,14 @@ services:
         NODEMAILER_SMTP: ${NODEMAILER_SMTP}
         NODEMAILER_PORT: ${NODEMAILER_PORT}
         NEXTAUTH_URL: ${NEXTAUTH_URL}
+    image: feniz-trading:latest
     restart: unless-stopped
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     environment:
       NODE_ENV: production
+      APP_URL: ${COOLIFY_URL}
+      NEXTAUTH_URL: ${COOLIFY_URL}
       DATABASE_URL: ${DATABASE_URL}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
@@ -41,6 +47,8 @@ services:
       - "coolify.managed=true"
       - "coolify.type=application"
       - "coolify.name=feniz-trading"
+      - "coolify.port=3000"
+      - "coolify.scheme=http"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 30s
