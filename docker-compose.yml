@@ -18,8 +18,6 @@ services:
         NEXT_PUBLIC_API_URL: ${SERVICE_FQDN_APP}
         NEXTAUTH_URL: ${SERVICE_FQDN_APP}
     restart: unless-stopped
-    ports:
-      - "3000:3000"
     labels:
       - coolify.managed=true
       - traefik.enable=true
