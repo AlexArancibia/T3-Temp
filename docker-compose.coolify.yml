@@ -1,5 +1,7 @@
+# Docker Compose específico para Coolify
+# Usa este archivo cuando despliegues en Coolify
+
 services:
-  # Aplicación Feniz
   app:
     build:
       context: .
@@ -7,7 +9,7 @@ services:
       args:
         DATABASE_URL: ${DATABASE_URL}
         BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3000}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
         GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
         GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
         JWT_SECRET: ${JWT_SECRET}
@@ -15,12 +17,10 @@ services:
         NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD}
         NODEMAILER_SMTP: ${NODEMAILER_SMTP}
         NODEMAILER_PORT: ${NODEMAILER_PORT}
-        NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+        NEXTAUTH_URL: ${NEXTAUTH_URL}
     restart: unless-stopped
     expose:
       - "3000"
-    ports:
-      - "3000:3000"
     environment:
       NODE_ENV: production
       DATABASE_URL: ${DATABASE_URL}
@@ -37,29 +37,13 @@ services:
       PORT: 3000
       HOSTNAME: "0.0.0.0"
     labels:
-      # Coolify labels para routing automático
+      # Labels para Coolify v4
       - "coolify.managed=true"
-      - "coolify.version=4"
       - "coolify.type=application"
-      - "coolify.name=feniz-app"
-      - "coolify.port=3000"
-      - "coolify.protocol=http"
-      - "coolify.domain=${COOLIFY_FQDN:-feniz.app}"
-      - "coolify.redirect=https"
-      - "traefik.enable=true"
-      - "traefik.http.routers.feniz-app.rule=Host(\`${COOLIFY_FQDN:-feniz.app}\`)"
-      - "traefik.http.routers.feniz-app.entrypoints=websecure"
-      - "traefik.http.routers.feniz-app.tls.certresolver=letsencrypt"
-      - "traefik.http.services.feniz-app.loadbalancer.server.port=3000"
+      - "coolify.name=feniz-trading"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
-    networks:
-      - coolify
-
-networks:
-  coolify:
-    external: true
+      start_period: 60s
