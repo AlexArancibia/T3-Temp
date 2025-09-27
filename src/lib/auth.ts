@@ -11,7 +11,17 @@ const requiredEnvVars = [
 ];
 
 // Only check required environment variables at runtime, not during build
-if (process.env.SKIP_ENV_VALIDATION !== "true") {
+// Skip validation during build phase (when collecting static props/pages)
+// or when explicitly disabled
+const isBuildTime =
+  process.env.NEXT_PHASE === "phase-production-build" ||
+  process.env.NODE_ENV === undefined ||
+  (typeof window === "undefined" && !process.env.DATABASE_URL);
+
+const skipValidation =
+  process.env.SKIP_ENV_VALIDATION === "true" || isBuildTime;
+
+if (!skipValidation) {
   requiredEnvVars.forEach((envVar) => {
     if (!process.env[envVar]) {
       throw new Error(`Missing required environment variable: ${envVar}`);
