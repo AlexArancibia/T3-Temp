@@ -1,39 +1,60 @@
 # ================================
 # Variables
 # ================================
-DOCKER_COMPOSE = docker compose -f config/docker/docker-compose.yml
+DOCKER_COMPOSE = docker compose
 PKG = npm
 
 # ================================
-# Docker
+# Docker Compose Commands
 # ================================
-# Levantar en desarrollo
-dev:
+# Start all services in development mode
+docker-dev:
 	$(DOCKER_COMPOSE) up --build
 
-# Levantar en segundo plano
-up:
+# Start all services in background (production-like)
+docker-up:
 	$(DOCKER_COMPOSE) up -d --build
 
-# Apagar los contenedores
-down:
+# Stop all services
+docker-down:
 	$(DOCKER_COMPOSE) down
 
-# Ver logs
-logs:
+# View logs from all services
+docker-logs:
+	$(DOCKER_COMPOSE) logs -f
+
+# View logs from app service only
+docker-logs-app:
 	$(DOCKER_COMPOSE) logs -f app
 
-# Acceder a la shell dentro del contenedor
-sh:
+# View logs from Redis
+docker-logs-redis:
+	$(DOCKER_COMPOSE) logs -f redis
+
+# Access shell inside the app container
+docker-sh:
 	$(DOCKER_COMPOSE) exec app sh
 
-# Borrar contenedor + volúmenes
-clean:
+# Clean up containers and volumes
+docker-clean:
 	$(DOCKER_COMPOSE) down -v --remove-orphans
+	docker system prune -f
 
-# Reconstruir todo desde cero
-rebuild: clean
+# Rebuild everything from scratch
+docker-rebuild: docker-clean
 	$(DOCKER_COMPOSE) up --build
+
+# Run database migrations in Docker
+docker-migrate:
+	$(DOCKER_COMPOSE) exec app bunx prisma migrate deploy
+
+# Generate Prisma client in Docker
+docker-generate:
+	$(DOCKER_COMPOSE) exec app bunx prisma generate
+
+# Reset database (DANGER: deletes all data) - Uses external DB
+docker-db-reset:
+	$(DOCKER_COMPOSE) exec app bunx prisma migrate reset --force
 
 # ================================
 # App (npm/Next.js)

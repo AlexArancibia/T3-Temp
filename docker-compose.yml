@@ -1,38 +1,48 @@
+version: '3.8'
+
 services:
-  app:
+  # Main application service
+  feniz-app:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.bun
+      args:
+        # Build-time environment variables from .env file
+        DATABASE_URL: ${DATABASE_URL}
+        BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+        JWT_SECRET: ${JWT_SECRET}
+        NEXTAUTH_URL: ${NEXTAUTH_URL}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+        GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+        NODEMAILER_USER: ${NODEMAILER_USER}
+        NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD}
+        NODEMAILER_SMTP: ${NODEMAILER_SMTP}
+        NODEMAILER_PORT: ${NODEMAILER_PORT}
+    container_name: feniz-trading-platform
     ports:
       - "3000:3000"
     environment:
-      # Database
-      - DATABASE_URL=postgres://postgres:n84SJBEOEik3wSSojUkwJIu8wUu8EAKuQYdHaWHf5c2QhyQ8qP1k43SOiaLuOW0I@161.132.51.242:5432/feniz
+      # Runtime environment variables from .env file
+      DATABASE_URL: ${DATABASE_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      JWT_SECRET: ${JWT_SECRET}
+      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
+      NODEMAILER_USER: ${NODEMAILER_USER}
+      NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD}
+      NODEMAILER_SMTP: ${NODEMAILER_SMTP}
+      NODEMAILER_PORT: ${NODEMAILER_PORT}
       
-      # Authentication
-      - BETTER_AUTH_SECRET=99yVjBrOtdUGSVksSqcNXWxLuvTeDVrD
-      - JWT_SECRET=hxGRRHH8w/k+6+Bsj9WWXu8517+kciY6Q95PRDfDuE8=
-      
-      # Site URLs
-      - NEXT_PUBLIC_API_URL=http://localhost:3000
-      - NEXTAUTH_URL=http://localhost:3000
-      
-      # Google OAuth
-      - GOOGLE_CLIENT_ID=88595118272-sg39fpvgrk8gb7tra3o7fuovv2hig82i.apps.googleusercontent.com
-      - GOOGLE_CLIENT_SECRET=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
-      
-      # Email Configuration
-      - NODEMAILER_SMTP=mail.estrategiags.com
-      - NODEMAILER_PORT=465
-      - NODEMAILER_USER=test@estrategiags.com
-      - NODEMAILER_PASSWORD=HWmmjDNI234234
-      
-      # Next.js
-      - NODE_ENV=production
-      - NEXT_TELEMETRY_DISABLED=1
+      # Application Environment
+      NODE_ENV: "production"
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      NEXT_TELEMETRY_DISABLED: "1"
     
-    restart: unless-stopped
-    
+    # Health check
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
@@ -40,15 +50,16 @@ services:
       retries: 3
       start_period: 15s
     
-    # Resource limits for production
+    # Restart policy
+    restart: unless-stopped
+    
+    # Resource limits
     deploy:
       resources:
         limits:
-          memory: 1G
-          cpus: '0.5'
+          memory: 1GB
         reservations:
           memory: 512M
-          cpus: '0.25'
     
     # Logging configuration
     logging:
@@ -59,4 +70,10 @@ services:
 
 networks:
   default:
+    name: feniz-network
     driver: bridge
+
+# Optional: Add a volume for logs if needed
+volumes:
+  app-logs:
+    driver: local
