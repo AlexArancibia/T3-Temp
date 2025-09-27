@@ -4,6 +4,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        # Build-time environment variables (needed for Next.js build)
+        DATABASE_URL: ${DATABASE_URL:?}
+        BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?}
+        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?}
+        GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?}
+        JWT_SECRET: ${JWT_SECRET:?}
+        NODEMAILER_USER: ${NODEMAILER_USER:?}
+        NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD:?}
+        NODEMAILER_SMTP: ${NODEMAILER_SMTP:?}
+        NODEMAILER_PORT: ${NODEMAILER_PORT:?587}
+        NEXT_PUBLIC_API_URL: ${SERVICE_FQDN_APP}
+        NEXTAUTH_URL: ${SERVICE_FQDN_APP}
     restart: unless-stopped
     ports:
       - "3000:3000"
