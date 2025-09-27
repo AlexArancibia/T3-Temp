@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Building, Edit, Eye, Plus, Trash2 } from "lucide-react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -155,9 +156,11 @@ export default function PropfirmsPage() {
       render: (_, record) => (
         <div className="flex items-center">
           {record.logoUrl ? (
-            <img
+            <Image
               src={record.logoUrl}
               alt={record.displayName}
+              width={40}
+              height={40}
               className="h-10 w-10 rounded-full object-cover mr-3"
             />
           ) : (
@@ -167,6 +170,7 @@ export default function PropfirmsPage() {
           )}
           <div>
             <button
+              type="button"
               onClick={() => handleViewDetails(record)}
               className="text-sm font-medium text-blue-600 hover:text-blue-800 hover:underline text-left"
             >
