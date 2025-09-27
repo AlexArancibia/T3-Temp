@@ -55,6 +55,9 @@ RUN bunx prisma generate
 # Uncomment the following line in case you want to disable telemetry during the build.
 ENV NEXT_TELEMETRY_DISABLED=1
 
+# Skip environment validation during build
+ENV SKIP_ENV_VALIDATION=true
+
 RUN bun run build:docker
 
 # Production image, copy all the files and run next
@@ -68,7 +71,8 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs && \
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/* && \
+    addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public

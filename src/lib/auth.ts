@@ -10,11 +10,14 @@ const requiredEnvVars = [
   "BETTER_AUTH_SECRET",
 ];
 
-requiredEnvVars.forEach((envVar) => {
-  if (!process.env[envVar]) {
-    throw new Error(`Missing required environment variable: ${envVar}`);
-  }
-});
+// Only check required environment variables at runtime, not during build
+if (process.env.SKIP_ENV_VALIDATION !== "true") {
+  requiredEnvVars.forEach((envVar) => {
+    if (!process.env[envVar]) {
+      throw new Error(`Missing required environment variable: ${envVar}`);
+    }
+  });
+}
 
 export const auth = betterAuth({
   database: prismaAdapter(prisma, { provider: "postgresql" }),
@@ -45,8 +48,8 @@ export const auth = betterAuth({
 
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.GOOGLE_CLIENT_ID || "dummy-client-id",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy-client-secret",
       mapProfileToUser: (profile: GoogleProfile) => {
         return {
           name:
