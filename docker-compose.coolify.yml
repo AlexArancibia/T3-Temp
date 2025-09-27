@@ -23,32 +23,25 @@ services:
         NEXTAUTH_URL: ${NEXTAUTH_URL}
     image: feniz-trading:latest
     restart: unless-stopped
-    ports:
-      - "3000:3000"
+    expose:
+      - "3000"
     environment:
       NODE_ENV: production
-      APP_URL: ${COOLIFY_URL}
-      NEXTAUTH_URL: ${COOLIFY_URL}
-      DATABASE_URL: ${DATABASE_URL}
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      SERVICE_FQDN_APP: 
+      APP_URL: $SERVICE_FQDN_APP
+      NEXTAUTH_URL: $SERVICE_FQDN_APP
+      DATABASE_URL: ${DATABASE_URL:?}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-      JWT_SECRET: ${JWT_SECRET}
-      NODEMAILER_USER: ${NODEMAILER_USER}
-      NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD}
-      NODEMAILER_SMTP: ${NODEMAILER_SMTP}
-      NODEMAILER_PORT: ${NODEMAILER_PORT}
-      NEXTAUTH_URL: ${NEXTAUTH_URL}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?}
+      JWT_SECRET: ${JWT_SECRET:?}
+      NODEMAILER_USER: ${NODEMAILER_USER:-}
+      NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD:-}
+      NODEMAILER_SMTP: ${NODEMAILER_SMTP:-smtp.gmail.com}
+      NODEMAILER_PORT: ${NODEMAILER_PORT:-587}
       PORT: 3000
       HOSTNAME: "0.0.0.0"
-    labels:
-      # Labels para Coolify v4
-      - "coolify.managed=true"
-      - "coolify.type=application"
-      - "coolify.name=feniz-trading"
-      - "coolify.port=3000"
-      - "coolify.scheme=http"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
       interval: 30s
