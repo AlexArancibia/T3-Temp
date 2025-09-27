@@ -1,50 +1,62 @@
-# Docker Compose específico para Coolify
-# Usa este archivo cuando despliegues en Coolify
-
-version: "3"
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-      target: runner
-      args:
-        DATABASE_URL: ${DATABASE_URL}
-        BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
-        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-        GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
-        GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET}
-        JWT_SECRET: ${JWT_SECRET}
-        NODEMAILER_USER: ${NODEMAILER_USER}
-        NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD}
-        NODEMAILER_SMTP: ${NODEMAILER_SMTP}
-        NODEMAILER_PORT: ${NODEMAILER_PORT}
-        NEXTAUTH_URL: ${NEXTAUTH_URL}
-    image: feniz-trading:latest
-    restart: unless-stopped
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     environment:
-      NODE_ENV: production
-      SERVICE_FQDN_APP: 
-      APP_URL: $SERVICE_FQDN_APP
-      NEXTAUTH_URL: $SERVICE_FQDN_APP
-      DATABASE_URL: ${DATABASE_URL:?}
-      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?}
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
-      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:?}
-      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:?}
-      JWT_SECRET: ${JWT_SECRET:?}
-      NODEMAILER_USER: ${NODEMAILER_USER:-}
-      NODEMAILER_PASSWORD: ${NODEMAILER_PASSWORD:-}
-      NODEMAILER_SMTP: ${NODEMAILER_SMTP:-smtp.gmail.com}
-      NODEMAILER_PORT: ${NODEMAILER_PORT:-587}
-      PORT: 3000
-      HOSTNAME: "0.0.0.0"
+      # Database
+      - DATABASE_URL=postgres://postgres:n84SJBEOEik3wSSojUkwJIu8wUu8EAKuQYdHaWHf5c2QhyQ8qP1k43SOiaLuOW0I@161.132.51.242:5432/feniz
+      
+      # Authentication
+      - BETTER_AUTH_SECRET=99yVjBrOtdUGSVksSqcNXWxLuvTeDVrD
+      - JWT_SECRET=hxGRRHH8w/k+6+Bsj9WWXu8517+kciY6Q95PRDfDuE8=
+      
+      # Site URLs
+      - NEXT_PUBLIC_API_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://localhost:3000
+      
+      # Google OAuth
+      - GOOGLE_CLIENT_ID=88595118272-sg39fpvgrk8gb7tra3o7fuovv2hig82i.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      
+      # Email Configuration
+      - NODEMAILER_SMTP=mail.estrategiags.com
+      - NODEMAILER_PORT=465
+      - NODEMAILER_USER=test@estrategiags.com
+      - NODEMAILER_PASSWORD=HWmmjDNI234234
+      
+      # Next.js
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    
+    restart: unless-stopped
+    
     healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 60s
+      start_period: 15s
+    
+    # Resource limits for production
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+        reservations:
+          memory: 512M
+          cpus: '0.25'
+    
+    # Logging configuration
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    driver: bridge
